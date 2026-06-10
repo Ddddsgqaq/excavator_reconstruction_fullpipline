@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VGGT Elevation Viewer</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { display: flex; height: 100vh; overflow: hidden; background: #1a1a2e; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; font-size: 13px; }
+#sidebar {
+  width: 280px; min-width: 280px; background: #16213e; display: flex; flex-direction: column;
+  overflow-y: auto; border-right: 1px solid #0f3460; z-index: 10;
+}
+#sidebar::-webkit-scrollbar { width: 6px; }
+#sidebar::-webkit-scrollbar-track { background: #16213e; }
+#sidebar::-webkit-scrollbar-thumb { background: #0f3460; border-radius: 3px; }
+#canvas-container { flex: 1; position: relative; overflow: hidden; }
+canvas#three-canvas { display: block; width: 100%; height: 100%; }
+#overlay-canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
+#overlay-canvas.selecting { pointer-events: all; cursor: crosshair; }
+.sidebar-section { padding: 12px 14px; border-bottom: 1px solid #0f3460; }
+.sidebar-section h3 { color: #e94560; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.sidebar-title { background: #0f3460; padding: 16px 14px; }
+.sidebar-title h2 { color: #e94560; font-size: 15px; font-weight: 600; }
+.sidebar-title p { color: #888; font-size: 11px; margin-top: 3px; }
+label { display: block; margin-bottom: 4px; color: #aaa; font-size: 12px; }
+input[type=number] { width: 100%; background: #0f3460; border: 1px solid #1a4a8a; color: #e0e0e0; padding: 5px 8px; border-radius: 4px; font-size: 13px; }
+input[type=number]:focus { outline: none; border-color: #e94560; }
+.checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; cursor: pointer; }
+.checkbox-row input[type=checkbox] { accent-color: #e94560; width: 14px; height: 14px; cursor: pointer; }
+.checkbox-row span { color: #ccc; font-size: 13px; }
+button { width: 100%; padding: 7px 12px; background: #0f3460; border: 1px solid #1a4a8a; color: #e0e0e0; border-radius: 4px; cursor: pointer; font-size: 13px; transition: background 0.2s; }
+button:hover { background: #1a4a8a; }
+button.active { background: #e94560; border-color: #e94560; color: #fff; }
+.collapsible-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+.collapsible-header .arrow { transition: transform 0.2s; font-size: 10px; color: #888; }
+.collapsible-header.open .arrow { transform: rotate(90deg); }
+.collapsible-content { display: none; margin-top: 8px; }
+.collapsible-content.open { display: block; }
+#camera-table-wrap { max-height: 200px; overflow-y: auto; margin-top: 6px; }
+#camera-table-wrap::-webkit-scrollbar { width: 4px; }
+#camera-table-wrap::-webkit-scrollbar-thumb { background: #0f3460; }
+table { width: 100%; border-collapse: collapse; font-size: 11px; }
+th { background: #0f3460; color: #e94560; padding: 4px 6px; text-align: left; position: sticky; top: 0; }
+td { padding: 3px 6px; border-bottom: 1px solid #1a2a4a; color: #ccc; }
+tr:hover td { background: #1a2a4a; }
+#volume-result { background: #0f3460; border-radius: 4px; padding: 8px 10px; margin-top: 8px; font-size: 12px; line-height: 1.6; }
+#volume-result .vol-val { color: #e94560; font-weight: 600; font-size: 14px; }
+#tooltip {
+  position: fixed; background: rgba(15,52,96,0.95); border: 1px solid #e94560;
+  color: #e0e0e0; padding: 6px 10px; border-radius: 4px; font-size: 12px;
+  pointer-events: none; display: none; z-index: 1000; white-space: nowrap;
+  font-family: monospace; line-height: 1.6;
+}
+/* ── Gravity Viz Modal ── */
+#grav-modal {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.80);
+  z-index: 2000; align-items: center; justify-content: center;
+}
+#grav-modal.open { display: flex; }
+#grav-modal-inner {
+  background: #16213e; border: 1px solid #0f3460; border-radius: 8px;
+  padding: 20px 24px; max-width: 960px; width: 96vw; max-height: 92vh;
+  overflow-y: auto; position: relative;
+}
+#grav-modal-inner h2 { color: #e94560; font-size: 14px; margin-bottom: 14px; }
+#grav-modal-close {
+  position: absolute; top: 12px; right: 14px; background: none; border: none;
+  color: #888; font-size: 18px; cursor: pointer; width: auto; padding: 0;
+}
+#grav-modal-close:hover { color: #e94560; }
+#grav-main-canvas { border: 1px solid #0f3460; border-radius: 4px; display: block; }
+#grav-info { font-size: 12px; font-family: monospace; color: #aaa; line-height: 1.8; margin-top: 14px; }
+#grav-info .lbl { color: #00ccff; }
+#grav-info .val { color: #e0e0e0; }
+#grav-info .warn { color: #f0a500; }
+#loading {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(26,26,46,0.92); z-index: 100;
+}
+.spinner { width: 48px; height: 48px; border: 4px solid #0f3460; border-top-color: #e94560; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+#loading p { color: #aaa; font-size: 14px; }
+#error-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); background: #2a1a1a; border: 1px solid #e94560; color: #e94560; padding: 20px 28px; border-radius: 8px; font-size: 14px; display: none; z-index: 100; text-align: center; }
+.stat-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.stat-label { color: #888; }
+.stat-val { color: #e0e0e0; }
+.shape-btn { width: auto; flex: 1; padding: 5px 0; font-size: 16px; background: #0f3460; border: 1px solid #1a4a8a; color: #ccc; border-radius: 4px; cursor: pointer; transition: background 0.2s; }
+.shape-btn:hover { background: #1a4a8a; }
+.shape-btn.active { background: #e94560; border-color: #e94560; color: #fff; }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="sidebar-title">
+    <h2>Elevation Viewer</h2>
+    <p>VGGT 3D Point Cloud</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="sidebar-section" id="stats-section">
+    <h3>Scene Info</h3>
+    <div class="stat-row"><span class="stat-label">Points</span><span class="stat-val" id="stat-points">—</span></div>
+    <div class="stat-row"><span class="stat-label">Cameras</span><span class="stat-val" id="stat-cameras">—</span></div>
+    <div class="stat-row"><span class="stat-label">Gravity</span><span class="stat-val" id="stat-gravity">—</span></div>
+    <div class="checkbox-row" style="margin-top:8px">
+      <input type="checkbox" id="show-axes" checked>
+      <span>Show axes</span>
+    </div>
+    <div class="checkbox-row" style="margin-top:4px">
+      <input type="checkbox" id="show-ref-plane" checked>
+      <span>Show reference plane</span>
+    </div>
+    <button id="gravity-viz-btn" style="margin-top:10px;font-size:12px;padding:5px 8px;">Gravity Alignment Viz</button>
+  </div>
+
+  <!-- Scale -->
+  <div class="sidebar-section">
+    <h3>Scale Calibration</h3>
+    <label for="scale-input">Scale factor (1 unit = ? meters)</label>
+    <input type="number" id="scale-input" value="1.0" step="0.01" min="0.001">
+  </div>
+
+  <!-- Camera Extrinsics -->
+  <div class="sidebar-section">
+    <div class="collapsible-header" id="cam-header">
+      <h3 style="margin:0">Camera Extrinsics</h3>
+      <span class="arrow">&#9654;</span>
+    </div>
+    <div class="collapsible-content" id="cam-content">
+      <div class="checkbox-row" style="margin-top:8px">
+        <input type="checkbox" id="show-cameras">
+        <span>Show cameras in 3D</span>
+      </div>
+      <div id="gravity-source-label" style="color:#888;font-size:11px;margin-bottom:6px;"></div>
+      <div id="camera-table-wrap">
+        <table id="camera-table">
+          <thead><tr><th>Frame</th><th>X (m)</th><th>Y (m)</th><th>Z (m)</th></tr></thead>
+          <tbody id="camera-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hole Fill -->
+  <div class="sidebar-section">
+    <h3>DEM Hole Fill</h3>
+    <div class="checkbox-row">
+      <input type="checkbox" id="fill-holes">
+      <span>Fill Holes &amp; Show DEM Mesh</span>
+    </div>
+    <div class="checkbox-row" id="hide-pointcloud-row" style="display:none;margin-top:6px;padding-left:4px;border-left:2px solid #444;">
+      <input type="checkbox" id="hide-pointcloud">
+      <span>Hide original point cloud</span>
+    </div>
+    <div id="compare-row" style="display:none;margin-top:6px;">
+      <button id="compare-btn" style="font-size:12px;padding:5px 8px;">Showing: Filled &nbsp;&#8644;</button>
+    </div>
+  </div>
+
+  <!-- Volume Selection -->
+  <div class="sidebar-section">
+    <h3>Volume Selection</h3>
+    <div style="display:flex;gap:6px;margin-bottom:6px;">
+      <button id="shape-rect" class="shape-btn active" title="Rectangle">&#9645;</button>
+      <button id="shape-circle" class="shape-btn" title="Circle">&#9711;</button>
+      <button id="shape-ellipse" class="shape-btn" title="Ellipse">&#11835;</button>
+    </div>
+    <button id="select-btn">Select Region</button>
+    <button id="clear-btn" style="margin-top:6px">Clear Selection</button>
+    <div id="volume-result" style="display:none">
+      <div>Volume: <span class="vol-val" id="vol-val">—</span></div>
+      <div style="color:#aaa;font-size:11px" id="vol-pts">Points in region: —</div>
+    </div>
+  </div>
+</div>
+
+<div id="canvas-container">
+  <canvas id="three-canvas"></canvas>
+  <canvas id="overlay-canvas"></canvas>
+  <div id="loading"><div class="spinner"></div><p>Loading point cloud data…</p></div>
+  <div id="error-msg"></div>
+  <div id="split-overlay" style="display:none"></div>
+</div>
+
+<div id="tooltip"></div>
+
+<!-- ── Gravity Alignment Visualization Modal ── -->
+<div id="grav-modal">
+  <div id="grav-modal-inner">
+    <button id="grav-modal-close">&#10005;</button>
+    <h2>Gravity Alignment Visualization</h2>
+    <canvas id="grav-main-canvas" width="900" height="520"></canvas>
+    <div id="grav-info"></div>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// Inline CSS2DRenderer to avoid CDN module load failure
+class CSS2DObject extends THREE.Object3D {
+  constructor(element) { super(); this.element = element; this.element.style.position = 'absolute'; this.element.style.userSelect = 'none'; }
+}
+class CSS2DRenderer {
+  constructor() {
+    this.domElement = document.createElement('div');
+    this.domElement.style.overflow = 'hidden';
+    this._cache = new Map();
+  }
+  setSize(w, h) { this.domElement.style.width = w + 'px'; this.domElement.style.height = h + 'px'; this._w = w; this._h = h; }
+  render(scene, camera) {
+    const w = this._w || this.domElement.offsetWidth;
+    const h = this._h || this.domElement.offsetHeight;
+    const v = new THREE.Vector3();
+    const seen = new Set();
+    scene.traverse(obj => {
+      if (!(obj instanceof CSS2DObject)) return;
+      seen.add(obj.uuid);
+      v.setFromMatrixPosition(obj.matrixWorld).project(camera);
+      const x = (v.x * 0.5 + 0.5) * w, y = (-v.y * 0.5 + 0.5) * h;
+      obj.element.style.transform = `translate(-50%,-50%) translate(${x}px,${y}px)`;
+      obj.element.style.display = v.z > 1 ? 'none' : '';
+      if (!this.domElement.contains(obj.element)) this.domElement.appendChild(obj.element);
+    });
+    for (const [uuid, el] of this._cache) {
+      if (!seen.has(uuid) && this.domElement.contains(el)) this.domElement.removeChild(el);
+    }
+    this._cache.clear();
+    seen.forEach(uuid => { /* keep */ });
+  }
+}
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let scene, camera, renderer, labelRenderer, controls;
+let pointCloud = null;
+let cameraGroup = null;
+let demMesh = null;
+let demMeshOrig = null;
+let refPlaneGroup = null;
+let axesGroup = null;
+let sceneBSCenter = new THREE.Vector3();
+let sceneBSRadius = 1.0;
+let selectionHighlight = null;
+let raycaster, mouse;
+let data = null;          // raw API response
+let scaleFactor = 1.0;
+let selectMode = false;
+let selRect = null;       // {x0,y0,x1,y1} screen coords
+let selShape = 'rect';    // 'rect' | 'circle' | 'ellipse'
+let selectedIndices = [];
+let originalColors = null; // Float32Array backup
+let refYAligned = 0;       // aligned-space Y of the reference plane (tooltip zero point)
+
+// ─── Coordinate transform (module-level, requires data to be set) ─────────────
+function alignedToDisplay(ax, ay, az) {
+  const Td = data.T_display, Ra = data.R_align;
+  const wx = Ra[0][0]*ax + Ra[1][0]*ay + Ra[2][0]*az;
+  const wy = Ra[0][1]*ax + Ra[1][1]*ay + Ra[2][1]*az;
+  const wz = Ra[0][2]*ax + Ra[1][2]*ay + Ra[2][2]*az;
+  return [
+    Td[0][0]*wx + Td[0][1]*wy + Td[0][2]*wz + Td[0][3],
+    Td[1][0]*wx + Td[1][1]*wy + Td[1][2]*wz + Td[1][3],
+    Td[2][0]*wx + Td[2][1]*wy + Td[2][2]*wz + Td[2][3],
+  ];
+}
+
+const POINT_SIZE = 0.003;
+const BASE_URL = `${location.protocol}//${location.host}`;
+
+// ─── Init Three.js ────────────────────────────────────────────────────────────
+function initThree() {
+  const container = document.getElementById('canvas-container');
+  const canvas = document.getElementById('three-canvas');
+
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setClearColor(0x1a1a2e);
+
+  labelRenderer = new CSS2DRenderer();
+  labelRenderer.setSize(container.clientWidth, container.clientHeight);
+  labelRenderer.domElement.style.position = 'absolute';
+  labelRenderer.domElement.style.top = '0';
+  labelRenderer.domElement.style.left = '0';
+  labelRenderer.domElement.style.pointerEvents = 'none';
+  container.appendChild(labelRenderer.domElement);
+
+  scene = new THREE.Scene();
+
+  camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.001, 1000);
+  camera.position.set(0, 0.5, 2);
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+
+  raycaster = new THREE.Raycaster();
+  raycaster.params.Points.threshold = 0.005;
+  mouse = new THREE.Vector2();
+
+  // Ambient light for camera spheres
+  scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+  scene.add(new THREE.DirectionalLight(0xffffff, 0.5));
+
+  resizeRenderer();
+  window.addEventListener('resize', resizeRenderer);
+  animate();
+}
+
+function resizeRenderer() {
+  const container = document.getElementById('canvas-container');
+  const w = container.clientWidth, h = container.clientHeight;
+  renderer.setSize(w, h);
+  labelRenderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  // Resize overlay canvas
+  const oc = document.getElementById('overlay-canvas');
+  oc.width = w; oc.height = h;
+  oc.style.width = w + 'px'; oc.style.height = h + 'px';
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
+}
+
+// ─── Load Data ────────────────────────────────────────────────────────────────
+async function loadData() {
+  const params = new URLSearchParams(location.search);
+  const workingDir = params.get('session') || '';
+
+  try {
+    const resp = await fetch(`${BASE_URL}/elevation_viewer_data`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        working_dir: workingDir,
+        conf_thres: 50.0,
+        prediction_mode: 'Depthmap and Camera Branch',
+        ground_percentile: 20.0
+      })
+    });
+    if (!resp.ok) {
+      const txt = await resp.text();
+      throw new Error(txt || `HTTP ${resp.status}`);
+    }
+    data = await resp.json();
+    document.getElementById('loading').style.display = 'none';
+    buildScene();
+    populateSidebar();
+  } catch (e) {
+    document.getElementById('loading').style.display = 'none';
+    const em = document.getElementById('error-msg');
+    em.textContent = e.message.includes('predictions') ? e.message : `Error: ${e.message}\n\nRun Reconstruct first.`;
+    em.style.display = 'block';
+  }
+}
+
+// ─── Build Point Cloud ────────────────────────────────────────────────────────
+function buildScene() {
+  // Remove old
+  if (pointCloud) { scene.remove(pointCloud); pointCloud.geometry.dispose(); }
+
+  const pts = data.points_display;
+  const cols = data.colors;
+  const n = pts.length;
+
+  const positions = new Float32Array(n * 3);
+  const colors = new Float32Array(n * 3);
+  const alignedPos = new Float32Array(n * 3); // stored for hover
+
+  for (let i = 0; i < n; i++) {
+    positions[i*3]   = pts[i][0];
+    positions[i*3+1] = pts[i][1];
+    positions[i*3+2] = pts[i][2];
+    colors[i*3]   = cols[i][0] / 255;
+    colors[i*3+1] = cols[i][1] / 255;
+    colors[i*3+2] = cols[i][2] / 255;
+    alignedPos[i*3]   = data.points_aligned[i][0];
+    alignedPos[i*3+1] = data.points_aligned[i][1];
+    alignedPos[i*3+2] = data.points_aligned[i][2];
+  }
+
+  originalColors = colors.slice();
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geo.setAttribute('alignedPos', new THREE.BufferAttribute(alignedPos, 3));
+
+  const mat = new THREE.PointsMaterial({ size: POINT_SIZE, vertexColors: true, sizeAttenuation: true });
+  pointCloud = new THREE.Points(geo, mat);
+  scene.add(pointCloud);
+
+  // Fit camera
+  geo.computeBoundingSphere();
+  const bs = geo.boundingSphere;
+  camera.position.copy(bs.center).addScaledVector(new THREE.Vector3(0,1,2).normalize(), bs.radius * 2.5);
+  controls.target.copy(bs.center);
+  controls.update();
+
+  document.getElementById('stat-points').textContent = n.toLocaleString();
+
+  sceneBSCenter.copy(bs.center);
+  sceneBSRadius = bs.radius;
+  document.getElementById('stat-points').textContent = n.toLocaleString();
+}
+function makeAxisLabel(text, color) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  div.style.cssText = `color:${color};font-size:13px;font-weight:700;font-family:monospace;
+    background:rgba(0,0,0,0.45);padding:1px 5px;border-radius:3px;pointer-events:none;`;
+  return new CSS2DObject(div);
+}
+
+function buildAxes(origin, size) {
+  if (axesGroup) { scene.remove(axesGroup); axesGroup = null; }
+  axesGroup = new THREE.Group();
+
+  // Compute aligned-space axis directions in display space
+  const [ox,oy,oz] = alignedToDisplay(0,0,0);
+  const o = new THREE.Vector3(ox,oy,oz);
+  const xDir = new THREE.Vector3(...alignedToDisplay(1,0,0)).sub(o).normalize();
+  const yDir = new THREE.Vector3(...alignedToDisplay(0,1,0)).sub(o).normalize();
+  const zDir = new THREE.Vector3(...alignedToDisplay(0,0,1)).sub(o).normalize();
+
+  const defs = [
+    { dir: xDir, color: 0xff4444, label: 'X', labelColor: '#ff4444' },
+    { dir: yDir, color: 0x44ff44, label: 'Y', labelColor: '#44ff44' },
+    { dir: zDir, color: 0x4488ff, label: 'Z', labelColor: '#4488ff' },
+  ];
+  for (const { dir, color, label, labelColor } of defs) {
+    const arrow = new THREE.ArrowHelper(dir, origin, size, color, size * 0.18, size * 0.09);
+    axesGroup.add(arrow);
+    const lbl = makeAxisLabel(label, labelColor);
+    lbl.position.copy(origin).addScaledVector(dir, size * 1.15);
+    axesGroup.add(lbl);
+  }
+
+  const visible = document.getElementById('show-axes')?.checked ?? true;
+  axesGroup.visible = visible;
+  scene.add(axesGroup);
+}
+
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
+function populateSidebar() {
+  document.getElementById('stat-cameras').textContent = data.cameras.length;
+  document.getElementById('stat-gravity').textContent = data.gravity_source || '—';
+  document.getElementById('gravity-source-label').textContent = `Gravity: ${data.gravity_source || 'unknown'}`;
+
+  scaleFactor = data.scale_factor || 1.0;
+  document.getElementById('scale-input').value = scaleFactor;
+
+  buildCameraTable();
+  buildRefPlane();
+}
+
+function buildCameraTable() {
+  const tbody = document.getElementById('camera-tbody');
+  tbody.innerHTML = '';
+  const sf = scaleFactor;
+  for (const cam of data.cameras) {
+    const c = cam.center_aligned;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${cam.frame}</td><td>${(c[0]*sf).toFixed(3)}</td><td>${(c[1]*sf).toFixed(3)}</td><td>${(c[2]*sf).toFixed(3)}</td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+// ─── Camera Spheres ───────────────────────────────────────────────────────────
+function buildCameraSpheres() {
+  if (cameraGroup) { scene.remove(cameraGroup); cameraGroup = null; }
+  cameraGroup = new THREE.Group();
+  const geo = new THREE.SphereGeometry(0.008, 8, 8);
+  const colors = [0xff6b6b, 0x4ecdc4, 0x45b7d1, 0x96ceb4, 0xffeaa7, 0xdda0dd, 0x98d8c8];
+  data.cameras.forEach((cam, i) => {
+    const mat = new THREE.MeshPhongMaterial({ color: colors[i % colors.length] });
+    const mesh = new THREE.Mesh(geo, mat);
+    const cd = cam.center_display;
+    mesh.position.set(cd[0], cd[1], cd[2]);
+    cameraGroup.add(mesh);
+  });
+  scene.add(cameraGroup);
+}
+
+// ─── Reference Plane & Axes ───────────────────────────────────────────────────
+function buildRefPlane() {
+  if (refPlaneGroup) { scene.remove(refPlaneGroup); refPlaneGroup = null; }
+
+  const dem = data.dem;
+  const gr = dem.grid_res;
+  const elev = dem.elev;
+  const hasData = dem.has_data;
+
+  // refY = mean elevation of non-original (nearest-filled) cells in aligned space
+  let refYSum = 0, refYCnt = 0;
+  for (let i = 0; i < gr; i++)
+    for (let j = 0; j < gr; j++)
+      if (!hasData[i][j]) { refYSum += elev[i][j]; refYCnt++; }
+  const refY_aligned = refYCnt > 0 ? refYSum / refYCnt : elev[Math.floor(gr/2)][Math.floor(gr/2)];
+  refYAligned = refY_aligned;
+
+  const xSpan = dem.x_max - dem.x_min, zSpan = dem.z_max - dem.z_min;
+  const pad = Math.max(xSpan, zSpan) * 0.3;
+  const px0 = dem.x_min - pad, px1 = dem.x_max + pad;
+  const pz0 = dem.z_min - pad, pz1 = dem.z_max + pad;
+
+  // Flat quad
+  const rpCorners = [[px0,refY_aligned,pz0],[px1,refY_aligned,pz0],
+                     [px1,refY_aligned,pz1],[px0,refY_aligned,pz1]];
+  const rpPos = new Float32Array(rpCorners.flatMap(([ax,ay,az]) => alignedToDisplay(ax,ay,az)));
+  const rpGeo = new THREE.BufferGeometry();
+  rpGeo.setAttribute('position', new THREE.BufferAttribute(rpPos, 3));
+  rpGeo.setIndex([0,1,2, 0,2,3]);
+  const rpMat = new THREE.MeshBasicMaterial({ color: 0x00ccff, transparent: true, opacity: 0.10, side: THREE.DoubleSide, depthWrite: false });
+  const rpMesh = new THREE.Mesh(rpGeo, rpMat);
+
+  // Grid lines (10×10)
+  const GRID_N = 10;
+  const glPts = [];
+  for (let k = 0; k <= GRID_N; k++) {
+    const tx = px0 + k / GRID_N * (px1 - px0);
+    const tz = pz0 + k / GRID_N * (pz1 - pz0);
+    glPts.push(...alignedToDisplay(tx, refY_aligned, pz0), ...alignedToDisplay(tx, refY_aligned, pz1));
+    glPts.push(...alignedToDisplay(px0, refY_aligned, tz), ...alignedToDisplay(px1, refY_aligned, tz));
+  }
+  const glGeo = new THREE.BufferGeometry();
+  glGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(glPts), 3));
+  const glLines = new THREE.LineSegments(glGeo, new THREE.LineBasicMaterial({ color: 0x00ccff, transparent: true, opacity: 0.30 }));
+
+  refPlaneGroup = new THREE.Group();
+  refPlaneGroup.add(rpMesh);
+  refPlaneGroup.add(glLines);
+  refPlaneGroup.visible = document.getElementById('show-ref-plane')?.checked ?? true;
+  scene.add(refPlaneGroup);
+
+  // Axes anchored at reference plane center
+  const cx_a = (dem.x_min + dem.x_max) / 2, cz_a = (dem.z_min + dem.z_max) / 2;
+  const [rcx, rcy, rcz] = alignedToDisplay(cx_a, refY_aligned, cz_a);
+  buildAxes(new THREE.Vector3(rcx, rcy, rcz), sceneBSRadius * 0.6);
+}
+
+// ─── DEM Hole Fill ────────────────────────────────────────────────────────────
+function buildDEMMesh() {
+  if (demMesh) { scene.remove(demMesh); demMesh.geometry.dispose(); demMesh = null; }
+  if (demMeshOrig) { scene.remove(demMeshOrig); demMeshOrig.geometry.dispose(); demMeshOrig = null; }
+
+  const dem = data.dem;
+  const gr = dem.grid_res;
+  const elev = dem.elev;
+  const hasData = dem.has_data;
+
+  // Deep copy for fill
+  const filled = elev.map(row => row.slice());
+  const filledMask = hasData.map(row => row.slice());
+
+  // Iterative hole fill (max 20 passes)
+  for (let pass = 0; pass < 20; pass++) {
+    let changed = false;
+    for (let i = 0; i < gr; i++) {
+      for (let j = 0; j < gr; j++) {
+        if (filledMask[i][j]) continue;
+        let sum = 0, cnt = 0;
+        for (let di = -1; di <= 1; di++) {
+          for (let dj = -1; dj <= 1; dj++) {
+            if (di === 0 && dj === 0) continue;
+            const ni = i+di, nj = j+dj;
+            if (ni >= 0 && ni < gr && nj >= 0 && nj < gr && filledMask[ni][nj]) {
+              sum += filled[ni][nj]; cnt++;
+            }
+          }
+        }
+        if (cnt > 0) { filled[i][j] = sum/cnt; filledMask[i][j] = 1; changed = true; }
+      }
+    }
+    if (!changed) break;
+  }
+
+  // Elevation colormap — terrain-like: blue → green → yellow → brown → white
+  const CMAP_STOPS = [
+    [0.00, [0.13, 0.30, 0.65]],
+    [0.20, [0.10, 0.55, 0.80]],
+    [0.40, [0.15, 0.68, 0.25]],
+    [0.60, [0.82, 0.80, 0.12]],
+    [0.80, [0.60, 0.38, 0.18]],
+    [1.00, [0.92, 0.90, 0.88]],
+  ];
+  function elevColor(t) {
+    t = Math.max(0, Math.min(1, t));
+    for (let k = 1; k < CMAP_STOPS.length; k++) {
+      const [t0, c0] = CMAP_STOPS[k-1];
+      const [t1, c1] = CMAP_STOPS[k];
+      if (t <= t1) {
+        const f = (t - t0) / (t1 - t0);
+        return c0.map((v, i) => v + f * (c1[i] - v));
+      }
+    }
+    return CMAP_STOPS[CMAP_STOPS.length-1][1];
+  }
+
+  // Elevation range from valid cells only
+  let elevMin = Infinity, elevMax = -Infinity;
+  for (let i = 0; i < gr; i++)
+    for (let j = 0; j < gr; j++)
+      if (hasData[i][j]) { elevMin = Math.min(elevMin, elev[i][j]); elevMax = Math.max(elevMax, elev[i][j]); }
+  const elevRange = (elevMax - elevMin) || 1.0;
+
+  // Build geometry
+  const positions = [];
+  const colorsArr = [];
+  const indices = [];
+
+  for (let i = 0; i < gr; i++) {
+    for (let j = 0; j < gr; j++) {
+      const ax = dem.x_min + j*(dem.x_max - dem.x_min)/(gr-1);
+      const ay = filled[i][j];
+      const az = dem.z_min + i*(dem.z_max - dem.z_min)/(gr-1);
+      const [dx,dy,dz] = alignedToDisplay(ax, ay, az);
+      positions.push(dx, dy, dz);
+      const t = (filled[i][j] - elevMin) / elevRange;
+      const [r, g, b] = elevColor(t);
+      if (hasData[i][j]) { colorsArr.push(r, g, b); }
+      else                { colorsArr.push(r*0.7, g*0.7, b*0.7); }  // hole-fill: slightly dimmed
+    }
+  }
+
+  for (let i = 0; i < gr-1; i++) {
+    for (let j = 0; j < gr-1; j++) {
+      const a = i*gr+j, b = i*gr+j+1, c = (i+1)*gr+j, d = (i+1)*gr+j+1;
+      indices.push(a,b,c, b,d,c);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colorsArr), 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+
+  const mat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.55, side: THREE.DoubleSide });
+  demMesh = new THREE.Mesh(geo, mat);
+  scene.add(demMesh);
+
+  // Build original mesh (holes visible — only quads where all 4 corners have real data)
+  const posOrig = [], colOrig = [], idxOrig = [];
+  for (let i = 0; i < gr; i++) {
+    for (let j = 0; j < gr; j++) {
+      const ax = dem.x_min + j*(dem.x_max - dem.x_min)/(gr-1);
+      const ay = elev[i][j];
+      const az = dem.z_min + i*(dem.z_max - dem.z_min)/(gr-1);
+      const [dx,dy,dz] = alignedToDisplay(ax, ay, az);
+      posOrig.push(dx, dy, dz);
+      if (hasData[i][j]) {
+        const t = (elev[i][j] - elevMin) / elevRange;
+        const [r, g, b] = elevColor(t);
+        colOrig.push(r, g, b);
+      } else {
+        colOrig.push(0.15, 0.15, 0.15);
+      }
+    }
+  }
+  for (let i = 0; i < gr-1; i++) {
+    for (let j = 0; j < gr-1; j++) {
+      if (hasData[i][j] && hasData[i][j+1] && hasData[i+1][j] && hasData[i+1][j+1]) {
+        const a = i*gr+j, b = i*gr+j+1, c = (i+1)*gr+j, d = (i+1)*gr+j+1;
+        idxOrig.push(a,b,c, b,d,c);
+      }
+    }
+  }
+  const geoOrig = new THREE.BufferGeometry();
+  geoOrig.setAttribute('position', new THREE.BufferAttribute(new Float32Array(posOrig), 3));
+  geoOrig.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colOrig), 3));
+  geoOrig.setIndex(idxOrig);
+  geoOrig.computeVertexNormals();
+  demMeshOrig = new THREE.Mesh(geoOrig, mat.clone());
+  demMeshOrig.visible = false;
+  scene.add(demMeshOrig);
+}
+
+// ─── Hover Tooltip ────────────────────────────────────────────────────────────
+const tooltip = document.getElementById('tooltip');
+
+function onMouseMove(e) {
+  if (!pointCloud || selectMode) return;
+  const container = document.getElementById('canvas-container');
+  const rect = container.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObject(pointCloud);
+  if (hits.length > 0) {
+    const idx = hits[0].index;
+    const ap = pointCloud.geometry.attributes.alignedPos;
+    const sf = scaleFactor;
+    const x = (ap.getX(idx)*sf).toFixed(3);
+    const y = ((ap.getY(idx) - refYAligned)*sf).toFixed(3);
+    const z = (ap.getZ(idx)*sf).toFixed(3);
+    tooltip.innerHTML = `X: ${x}m<br>Y: ${y}m<br>Z: ${z}m`;
+    tooltip.style.display = 'block';
+    tooltip.style.left = (e.clientX + 14) + 'px';
+    tooltip.style.top  = (e.clientY - 10) + 'px';
+  } else {
+    tooltip.style.display = 'none';
+  }
+}
+
+function onMouseLeave() { tooltip.style.display = 'none'; }
+
+// ─── Rectangle Selection ──────────────────────────────────────────────────────
+let dragStart = null;
+
+function startSelectMode() {
+  selectMode = true;
+  document.getElementById('select-btn').classList.add('active');
+  document.getElementById('select-btn').textContent = 'Cancel Selection';
+  const oc = document.getElementById('overlay-canvas');
+  oc.classList.add('selecting');
+  oc.addEventListener('mousedown', onSelMouseDown);
+  oc.addEventListener('mousemove', onSelMouseMove);
+  oc.addEventListener('mouseup', onSelMouseUp);
+}
+
+function stopSelectMode() {
+  selectMode = false;
+  document.getElementById('select-btn').classList.remove('active');
+  document.getElementById('select-btn').textContent = 'Select Region';
+  const oc = document.getElementById('overlay-canvas');
+  oc.classList.remove('selecting');
+  oc.removeEventListener('mousedown', onSelMouseDown);
+  oc.removeEventListener('mousemove', onSelMouseMove);
+  oc.removeEventListener('mouseup', onSelMouseUp);
+  clearOverlay();
+}
+
+function clearOverlay() {
+  const oc = document.getElementById('overlay-canvas');
+  const ctx = oc.getContext('2d');
+  ctx.clearRect(0, 0, oc.width, oc.height);
+}
+
+function onSelMouseDown(e) {
+  const oc = document.getElementById('overlay-canvas');
+  const rect = oc.getBoundingClientRect();
+  dragStart = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  selRect = null;
+}
+
+function onSelMouseMove(e) {
+  if (!dragStart) return;
+  const oc = document.getElementById('overlay-canvas');
+  const rect = oc.getBoundingClientRect();
+  const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+  const ctx = oc.getContext('2d');
+  ctx.clearRect(0, 0, oc.width, oc.height);
+  ctx.strokeStyle = '#e94560';
+  ctx.lineWidth = 2;
+  ctx.fillStyle = 'rgba(233,69,96,0.1)';
+  const x = Math.min(dragStart.x, cx), y = Math.min(dragStart.y, cy);
+  const w = Math.abs(cx - dragStart.x), h = Math.abs(cy - dragStart.y);
+  const mx = (dragStart.x + cx) / 2, my = (dragStart.y + cy) / 2;
+  if (selShape === 'rect') {
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeRect(x, y, w, h);
+  } else if (selShape === 'circle') {
+    const r = Math.min(w, h) / 2;
+    ctx.beginPath();
+    ctx.arc(mx, my, r, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+  } else {
+    ctx.beginPath();
+    ctx.ellipse(mx, my, w / 2, h / 2, 0, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+  }
+}
+
+function onSelMouseUp(e) {
+  if (!dragStart) return;
+  const oc = document.getElementById('overlay-canvas');
+  const rect = oc.getBoundingClientRect();
+  const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+  selRect = {
+    x0: Math.min(dragStart.x, cx), y0: Math.min(dragStart.y, cy),
+    x1: Math.max(dragStart.x, cx), y1: Math.max(dragStart.y, cy)
+  };
+  dragStart = null;
+  stopSelectMode();
+  computeSelection();
+}
+
+function screenToAlignedXZ(sx, sy, groundY) {
+  const container = document.getElementById('canvas-container');
+  const w = container.clientWidth, h = container.clientHeight;
+  const ndcX = (sx / w) * 2 - 1;
+  const ndcY = -(sy / h) * 2 + 1;
+  const ray = new THREE.Raycaster();
+  ray.setFromCamera(new THREE.Vector2(ndcX, ndcY), camera);
+  // Intersect with Y = groundY plane in display space
+  // We need to find where ray hits the ground plane in aligned space
+  // Simpler: intersect with a horizontal plane at groundY in world space
+  const plane = new THREE.Plane(new THREE.Vector3(0,1,0), -groundY);
+  const target = new THREE.Vector3();
+  ray.ray.intersectPlane(plane, target);
+  return target; // display space point on ground plane
+}
+
+function displayToAligned(dx, dy, dz) {
+  // aligned = R_align @ world, world = T_display^-1 @ display
+  // We'll use the inverse: aligned = R_align @ (T_display^-1 @ [dx,dy,dz,1])
+  // For simplicity, use the stored R_align and T_display
+  const Td = data.T_display;
+  const Ra = data.R_align;
+  // Invert T_display (assume it's rigid: R|t, so inv = R^T | -R^T t)
+  // Extract rotation and translation from T_display
+  const R = [[Td[0][0],Td[0][1],Td[0][2]],[Td[1][0],Td[1][1],Td[1][2]],[Td[2][0],Td[2][1],Td[2][2]]];
+  const t = [Td[0][3], Td[1][3], Td[2][3]];
+  // world = R^T @ (display - t)
+  const px = dx - t[0], py = dy - t[1], pz = dz - t[2];
+  const wx = R[0][0]*px + R[1][0]*py + R[2][0]*pz;
+  const wy = R[0][1]*px + R[1][1]*py + R[2][1]*pz;
+  const wz = R[0][2]*px + R[1][2]*py + R[2][2]*pz;
+  // aligned = R_align @ world
+  const ax = Ra[0][0]*wx + Ra[0][1]*wy + Ra[0][2]*wz;
+  const ay = Ra[1][0]*wx + Ra[1][1]*wy + Ra[1][2]*wz;
+  const az = Ra[2][0]*wx + Ra[2][1]*wy + Ra[2][2]*wz;
+  return [ax, ay, az];
+}
+
+function computeSelection() {
+  if (!selRect || !data) return;
+
+  // Find median ground Y in aligned space
+  const ap = data.points_aligned;
+  const ys = ap.map(p => p[1]).sort((a,b) => a-b);
+  const groundY_aligned = ys[Math.floor(ys.length * 0.1)];
+
+  // Convert groundY_aligned to display Y for plane intersection
+  // We need display Y for the plane. Use a sample point.
+  // aligned -> display: display = T_display @ R_align^T @ [ax, groundY_aligned, az, 1]
+  // For the plane, we just need the Y component in display space at groundY_aligned
+  // Use center of DEM
+  const dem = data.dem;
+  const cx_a = (dem.x_min + dem.x_max) / 2;
+  const cz_a = (dem.z_min + dem.z_max) / 2;
+  const Td = data.T_display;
+  const Ra = data.R_align;
+  const Rt = [[Ra[0][0],Ra[1][0],Ra[2][0]],[Ra[0][1],Ra[1][1],Ra[2][1]],[Ra[0][2],Ra[1][2],Ra[2][2]]];
+  const wx = Rt[0][0]*cx_a + Rt[0][1]*groundY_aligned + Rt[0][2]*cz_a;
+  const wy = Rt[1][0]*cx_a + Rt[1][1]*groundY_aligned + Rt[1][2]*cz_a;
+  const wz = Rt[2][0]*cx_a + Rt[2][1]*groundY_aligned + Rt[2][2]*cz_a;
+  const groundY_display = Td[1][0]*wx + Td[1][1]*wy + Td[1][2]*wz + Td[1][3];
+
+  // Unproject rectangle corners to display space ground plane
+  const corners = [
+    screenToAlignedXZ(selRect.x0, selRect.y0, groundY_display),
+    screenToAlignedXZ(selRect.x1, selRect.y0, groundY_display),
+    screenToAlignedXZ(selRect.x1, selRect.y1, groundY_display),
+    screenToAlignedXZ(selRect.x0, selRect.y1, groundY_display),
+  ];
+
+  // Convert corners to aligned XZ
+  const alignedCorners = corners.map(c => displayToAligned(c.x, c.y, c.z));
+  const axs = alignedCorners.map(c => c[0]);
+  const azs = alignedCorners.map(c => c[2]);
+  const minAX = Math.min(...axs), maxAX = Math.max(...axs);
+  const minAZ = Math.min(...azs), maxAZ = Math.max(...azs);
+
+  // Select points
+  selectedIndices = [];
+  const cxA = (minAX + maxAX) / 2, czA = (minAZ + maxAZ) / 2;
+  const rxA = (maxAX - minAX) / 2, rzA = (maxAZ - minAZ) / 2;
+  for (let i = 0; i < ap.length; i++) {
+    const ax = ap[i][0], az = ap[i][2];
+    if (selShape === 'rect') {
+      if (ax >= minAX && ax <= maxAX && az >= minAZ && az <= maxAZ) selectedIndices.push(i);
+    } else if (selShape === 'circle') {
+      const r = Math.min(rxA, rzA);
+      const dx = ax - cxA, dz = az - czA;
+      if (dx*dx + dz*dz <= r*r) selectedIndices.push(i);
+    } else {
+      const dx = (ax - cxA) / rxA, dz = (az - czA) / rzA;
+      if (dx*dx + dz*dz <= 1) selectedIndices.push(i);
+    }
+  }
+
+  // Highlight selected points yellow
+  const colorAttr = pointCloud.geometry.attributes.color;
+  for (let i = 0; i < originalColors.length/3; i++) {
+    colorAttr.setXYZ(i, originalColors[i*3], originalColors[i*3+1], originalColors[i*3+2]);
+  }
+  for (const idx of selectedIndices) {
+    colorAttr.setXYZ(idx, 1.0, 1.0, 0.0);
+  }
+  colorAttr.needsUpdate = true;
+
+  // Compute volume from DEM
+  const gr = dem.grid_res;
+  const elev = dem.elev;
+  const hasData = dem.has_data;
+  const cellW = (dem.x_max - dem.x_min) / (gr - 1);
+  const cellH = (dem.z_max - dem.z_min) / (gr - 1);
+  const cellArea = cellW * cellH * scaleFactor * scaleFactor;
+
+  let elevInRegion = [];
+  let cellsInRegion = [];
+  for (let i = 0; i < gr; i++) {
+    for (let j = 0; j < gr; j++) {
+      if (!hasData[i][j]) continue;
+      const ax = dem.x_min + j*cellW;
+      const az = dem.z_min + i*cellH;
+      let inside = false;
+      if (selShape === 'rect') {
+        inside = ax >= minAX && ax <= maxAX && az >= minAZ && az <= maxAZ;
+      } else if (selShape === 'circle') {
+        const r = Math.min(rxA, rzA);
+        const dx = ax - cxA, dz = az - czA;
+        inside = dx*dx + dz*dz <= r*r;
+      } else {
+        const dx = (ax - cxA) / rxA, dz = (az - czA) / rzA;
+        inside = dx*dx + dz*dz <= 1;
+      }
+      if (inside) { elevInRegion.push(elev[i][j]); cellsInRegion.push([i,j]); }
+    }
+  }
+
+  let volume = 0;
+  if (elevInRegion.length > 0) {
+    const minElev = Math.min(...elevInRegion);
+    for (const e of elevInRegion) {
+      volume += (e - minElev) * cellArea * scaleFactor;
+    }
+  }
+
+  document.getElementById('volume-result').style.display = 'block';
+  document.getElementById('vol-val').textContent = volume.toFixed(4) + ' m³';
+  document.getElementById('vol-pts').textContent = `Points in region: ${selectedIndices.length}`;
+}
+
+function clearSelection() {
+  selectedIndices = [];
+  if (pointCloud && originalColors) {
+    const colorAttr = pointCloud.geometry.attributes.color;
+    for (let i = 0; i < originalColors.length/3; i++) {
+      colorAttr.setXYZ(i, originalColors[i*3], originalColors[i*3+1], originalColors[i*3+2]);
+    }
+    colorAttr.needsUpdate = true;
+  }
+  document.getElementById('volume-result').style.display = 'none';
+  clearOverlay();
+}
+
+// ─── Gravity Alignment Visualization ─────────────────────────────────────────
+
+function drawGravityViz() {
+  if (!data) return;
+
+  const cameras  = data.cameras;
+  const nGrav    = data.n_grav;       // gravity direction in world space
+  const RAlign   = data.R_align;      // 3×3, world → aligned
+  const source   = data.gravity_source || '—';
+  const warnings = data.gravity_warnings || [];
+
+  const cv  = document.getElementById('grav-main-canvas');
+  const W   = cv.width, H = cv.height;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0a0a1a';
+  ctx.fillRect(0, 0, W, H);
+
+  // ── world-space camera centers ──────────────────────────────────────────────
+  const wPts = cameras.map(c => c.center_world);    // [[x,y,z]]
+  const aPts = cameras.map(c => c.center_aligned);  // [[x,y,z]]
+  const S    = wPts.length;
+
+  // centroid of trajectory (world)
+  const cen = [0,1,2].map(i => wPts.reduce((s,p)=>s+p[i],0)/S);
+
+  // ── PCA on world camera centers ─────────────────────────────────────────────
+  // 2×2 covariance on XZ (horizontal plane, most informative for trajectory)
+  const xs = wPts.map(p=>p[0]-cen[0]), zs = wPts.map(p=>p[2]-cen[2]);
+  const cxx=xs.reduce((s,v)=>s+v*v,0)/S, czz=zs.reduce((s,v)=>s+v*v,0)/S;
+  const cxz=xs.reduce((s,v,i)=>s+v*zs[i],0)/S;
+  const tr=cxx+czz, det=cxx*czz-cxz*cxz;
+  const disc = Math.max(0, tr*tr-4*det);
+  const lam1=(tr+Math.sqrt(disc))/2, lam2=(tr-Math.sqrt(disc))/2;
+  // eigenvector for lam1 (principal axis)
+  let ev1=[cxz, lam1-cxx]; const ev1n=Math.sqrt(ev1[0]**2+ev1[1]**2)||1;
+  ev1=[ev1[0]/ev1n, ev1[1]/ev1n];
+  // minor axis (perpendicular)
+  const ev2=[-ev1[1], ev1[0]];
+  const ratio = lam2/(lam1||1e-9);
+
+  // ── layout: left panel = BEFORE, right panel = AFTER ───────────────────────
+  const PAD   = 30;
+  const MID   = W / 2;
+  const PW    = MID - PAD * 1.5;   // panel width
+  const PH    = H - PAD * 2;
+  const L_OX  = PAD + PW / 2;      // left panel origin X
+  const R_OX  = MID + PAD * 0.5 + PW / 2;  // right panel origin X
+  const OY    = PAD + PH * 0.55;   // origin Y (slightly below center for labels above)
+
+  // ── helpers ─────────────────────────────────────────────────────────────────
+  function arrow(x0,y0,x1,y1,color,lw=2,hs=11) {
+    const dx=x1-x0,dy=y1-y0,len=Math.sqrt(dx*dx+dy*dy); if(len<1)return;
+    const a=Math.atan2(dy,dx);
+    ctx.save(); ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=lw;
+    ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(x1-hs*Math.cos(a-0.38),y1-hs*Math.sin(a-0.38));
+    ctx.lineTo(x1-hs*Math.cos(a+0.38),y1-hs*Math.sin(a+0.38));
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  function txt(t,x,y,color='#ccc',size=11,align='left',bold=false) {
+    ctx.save(); ctx.fillStyle=color;
+    ctx.font=(bold?'bold ':'')+size+'px monospace';
+    ctx.textAlign=align; ctx.fillText(t,x,y); ctx.restore();
+  }
+  function dot(x,y,r,color) {
+    ctx.save(); ctx.fillStyle=color;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); ctx.restore();
+  }
+  function dashedLine(x0,y0,x1,y1,color,dash=[5,4]) {
+    ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=1;
+    ctx.setLineDash(dash); ctx.beginPath();
+    ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke(); ctx.restore();
+  }
+  function panelBg(ox, label) {
+    ctx.save();
+    ctx.strokeStyle='#1a2a4a'; ctx.lineWidth=1;
+    ctx.strokeRect(ox-PW/2, PAD, PW, PH);
+    ctx.restore();
+    txt(label, ox, PAD+14, '#e94560', 12, 'center', true);
+  }
+
+  // ── scale: fit trajectory into panel ────────────────────────────────────────
+  const allW = wPts.map(p=>[p[0]-cen[0], p[2]-cen[2]]);
+  const maxR = Math.max(...allW.map(p=>Math.sqrt(p[0]**2+p[1]**2)), 0.01);
+  const SCALE = Math.min(PW, PH) * 0.32 / maxR;  // world units → pixels
+  const AXIS_LEN = Math.min(PW, PH) * 0.28;       // axis arrow length in px
+
+  // isometric-style 3D projection: XZ on ground, Y upward
+  // project world [x,y,z] relative to centroid → canvas [px, py]
+  function proj(wx, wy, wz) {
+    // oblique projection: X→right, Z→into screen (foreshortened), Y→up
+    const px = wx * SCALE - wz * SCALE * 0.45;
+    const py = -wy * SCALE + wz * SCALE * 0.25;
+    return [px, py];
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // LEFT PANEL — BEFORE alignment (world space)
+  // ════════════════════════════════════════════════════════════════════════════
+  panelBg(L_OX, 'BEFORE  (World Space)');
+
+  // ground plane hint (faint grid)
+  ctx.save(); ctx.strokeStyle='#1a2a3a'; ctx.lineWidth=0.8;
+  for (let k=-3;k<=3;k++) {
+    const [ax,ay]=proj(k*maxR*0.5,0,0), [bx,by]=proj(k*maxR*0.5,0,maxR*1.5);
+    ctx.beginPath(); ctx.moveTo(L_OX+ax,OY+ay); ctx.lineTo(L_OX+bx,OY+by); ctx.stroke();
+    const [cx2,cy2]=proj(0,0,k*maxR*0.5), [dx2,dy2]=proj(maxR*1.5,0,k*maxR*0.5);
+    ctx.beginPath(); ctx.moveTo(L_OX+cx2,OY+cy2); ctx.lineTo(L_OX+dx2,OY+dy2); ctx.stroke();
+  }
+  ctx.restore();
+
+  // PCA axes on ground plane (XZ)
+  const pcaLen = Math.sqrt(lam1) * SCALE * 2.2;
+  const pca2Len = Math.sqrt(lam2||0) * SCALE * 2.2;
+  // principal axis (ev1 is in XZ, map to proj)
+  const [pa1x,pa1y]=proj(ev1[0]*maxR*0.9, 0, ev1[1]*maxR*0.9);
+  const [pa1nx,pa1ny]=proj(-ev1[0]*maxR*0.9, 0, -ev1[1]*maxR*0.9);
+  dashedLine(L_OX+pa1nx,OY+pa1ny, L_OX+pa1x,OY+pa1y, '#f0a500',[6,3]);
+  txt('PCA axis 1', L_OX+pa1x+5, OY+pa1y-3, '#f0a500', 10);
+  // minor axis
+  const [pa2x,pa2y]=proj(ev2[0]*maxR*0.5, 0, ev2[1]*maxR*0.5);
+  const [pa2nx,pa2ny]=proj(-ev2[0]*maxR*0.5, 0, -ev2[1]*maxR*0.5);
+  dashedLine(L_OX+pa2nx,OY+pa2ny, L_OX+pa2x,OY+pa2y, '#f0a500',[3,4]);
+  txt('PCA axis 2', L_OX+pa2x+5, OY+pa2y+3, '#f0a500', 10);
+
+  // camera trajectory path
+  ctx.save(); ctx.strokeStyle='#4488ff'; ctx.lineWidth=1.5;
+  ctx.beginPath();
+  wPts.forEach((p,i)=>{
+    const [px,py]=proj(p[0]-cen[0], p[1]-cen[1], p[2]-cen[2]);
+    i===0?ctx.moveTo(L_OX+px,OY+py):ctx.lineTo(L_OX+px,OY+py);
+  });
+  ctx.stroke(); ctx.restore();
+
+  // camera dots + frame 0 highlight
+  wPts.forEach((p,i)=>{
+    const [px,py]=proj(p[0]-cen[0], p[1]-cen[1], p[2]-cen[2]);
+    dot(L_OX+px, OY+py, i===0?6:2.5, i===0?'#ffdd00':'#4ecdc4');
+    if(i===0) {
+      txt('Frame 0', L_OX+px+8, OY+py-6, '#ffdd00', 11);
+      // camera "frustum" hint: small triangle
+      ctx.save(); ctx.strokeStyle='#ffdd0066'; ctx.lineWidth=1;
+      const fwd=proj(0,0,maxR*0.15);
+      ctx.beginPath();
+      ctx.moveTo(L_OX+px,OY+py);
+      ctx.lineTo(L_OX+px+fwd[0]-8,OY+py+fwd[1]-4);
+      ctx.lineTo(L_OX+px+fwd[0]+8,OY+py+fwd[1]+4);
+      ctx.closePath(); ctx.stroke(); ctx.restore();
+    }
+    if(i===S-1) txt(`Frame ${i}`, L_OX+px+6, OY+py+12, '#4ecdc4', 10);
+  });
+
+  // centroid dot
+  dot(L_OX, OY, 5, '#ffffff');
+  txt('centroid', L_OX+7, OY-6, '#aaa', 10);
+
+  // world coordinate axes (original, before R_align)
+  arrow(L_OX, OY, L_OX+AXIS_LEN*0.7, OY, '#ff5555', 2.5, 11);
+  txt('X', L_OX+AXIS_LEN*0.7+5, OY+4, '#ff5555', 12, 'left', true);
+  arrow(L_OX, OY, L_OX, OY-AXIS_LEN*0.7, '#aaaaaa', 2, 10);
+  txt('Y↓(down)', L_OX+5, OY-AXIS_LEN*0.7-5, '#aaaaaa', 10);
+  const [zax,zay]=proj(0,0,maxR*0.6);
+  arrow(L_OX, OY, L_OX+zax, OY+zay, '#4488ff', 2, 10);
+  txt('Z', L_OX+zax+4, OY+zay+4, '#4488ff', 12, 'left', true);
+
+  // n_grav arrow (the estimated gravity direction in world space)
+  const ngScale = AXIS_LEN * 0.85;
+  const [ngx,ngy]=proj(nGrav[0]*maxR*0.6, nGrav[1]*maxR*0.6, nGrav[2]*maxR*0.6);
+  arrow(L_OX, OY, L_OX+ngx, OY+ngy, '#e94560', 3, 13);
+  txt('n_grav', L_OX+ngx+5, OY+ngy, '#e94560', 12, 'left', true);
+
+  // angle arc between n_grav and world Y
+  const angRad = Math.acos(Math.max(-1,Math.min(1, nGrav[1])));
+  const angDeg = (angRad*180/Math.PI).toFixed(1);
+  ctx.save(); ctx.strokeStyle='#f0a500'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.arc(L_OX, OY, 28, -Math.PI/2, -Math.PI/2+angRad); ctx.stroke();
+  ctx.restore();
+  txt(`${angDeg}°`, L_OX+32, OY-22, '#f0a500', 11);
+
+  // ── middle arrow ────────────────────────────────────────────────────────────
+  const midY = PAD + PH * 0.42;
+  arrow(MID-22, midY, MID+22, midY, '#00ccff', 3, 14);
+  txt('R_align', MID, midY-10, '#00ccff', 11, 'center');
+  txt('applied', MID, midY+18, '#00ccff', 10, 'center');
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // RIGHT PANEL — AFTER alignment (aligned space, Y=up)
+  // ════════════════════════════════════════════════════════════════════════════
+  panelBg(R_OX, 'AFTER  (Gravity-Aligned Space)');
+
+  // ground plane hint
+  ctx.save(); ctx.strokeStyle='#1a2a3a'; ctx.lineWidth=0.8;
+  for (let k=-3;k<=3;k++) {
+    const [ax,ay]=proj(k*maxR*0.5,0,0), [bx,by]=proj(k*maxR*0.5,0,maxR*1.5);
+    ctx.beginPath(); ctx.moveTo(R_OX+ax,OY+ay); ctx.lineTo(R_OX+bx,OY+by); ctx.stroke();
+    const [cx2,cy2]=proj(0,0,k*maxR*0.5), [dx2,dy2]=proj(maxR*1.5,0,k*maxR*0.5);
+    ctx.beginPath(); ctx.moveTo(R_OX+cx2,OY+cy2); ctx.lineTo(R_OX+dx2,OY+dy2); ctx.stroke();
+  }
+  ctx.restore();
+
+  // aligned camera trajectory
+  ctx.save(); ctx.strokeStyle='#4488ff'; ctx.lineWidth=1.5;
+  ctx.beginPath();
+  aPts.forEach((p,i)=>{
+    const ac = [0,1,2].map(k=>aPts.reduce((s,q)=>s+q[k],0)/S);
+    const [px,py]=proj(p[0]-ac[0], p[1]-ac[1], p[2]-ac[2]);
+    i===0?ctx.moveTo(R_OX+px,OY+py):ctx.lineTo(R_OX+px,OY+py);
+  });
+  ctx.stroke(); ctx.restore();
+
+  // aligned camera dots
+  const ac = [0,1,2].map(k=>aPts.reduce((s,q)=>s+q[k],0)/S);
+  aPts.forEach((p,i)=>{
+    const [px,py]=proj(p[0]-ac[0], p[1]-ac[1], p[2]-ac[2]);
+    dot(R_OX+px, OY+py, i===0?6:2.5, i===0?'#ffdd00':'#4ecdc4');
+    if(i===0) {
+      txt('Frame 0', R_OX+px+8, OY+py-6, '#ffdd00', 11);
+      ctx.save(); ctx.strokeStyle='#ffdd0066'; ctx.lineWidth=1;
+      const fwd=proj(0,0,maxR*0.15);
+      ctx.beginPath();
+      ctx.moveTo(R_OX+px,OY+py);
+      ctx.lineTo(R_OX+px+fwd[0]-8,OY+py+fwd[1]-4);
+      ctx.lineTo(R_OX+px+fwd[0]+8,OY+py+fwd[1]+4);
+      ctx.closePath(); ctx.stroke(); ctx.restore();
+    }
+  });
+
+  // centroid
+  dot(R_OX, OY, 5, '#ffffff');
+
+  // aligned coordinate axes (Y is now up)
+  arrow(R_OX, OY, R_OX+AXIS_LEN*0.7, OY, '#ff5555', 2.5, 11);
+  txt('X', R_OX+AXIS_LEN*0.7+5, OY+4, '#ff5555', 12, 'left', true);
+  arrow(R_OX, OY, R_OX, OY-AXIS_LEN*0.85, '#44ff44', 3, 13);
+  txt('Y↑(up)', R_OX+5, OY-AXIS_LEN*0.85-5, '#44ff44', 12, 'left', true);
+  const [zax2,zay2]=proj(0,0,maxR*0.6);
+  arrow(R_OX, OY, R_OX+zax2, OY+zay2, '#4488ff', 2, 10);
+  txt('Z', R_OX+zax2+4, OY+zay2+4, '#4488ff', 12, 'left', true);
+
+  // n_grav now coincides with Y (show as merged arrow, slightly offset)
+  arrow(R_OX+3, OY, R_OX+3, OY-AXIS_LEN*0.85, '#e94560', 2, 11);
+  txt('n_grav = Y', R_OX+10, OY-AXIS_LEN*0.85+14, '#e94560', 11);
+
+  // reference plane (horizontal band)
+  ctx.save();
+  ctx.fillStyle='rgba(0,204,255,0.07)';
+  ctx.strokeStyle='rgba(0,204,255,0.35)'; ctx.lineWidth=1;
+  const [rp0x,rp0y]=proj(-maxR*0.8,0,-maxR*0.3);
+  const [rp1x,rp1y]=proj( maxR*0.8,0,-maxR*0.3);
+  const [rp2x,rp2y]=proj( maxR*0.8,0, maxR*1.2);
+  const [rp3x,rp3y]=proj(-maxR*0.8,0, maxR*1.2);
+  ctx.beginPath();
+  ctx.moveTo(R_OX+rp0x,OY+rp0y); ctx.lineTo(R_OX+rp1x,OY+rp1y);
+  ctx.lineTo(R_OX+rp2x,OY+rp2y); ctx.lineTo(R_OX+rp3x,OY+rp3y);
+  ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+  txt('reference plane', R_OX+rp1x+4, OY+rp1y, '#00ccff', 10);
+
+  // ── bottom legend ────────────────────────────────────────────────────────────
+  const LY = H - 14;
+  const items = [
+    ['#ffdd00','● Frame 0 camera'],
+    ['#4ecdc4','● Other cameras'],
+    ['#4488ff','— Trajectory'],
+    ['#e94560','→ n_grav'],
+    ['#f0a500','-- PCA axes'],
+    ['#00ccff','▭ Ref plane'],
+  ];
+  let lx = PAD;
+  items.forEach(([c,t])=>{
+    txt(t, lx, LY, c, 10); lx += ctx.measureText(t).width + 22;
+  });
+
+  // ── info panel ───────────────────────────────────────────────────────────────
+  const R = RAlign;
+  const warnHtml = warnings.length
+    ? warnings.map(w=>`<div class="warn">⚠ ${w}</div>`).join('')
+    : '<span style="color:#2e7d32">✓ No warnings</span>';
+  document.getElementById('grav-info').innerHTML = `
+    <div style="display:flex;gap:40px;flex-wrap:wrap">
+      <div>
+        <div><span class="lbl">Gravity source : </span><span class="val">${source}</span></div>
+        <div><span class="lbl">n_grav (world) : </span><span class="val">[${nGrav.map(v=>v.toFixed(4)).join(', ')}]</span></div>
+        <div><span class="lbl">Angle to Y-axis: </span><span class="val">${angDeg}°</span></div>
+        <div><span class="lbl">Cameras used   : </span><span class="val">${S}</span></div>
+        <div><span class="lbl">PCA ratio λ₂/λ₁: </span><span class="val">${ratio.toFixed(3)} ${ratio<0.1?'<span style="color:#e94560">(degenerate!)</span>':''}</span></div>
+      </div>
+      <div>
+        <div><span class="lbl">R_align:</span></div>
+        <div><span class="val">[${R[0].map(v=>v.toFixed(3)).join(', ')}]</span></div>
+        <div><span class="val">[${R[1].map(v=>v.toFixed(3)).join(', ')}]</span></div>
+        <div><span class="val">[${R[2].map(v=>v.toFixed(3)).join(', ')}]</span></div>
+      </div>
+      <div>${warnHtml}</div>
+    </div>
+  `;
+}
+
+// ─── Event Listeners ──────────────────────────────────────────────────────────
+function setupEvents() {
+  const container = document.getElementById('canvas-container');
+  container.addEventListener('mousemove', onMouseMove);
+  container.addEventListener('mouseleave', onMouseLeave);
+
+  // Show axes checkbox
+  document.getElementById('show-axes').addEventListener('change', e => {
+    if (axesGroup) axesGroup.visible = e.target.checked;
+  });
+
+  // Gravity viz button
+  document.getElementById('gravity-viz-btn').addEventListener('click', () => {
+    if (!data) return;
+    document.getElementById('grav-modal').classList.add('open');
+    drawGravityViz();
+  });
+  document.getElementById('grav-modal-close').addEventListener('click', () => {
+    document.getElementById('grav-modal').classList.remove('open');
+  });
+  document.getElementById('grav-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('grav-modal'))
+      document.getElementById('grav-modal').classList.remove('open');
+  });
+
+  // Scale input
+  document.getElementById('scale-input').addEventListener('input', e => {
+    const v = parseFloat(e.target.value);
+    if (v > 0) { scaleFactor = v; if (data) buildCameraTable(); }
+  });
+
+  // Camera collapsible
+  document.getElementById('cam-header').addEventListener('click', () => {
+    document.getElementById('cam-header').classList.toggle('open');
+    document.getElementById('cam-content').classList.toggle('open');
+  });
+
+  // Show cameras checkbox
+  document.getElementById('show-cameras').addEventListener('change', e => {
+    if (!data) return;
+    if (e.target.checked) buildCameraSpheres();
+    else if (cameraGroup) { scene.remove(cameraGroup); cameraGroup = null; }
+  });
+
+  // Fill holes checkbox
+  document.getElementById('fill-holes').addEventListener('change', e => {
+    if (!data) return;
+    const hideRow = document.getElementById('hide-pointcloud-row');
+    const compareRow = document.getElementById('compare-row');
+    if (e.target.checked) {
+      buildDEMMesh();
+      hideRow.style.display = '';
+      compareRow.style.display = '';
+    } else {
+      if (demMesh) { scene.remove(demMesh); demMesh.geometry.dispose(); demMesh = null; }
+      if (demMeshOrig) { scene.remove(demMeshOrig); demMeshOrig.geometry.dispose(); demMeshOrig = null; }
+      hideRow.style.display = 'none';
+      compareRow.style.display = 'none';
+      document.getElementById('hide-pointcloud').checked = false;
+      document.getElementById('compare-btn').textContent = 'Showing: Filled ⇄';
+      if (pointCloud) pointCloud.visible = true;
+    }
+  });
+
+  // Hide point cloud checkbox
+  document.getElementById('hide-pointcloud').addEventListener('change', e => {
+    if (pointCloud) pointCloud.visible = !e.target.checked;
+  });
+
+  // Reference plane visibility
+  document.getElementById('show-ref-plane').addEventListener('change', e => {
+    if (refPlaneGroup) refPlaneGroup.visible = e.target.checked;
+  });
+
+  // Compare toggle button: switch between filled and original mesh
+  let showingFilled = true;
+  document.getElementById('compare-btn').addEventListener('click', () => {
+    if (!demMesh || !demMeshOrig) return;
+    showingFilled = !showingFilled;
+    demMesh.visible = showingFilled;
+    demMeshOrig.visible = !showingFilled;
+    document.getElementById('compare-btn').textContent =
+      (showingFilled ? 'Showing: Filled' : 'Showing: Original') + ' ⇄';
+  });
+
+  // Shape selector buttons
+  ['rect', 'circle', 'ellipse'].forEach(s => {
+    document.getElementById(`shape-${s}`).addEventListener('click', () => {
+      selShape = s;
+      document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`shape-${s}`).classList.add('active');
+    });
+  });
+
+  // Select region button
+  document.getElementById('select-btn').addEventListener('click', () => {
+    if (selectMode) stopSelectMode();
+    else if (data) startSelectMode();
+  });
+
+  // Clear selection button
+  document.getElementById('clear-btn').addEventListener('click', clearSelection);
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+initThree();
+setupEvents();
+loadData();
+</script>
+</body>
+</html>

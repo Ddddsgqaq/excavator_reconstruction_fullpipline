@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>基于多模型融合的单目视频三维重建与地形分析系统 — 技术方案报告</title>
+<style>
+  :root {
+    --text: #1a1a2e;
+    --muted: #555;
+    --accent: #2c5f8a;
+    --accent2: #1a3a5c;
+    --bg: #fafafa;
+    --card: #ffffff;
+    --border: #d0d7de;
+    --code-bg: #f3f4f6;
+    --formula-bg: #f0f4f8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Times New Roman", "SimSun", serif;
+    font-size: 15px;
+    line-height: 1.85;
+    color: var(--text);
+    background: var(--bg);
+    padding: 0 0 60px;
+  }
+  /* ── Cover ── */
+  .cover {
+    background: linear-gradient(135deg, #1a3a5c 0%, #2c5f8a 60%, #3a7abf 100%);
+    color: #fff;
+    text-align: center;
+    padding: 72px 40px 60px;
+  }
+  .cover h1 {
+    font-size: 26px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    line-height: 1.5;
+    margin-bottom: 18px;
+  }
+  .cover .subtitle {
+    font-size: 14px;
+    opacity: 0.85;
+    margin-bottom: 32px;
+    font-style: italic;
+  }
+  .cover .meta-grid {
+    display: inline-grid;
+    grid-template-columns: auto auto;
+    gap: 6px 24px;
+    font-size: 13px;
+    opacity: 0.9;
+    text-align: left;
+  }
+  .cover .meta-grid .label { opacity: 0.7; }
+  /* ── Layout ── */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+  /* ── TOC ── */
+  .toc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    padding: 24px 28px;
+    margin: 36px 0 0;
+    border-radius: 4px;
+  }
+  .toc h2 { font-size: 14px; color: var(--accent); margin-bottom: 12px; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 4px 0; font-size: 13.5px; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc .sub { padding-left: 18px; list-style-type: lower-alpha; }
+  /* ── Sections ── */
+  .section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 32px 36px;
+    margin-top: 28px;
+  }
+  h2.sec-title {
+    font-size: 18px;
+    color: var(--accent2);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+  }
+  h3.sub-title {
+    font-size: 15px;
+    color: var(--accent);
+    margin: 22px 0 10px;
+    font-weight: bold;
+  }
+  h4.sub2-title {
+    font-size: 14px;
+    color: var(--text);
+    margin: 16px 0 8px;
+    font-weight: bold;
+    font-style: italic;
+  }
+  p { margin-bottom: 12px; text-align: justify; }
+  /* ── Formula ── */
+  .formula-block {
+    background: var(--formula-bg);
+    border-left: 3px solid var(--accent);
+    padding: 14px 20px;
+    margin: 14px 0;
+    border-radius: 0 4px 4px 0;
+    font-family: "Courier New", monospace;
+    font-size: 13.5px;
+    overflow-x: auto;
+  }
+  .formula-block .eq-label {
+    float: right;
+    color: var(--muted);
+    font-size: 12px;
+    font-family: serif;
+  }
+  /* ── Code ── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+    font-size: 12.5px;
+    overflow-x: auto;
+    margin: 12px 0;
+    font-family: "Courier New", monospace;
+    line-height: 1.6;
+  }
+  code {
+    font-family: "Courier New", monospace;
+    font-size: 12.5px;
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 13.5px;
+  }
+  th {
+    background: var(--accent);
+    color: #fff;
+    padding: 9px 14px;
+    text-align: left;
+    font-weight: normal;
+  }
+  td {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #f7f9fc; }
+  /* ── Pipeline diagram ── */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+    margin: 20px 0;
+    justify-content: center;
+  }
+  .pipe-box {
+    background: var(--accent);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 4px;
+    font-size: 12.5px;
+    text-align: center;
+    min-width: 110px;
+  }
+  .pipe-box .env {
+    font-size: 10px;
+    opacity: 0.75;
+    margin-top: 3px;
+  }
+  .pipe-arrow {
+    font-size: 20px;
+    color: var(--accent);
+    padding: 0 6px;
+    line-height: 1;
+  }
+  /* ── Callout ── */
+  .callout {
+    background: #eef4fb;
+    border: 1px solid #b3cde8;
+    border-radius: 4px;
+    padding: 12px 16px;
+    margin: 14px 0;
+    font-size: 13.5px;
+  }
+  .callout strong { color: var(--accent2); }
+  /* ── Figure caption ── */
+  .fig-caption {
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 6px;
+    font-style: italic;
+  }
+  /* ── References ── */
+  .ref-list { padding-left: 20px; }
+  .ref-list li { margin: 6px 0; font-size: 13.5px; }
+  /* ── Misc ── */
+  ul, ol { padding-left: 22px; margin-bottom: 12px; }
+  li { margin: 4px 0; }
+  .badge {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 6px;
+    vertical-align: middle;
+    font-family: sans-serif;
+  }
+  .badge.green { background: #2e7d32; }
+  .badge.orange { background: #e65100; }
+  hr.thin { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════ COVER -->
+<div class="cover">
+  <h1>基于多模型融合的单目视频三维重建<br>与地形分析系统</h1>
+  <div class="subtitle">Technical Report on Multi-Model Fusion for Monocular Video 3D Reconstruction and Terrain Analysis</div>
+  <div class="meta-grid">
+    <span class="label">系统版本</span><span>vggt_yoloe v1.0</span>
+    <span class="label">文档日期</span><span>2026-05-30</span>
+    <span class="label">运行平台</span><span>NVIDIA RTX 5070 Ti · CUDA 13.0 · WSL2</span>
+    <span class="label">核心模型</span><span>VGGT · YOLOe</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ══════════════════════════════════════════════════════════ TOC -->
+<div class="toc">
+  <h2>目 录</h2>
+  <ol>
+    <li><a href="#s1">系统概述与研究背景</a></li>
+    <li><a href="#s2">总体技术架构</a>
+      <ol class="sub">
+        <li><a href="#s2a">微服务架构设计</a></li>
+        <li><a href="#s2b">数据流与处理管线</a></li>
+      </ol>
+    </li>
+    <li><a href="#s3">三维重建模块（VGGT）</a>
+      <ol class="sub">
+        <li><a href="#s3a">模型原理与推理流程</a></li>
+        <li><a href="#s3b">点云坐标计算方法</a></li>
+        <li><a href="#s3c">相机位姿估计</a></li>
+      </ol>
+    </li>
+    <li><a href="#s4">语义分割模块（YOLOe）</a>
+      <ol class="sub">
+        <li><a href="#s4a">分割模式与推理策略</a></li>
+        <li><a href="#s4b">掩码提取与坐标映射</a></li>
+      </ol>
+    </li>
+    <li><a href="#s5">重力方向估计与坐标系对齐</a>
+      <ol class="sub">
+        <li><a href="#s5a">三级级联估计策略</a></li>
+        <li><a href="#s5b">轨迹平面法（主方法）</a></li>
+        <li><a href="#s5c">地面掩码 RANSAC 法</a></li>
+        <li><a href="#s5d">全点云 RANSAC 法</a></li>
+        <li><a href="#s5e">旋转矩阵计算</a></li>
+      </ol>
+    </li>
+    <li><a href="#s6">地形平面拟合与数字高程模型</a>
+      <ol class="sub">
+        <li><a href="#s6a">地面点提取</a></li>
+        <li><a href="#s6b">DEM 网格插值</a></li>
+        <li><a href="#s6c">网格化曲面重建</a></li>
+      </ol>
+    </li>
+    <li><a href="#s7">体积计算方法</a>
+      <ol class="sub">
+        <li><a href="#s7a">基于 DEM 的体积积分</a></li>
+        <li><a href="#s7b">尺度因子与绝对单位</a></li>
+      </ol>
+    </li>
+    <li><a href="#s8">三维可视化与坐标变换</a></li>
+    <li><a href="#s9">关键参数与配置</a></li>
+    <li><a href="#s10">参考文献</a></li>
+  </ol>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ S1 -->
+<div class="section" id="s1">
+  <h2 class="sec-title">1. 系统概述与研究背景</h2>
+
+  <p>本系统针对无人机航拍视频或多视角图像序列，实现从单目视频输入到三维点云重建、语义分割、地形高程建模及体积估算的完整自动化流程。系统融合了两个前沿深度学习模型：<strong>VGGT</strong>（Visual Geometry Grounded Transformer）负责无需显式 SfM 的端到端三维重建，<strong>YOLOe</strong>（You Only Look Once — Efficient）负责开放词汇语义分割，二者通过微服务架构协同工作。</p>
+
+  <p>传统三维重建流程依赖 Structure-from-Motion（SfM）与多视图立体（MVS）的两阶段管线，计算开销大且对特征点稀疏场景鲁棒性差。VGGT 以 Transformer 架构直接从图像序列回归深度图与相机位姿，突破了传统方法的局限。在语义层面，YOLOe 支持文本提示、视觉提示及无提示三种分割模式，可灵活适配不同应用场景下的目标类别定义。</p>
+
+  <p>系统的核心应用场景包括：无人机航拍地形测量、建筑物体积估算、地面障碍物检测与三维定位，以及基于重力对齐坐标系的相对高程分析。</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ S3 -->
+<div class="section" id="s3">
+  <h2 class="sec-title">3. 三维重建模块（VGGT）</h2>
+
+  <h3 class="sub-title" id="s3a">3.1 模型原理与推理流程</h3>
+
+  <p>VGGT（Visual Geometry Grounded Transformer）是一种端到端的多视图三维重建模型，以图像序列为输入，直接回归每帧的深度图、世界坐标点图及相机位姿，无需传统 SfM 的特征匹配与光束法平差（Bundle Adjustment）步骤。</p>
+
+  <p>推理时，图像序列经预处理后以批次形式送入模型：</p>
+
+  <pre>images = load_and_preprocess_images(image_names)  # → (S, 3, H, W)
+with torch.no_grad():
+    with torch.cuda.amp.autocast(dtype=bfloat16):
+        predictions = model(images)</pre>
+
+  <p>模型输出的 <code>predictions</code> 字典包含以下关键张量：</p>
+
+  <table>
+    <tr><th>键名</th><th>形状</th><th>含义</th></tr>
+    <tr><td><code>depth</code></td><td>(S, H, W)</td><td>每帧深度图（相机坐标系 Z 值）</td></tr>
+    <tr><td><code>depth_conf</code></td><td>(S, H, W)</td><td>深度置信度，范围 [0, 1]</td></tr>
+    <tr><td><code>world_points</code></td><td>(S, H, W, 3)</td><td>直接回归的世界坐标点图</td></tr>
+    <tr><td><code>world_points_conf</code></td><td>(S, H, W)</td><td>点图置信度</td></tr>
+    <tr><td><code>extrinsic</code></td><td>(S, 3, 4)</td><td>世界→相机变换矩阵 [R | t]</td></tr>
+    <tr><td><code>intrinsic</code></td><td>(S, 3)</td><td>相机内参 (fx, fy, cx, cy 的紧凑表示)</td></tr>
+    <tr><td><code>world_points_from_depth</code></td><td>(S, H, W, 3)</td><td>由深度图反投影得到的世界坐标点</td></tr>
+  </table>
+
+  <h3 class="sub-title" id="s3b">3.2 点云坐标计算方法</h3>
+
+  <p>系统提供两种点云来源，可通过 <code>prediction_mode</code> 参数切换：</p>
+
+  <h4 class="sub2-title">模式一：深度图反投影（Depthmap and Camera Branch）</h4>
+
+  <p>对于帧 <em>s</em> 中像素 <em>(u, v)</em>，设深度值为 <em>d</em>，相机内参为 <em>(f<sub>x</sub>, f<sub>y</sub>, c<sub>x</sub>, c<sub>y</sub>)</em>，外参为 <em>[R | t]</em>，则世界坐标计算如下：</p>
+
+  <div class="formula-block">
+    <span class="eq-label">(1)</span>
+    X<sub>cam</sub> = [ (u − c<sub>x</sub>) / f<sub>x</sub> · d,  (v − c<sub>y</sub>) / f<sub>y</sub> · d,  d ]<sup>T</sup>
+  </div>
+
+  <div class="formula-block">
+    <span class="eq-label">(2)</span>
+    X<sub>world</sub> = R<sup>T</sup> (X<sub>cam</sub> − t)
+  </div>
+
+  <p>其中 <em>R</em> 为 3×3 旋转矩阵，<em>t</em> 为 3×1 平移向量，均来自 VGGT 预测的外参矩阵 <code>extrinsic[s]</code>。</p>
+
+  <h4 class="sub2-title">模式二：直接点图（Pointmap Branch）</h4>
+
+  <p>VGGT 亦可直接回归每像素的世界坐标 <code>world_points[s, v, u, :]</code>，无需显式反投影，适用于深度估计不稳定的场景。</p>
+
+  <h4 class="sub2-title">置信度过滤</h4>
+
+  <p>两种模式均支持基于置信度的点云过滤，过滤条件为：</p>
+
+  <div class="formula-block">
+    <span class="eq-label">(3)</span>
+    keep(s, v, u) = finite(X<sub>world</sub>) ∧ conf(s, v, u) ≥ τ · max(conf)
+  </div>
+
+  <p>其中 <em>τ</em> 为用户设定的置信度阈值百分比（默认 50%），<code>finite</code> 检查排除 NaN 与 Inf 值。</p>
+
+  <h3 class="sub-title" id="s3c">3.3 相机位姿估计</h3>
+
+  <p>VGGT 输出的外参矩阵 <code>extrinsic[s]</code> 为世界坐标系到相机坐标系的变换 <em>[R<sub>s</sub> | t<sub>s</sub>]</em>，形状为 (3, 4)。相机光心在世界坐标系中的位置为：</p>
+
+  <div class="formula-block">
+    <span class="eq-label">(4)</span>
+    C<sub>s</sub> = −R<sub>s</sub><sup>T</sup> t<sub>s</sub>
+  </div>
+
+  <p>相机轨迹 <em>{C<sub>s</sub>}</em><sub>s=1..S</sub> 构成的点集用于后续重力方向估计（见第 5 节）。</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ S4 -->
+<div class="section" id="s4">
+  <h2 class="sec-title">4. 语义分割模块（YOLOe）</h2>
+
+  <h3 class="sub-title" id="s4a">4.1 分割模式与推理策略</h3>
+
+  <p>YOLOe 服务支持三种分割模式，适配不同的先验知识条件：</p>
+
+  <table>
+    <tr><th>模式</th><th>API 端点</th><th>输入</th><th>适用场景</th></tr>
+    <tr><td>文本提示分割</td><td><code>POST /segment</code></td><td>类别名称列表</td><td>已知目标类别，如"ground, building"</td></tr>
+    <tr><td>视觉提示分割</td><td><code>POST /segment_visual</code></td><td>参考图像 + 边界框</td><td>无法用文字描述的目标外观</td></tr>
+    <tr><td>无提示分割</td><td><code>POST /segment_promptfree</code></td><td>无（自动检测）</td><td>未知场景，自动发现主要类别</td></tr>
+  </table>
+
+  <p>无提示模式采用两阶段策略：第一阶段遍历所有帧统计各类别出现频次，第二阶段选取频次最高的 <em>K</em> 个类别（默认 <em>K</em>=10）重新推理生成掩码，以 RAM 标签词表（约 4,585 类）作为候选集。</p>
+
+  <h3 class="sub-title" id="s4b">4.2 掩码提取与坐标映射</h3>
+
+  <p>YOLOe 推理输出的掩码张量 <code>masks.data</code> 形状为 <em>(N, m<sub>H</sub>, m<sub>W</sub>)</em>，其中 <em>N</em> 为检测实例数，<em>(m<sub>H</sub>, m<sub>W</sub>)</em> 为模型内部分辨率（含 letterbox 填充）。还原至原始图像分辨率的步骤如下：</p>
+
+  <p><strong>步骤 1</strong>：计算 letterbox 缩放比例与填充量：</p>
+  <div class="formula-block">
+    <span class="eq-label">(5)</span>
+    scale = min(m<sub>H</sub> / H<sub>orig</sub>,  m<sub>W</sub> / W<sub>orig</sub>)
+  </div>
+  <div class="formula-block">
+    <span class="eq-label">(6)</span>
+    pad<sub>h</sub> = (m<sub>H</sub> − H<sub>orig</sub> · scale) / 2,  pad<sub>w</sub> = (m<sub>W</sub> − W<sub>orig</sub> · scale) / 2
+  </div>
+
+  <p><strong>步骤 2</strong>：裁剪有效区域并双线性插值至原始分辨率：</p>
+  <div class="formula-block">
+    <span class="eq-label">(7)</span>
+    mask<sub>crop</sub> = mask[round(pad<sub>h</sub>) : round(pad<sub>h</sub> + H<sub>orig</sub>·scale),  round(pad<sub>w</sub>) : round(pad<sub>w</sub> + W<sub>orig</sub>·scale)]
+  </div>
+  <div class="formula-block">
+    <span class="eq-label">(8)</span>
+    mask<sub>final</sub> = resize(mask<sub>crop</sub>, (W<sub>orig</sub>, H<sub>orig</sub>), INTER_LINEAR)
+  </div>
+
+  <p>最终输出的 <code>semantic_masks.npz</code> 中，每帧掩码为形状 <em>(H, W)</em> 的 uint8 数组，像素值 0 表示背景，1–9 表示对应语义类别 ID。该掩码在后续 VGGT 重建阶段用于标记地面点，指导重力方向估计与高程平面拟合。</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ S5 -->
+<div class="section" id="s5">
+  <h2 class="sec-title">5. 重力方向估计与坐标系对齐</h2>
+
+  <p>VGGT 的世界坐标系遵循 OpenCV 相机约定（X 轴向右，Y 轴向下，Z 轴向前），不保证 Y 轴与重力方向对齐。为使后续高程分析具有物理意义，系统通过 <code>gravity_alignment.py</code> 模块估计重力方向，并将点云旋转至重力对齐坐标系（Y 轴指向上方）。</p>
+
+  <h3 class="sub-title" id="s5a">5.1 三级级联估计策略</h3>
+
+  <p>系统采用三级级联策略，按可靠性从高到低依次尝试，一旦某级成功则停止：</p>
+
+  <div class="callout">
+    <strong>级别 1（主方法）</strong>：轨迹平面法 — 利用相机运动轨迹的 PCA 估计地面法向量<br>
+    <strong>级别 2（备选）</strong>：地面掩码 RANSAC — 利用 YOLOe 标记的地面点拟合平面<br>
+    <strong>级别 3（兜底）</strong>：全点云 RANSAC — 对全部点云进行无先验平面拟合
+  </div>
+
+  <p>若级别 1 与级别 2 均可用，系统还会进行一致性校验：若两者估计的法向量夹角超过 10°，则发出警告但仍采用轨迹平面结果。</p>
+
+  <h3 class="sub-title" id="s5b">5.2 轨迹平面法（主方法）</h3>
+
+  <p>无人机等航拍设备的飞行轨迹近似位于与地面平行的平面内，该平面的法向量即为重力方向的近似估计。</p>
+
+  <p><strong>步骤 1</strong>：由外参矩阵计算各帧相机光心：</p>
+  <div class="formula-block">
+    <span class="eq-label">(9)</span>
+    C<sub>s</sub> = −R<sub>s</sub><sup>T</sup> t<sub>s</sub>,  s = 1, …, S
+  </div>
+
+  <p><strong>步骤 2</strong>：对相机光心集合进行零均值化后执行 SVD 分解：</p>
+  <div class="formula-block">
+    <span class="eq-label">(10)</span>
+    X = {C<sub>s</sub> − mean(C)},  X = U Σ V<sup>T</sup>
+  </div>
+
+  <p><strong>步骤 3</strong>：计算各主成分的特征值并检验轨迹退化性：</p>
+  <div class="formula-block">
+    <span class="eq-label">(11)</span>
+    λ<sub>i</sub> = σ<sub>i</sub><sup>2</sup> / max(S−1, 1),  ratio = λ<sub>2</sub> / λ<sub>1</sub>
+  </div>
+
+  <p>若 <em>ratio</em> &lt; 0.1（轨迹近似为直线，退化情形），则放弃轨迹平面法，转入级别 2。</p>
+
+  <p><strong>步骤 4</strong>：取方差最小的特征向量（SVD 最后一行）作为平面法向量：</p>
+  <div class="formula-block">
+    <span class="eq-label">(12)</span>
+    n<sub>traj</sub> = V<sub>T</sub>[−1, :]
+  </div>
+
+  <p><strong>步骤 5</strong>：法向量方向校正 — 确保大多数点云位于法向量负侧（相机在地面上方）：</p>
+  <div class="formula-block">
+    <span class="eq-label">(13)</span>
+    n<sub>grav</sub> = sign(−median((P − anchor) · n<sub>traj</sub>)) · n<sub>traj</sub>
+  </div>
+
+  <h3 class="sub-title" id="s5c">5.3 地面掩码 RANSAC 法</h3>
+
+  <p>当 YOLOe 提供了地面语义掩码时，从标记为地面的点中随机采样拟合平面。</p>
+
+  <p><strong>RANSAC 迭代</strong>（迭代次数 400，内点距离阈值 0.03）：</p>
+  <ol>
+    <li>随机采样 3 个地面点 <em>p<sub>0</sub>, p<sub>1</sub>, p<sub>2</sub></em></li>
+    <li>计算候选法向量：<em>n = (p<sub>1</sub>−p<sub>0</sub>) × (p<sub>2</sub>−p<sub>0</sub>)</em>，归一化</li>
+    <li>先验约束检验：<em>|n · n<sub>prior</sub>| &gt; cos(60°)</em>（若先验可用）</li>
+    <li>计算所有地面点到候选平面的距离：</li>
+  </ol>
+  <div class="formula-block">
+    <span class="eq-label">(14)</span>
+    d<sub>i</sub> = |(P<sub>i</sub> − p<sub>0</sub>) · n|
+  </div>
+  <ol start="5">
+    <li>统计内点数 <em>cnt = |{i : d<sub>i</sub> &lt; 0.03}|</em>，保留内点最多的候选</li>
+    <li>对最优内点集执行 SVD 精化，得到更精确的法向量</li>
+  </ol>
+
+  <p>置信度加权：若提供置信度图，则过滤掉置信度低于最大值 50% 的点，以提高拟合质量。</p>
+
+  <h3 class="sub-title" id="s5d">5.4 全点云 RANSAC 法</h3>
+
+  <p>当地面掩码不可用时，对全部点云（最多随机采样 200,000 点）执行无先验约束的 RANSAC 平面拟合，算法流程与 5.3 节相同，但先验余弦阈值放宽至 0.6（若有先验）或 0.0（无先验）。</p>
+
+  <h3 class="sub-title" id="s5e">5.5 旋转矩阵计算</h3>
+
+  <p>估得重力方向 <em>n<sub>grav</sub></em> 后，计算将其旋转至 <em>[0, 1, 0]</em>（Y 轴向上）的最短弧旋转矩阵：</p>
+
+  <div class="formula-block">
+    <span class="eq-label">(15)</span>
+    v = n<sub>grav</sub> × [0,1,0],  s = ‖v‖,  c = n<sub>grav</sub> · [0,1,0]
+  </div>
+  <div class="formula-block">
+    <span class="eq-label">(16)</span>
+    R<sub>align</sub> = I + [v]<sub>×</sub> + [v]<sub>×</sub><sup>2</sup> · (1−c) / s<sup>2</sup>
+  </div>
+
+  <p>其中 <em>[v]<sub>×</sub></em> 为向量 <em>v</em> 的反对称矩阵（Rodrigues 公式）。当 <em>n<sub>grav</sub></em> 与 <em>[0,1,0]</em> 夹角接近 180° 时，选取与 <em>n<sub>grav</sub></em> 正交的任意轴执行 180° 旋转。</p>
+
+  <p>对齐后的点云与外参更新为：</p>
+  <div class="formula-block">
+    <span class="eq-label">(17)</span>
+    P<sub>aligned</sub> = R<sub>align</sub> P<sub>world</sub>
+  </div>
+  <div class="formula-block">
+    <span class="eq-label">(18)</span>
+    R'<sub>s</sub> = R<sub>s</sub> R<sub>align</sub><sup>T</sup>,  t'<sub>s</sub> = t<sub>s</sub>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ S6 -->
+<div class="section" id="s6">
+  <h2 class="sec-title">6. 地形平面拟合与数字高程模型</h2>
+
+  <p>完成重力对齐后，Y 轴即为高程轴（Y 值越小表示越高，因 VGGT 原始坐标系 Y 向下）。<code>elevation_plane.py</code> 模块在对齐坐标系中拟合数字高程模型（Digital Elevation Model, DEM）。</p>
+
+  <h3 class="sub-title" id="s6a">6.1 地面点提取</h3>
+
+  <p>地面点的选取策略依据是否存在语义掩码而分为两种：</p>
+
+  <h4 class="sub2-title">有语义掩码时</h4>
+  <p>计算所有语义标记地面点的 Y 坐标中位数，并在其 ±5% Y 值域范围内筛选：</p>
+  <div class="formula-block">
+    <span class="eq-label">(19)</span>
+    y<sub>range</sub> = P<sub>98</sub>(y) − P<sub>2</sub>(y)
+  </div>
+  <div class="formula-block">
+    <span class="eq-label">(20)</span>
+    tol = 0.05 · y<sub>range</sub>
+  </div>
+  <div class="formula-block">
+    <span class="eq-label">(21)</span>
+    G = { P<sub>i</sub> ∈ ground_mask : |P<sub>i,y</sub> − median(y<sub>ground</sub>)| ≤ tol }
+  </div>
+
+  <h4 class="sub2-title">无语义掩码时</h4>
+  <p>取 Y 坐标最低的 <em>p</em>% 点作为地面候选（默认 <em>p</em>=20）：</p>
+  <div class="formula-block">
+    <span class="eq-label">(22)</span>
+    G = { P<sub>i</sub> : P<sub>i,y</sub> ≤ P<sub>p</sub>(y) }
+  </div>
+
+  <h3 class="sub-title" id="s6b">6.2 DEM 网格插值</h3>
+
+  <p>以地面点集 <em>G</em> 在 (X, Z) 平面上构建规则网格，插值得到高程值：</p>
+
+  <p><strong>步骤 1</strong>：确定网格范围（含 5% 边界填充）：</p>
+  <div class="formula-block">
+    <span class="eq-label">(23)</span>
+    x<sub>min</sub>' = x<sub>min</sub> − 0.05·(x<sub>max</sub>−x<sub>min</sub>),  x<sub>max</sub>' = x<sub>max</sub> + 0.05·(x<sub>max</sub>−x<sub>min</sub>)
+  </div>
+
+  <p><strong>步骤 2</strong>：生成均匀网格（默认分辨率 128×128）：</p>
+  <div class="formula-block">
+    <span class="eq-label">(24)</span>
+    ξ<sub>i</sub> = linspace(x<sub>min</sub>', x<sub>max</sub>', N<sub>grid</sub>),  ζ<sub>j</sub> = linspace(z<sub>min</sub>', z<sub>max</sub>', N<sub>grid</sub>)
+  </div>
+
+  <p><strong>步骤 3</strong>：散点插值（优先线性，NaN 处回退最近邻）：</p>
+  <div class="formula-block">
+    <span class="eq-label">(25)</span>
+    elev<sub>linear</sub>(ξ, ζ) = griddata({(G<sub>i,x</sub>, G<sub>i,z</sub>)}, G<sub>i,y</sub>, (ξ, ζ), method="linear")
+  </div>
+  <div class="formula-block">
+    <span class="eq-label">(26)</span>
+    elev(ξ, ζ) = elev<sub>linear</sub>(ξ, ζ)  if not NaN,  else  elev<sub>nearest</sub>(ξ, ζ)
+  </div>
+
+  <h3 class="sub-title" id="s6c">6.3 网格化曲面重建</h3>
+
+  <p>将 DEM 网格转换为三角网格（Triangulated Irregular Network, TIN）：</p>
+
+  <p>对每个网格单元 <em>(i, j)</em>，以四顶点 <em>i<sub>00</sub>, i<sub>10</sub>, i<sub>01</sub>, i<sub>11</sub></em> 构建两个三角面片：</p>
+  <div class="formula-block">
+    <span class="eq-label">(27)</span>
+    F<sub>1</sub> = (i<sub>00</sub>, i<sub>10</sub>, i<sub>01</sub>),  F<sub>2</sub> = (i<sub>10</sub>, i<sub>11</sub>, i<sub>01</sub>)
+  </div>
+
+  <p>顶点坐标为 <em>(ξ<sub>i</sub>, elev(i,j), ζ<sub>j</sub>)</em>，颜色由高程值归一化后映射至 colormap（默认 terrain）：</p>
+  <div class="formula-block">
+    <span class="eq-label">(28)</span>
+    norm<sub>ij</sub> = clip((elev<sub>ij</sub> − elev<sub>lo</sub>) / (elev<sub>hi</sub> − elev<sub>lo</sub> + ε), 0, 1)
+  </div>
+  <div class="formula-block">
+    <span class="eq-label">(29)</span>
+    color<sub>ij</sub> = colormap(norm<sub>ij</sub>) × 255
+  </div>
+
+  <p>最终网格以 GLB 格式导出，可与原始点云 GLB 合并为统一场景文件。</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ S7 -->
+<div class="section" id="s7">
+  <h2 class="sec-title">7. 体积计算方法</h2>
+
+  <h3 class="sub-title" id="s7a">7.1 基于 DEM 的体积积分</h3>
+
+  <p>系统构建的 DEM 为后续体积计算提供了完整的数学基础。对于目标物体（如土方堆、建筑物等），体积可通过以下方法计算：</p>
+
+  <h4 class="sub2-title">方法一：DEM 差分积分（挖填方体积）</h4>
+  <p>设参考基准面高程为 <em>h<sub>ref</sub></em>（通常取地面 DEM 的中位数），目标区域内各网格单元的高程为 <em>elev(i,j)</em>，则超出基准面的体积为：</p>
+  <div class="formula-block">
+    <span class="eq-label">(30)</span>
+    V = Σ<sub>(i,j) ∈ Ω</sub> max(elev(i,j) − h<sub>ref</sub>, 0) · ΔX · ΔZ
+  </div>
+
+  <p>其中 <em>ΔX = (x<sub>max</sub>' − x<sub>min</sub>') / (N<sub>grid</sub>−1)</em>，<em>ΔZ = (z<sub>max</sub>' − z<sub>min</sub>') / (N<sub>grid</sub>−1)</em> 为网格单元尺寸，<em>Ω</em> 为目标区域的网格索引集合（可由语义掩码投影确定）。</p>
+
+  <h4 class="sub2-title">方法二：点云凸包体积</h4>
+  <p>对于由语义分割提取的目标点云子集，可直接计算三维凸包（Convex Hull）体积作为目标体积的上界估计：</p>
+  <div class="formula-block">
+    <span class="eq-label">(31)</span>
+    V<sub>hull</sub> = ConvexHull({P<sub>i</sub> : semantic_id(P<sub>i</sub>) = k}).volume
+  </div>
+
+  <h4 class="sub2-title">方法三：三角网格封闭体积</h4>
+  <p>若目标点云可构成封闭三角网格，则利用散度定理（高斯公式）计算精确体积：</p>
+  <div class="formula-block">
+    <span class="eq-label">(32)</span>
+    V = (1/6) |Σ<sub>f</sub> (v<sub>0</sub> + v<sub>1</sub> + v<sub>2</sub>) · (v<sub>1</sub> − v<sub>0</sub>) × (v<sub>2</sub> − v<sub>0</sub>)|
+  </div>
+
+  <h3 class="sub-title" id="s7b">7.2 尺度因子与绝对单位</h3>
+
+  <p>VGGT 输出的点云坐标为相对尺度（无量纲），需通过尺度因子 <em>α</em> 转换为绝对物理单位（如米）：</p>
+  <div class="formula-block">
+    <span class="eq-label">(33)</span>
+    P<sub>metric</sub> = α · P<sub>aligned</sub>
+  </div>
+  <div class="formula-block">
+    <span class="eq-label">(34)</span>
+    V<sub>metric</sub> = α<sup>3</sup> · V<sub>relative</sub>
+  </div>
+
+  <p>尺度因子 <em>α</em> 可通过以下方式标定：</p>
+  <ul>
+    <li><strong>已知距离标定</strong>：场景中存在已知尺寸的参照物（如标定板、建筑物层高）</li>
+    <li><strong>GPS 轨迹标定</strong>：利用无人机 GPS 轨迹的实际飞行距离与重建轨迹长度之比</li>
+    <li><strong>用户手动输入</strong>：通过 Orchestrator UI 的 <code>scale_factor</code> 参数直接指定</li>
+  </ul>
+
+  <div class="callout">
+    <strong>注意</strong>：当前系统默认 <code>scale_factor = 1.0</code>，即输出为相对尺度。在进行绝对体积计算前，必须通过上述方法确定并设置正确的尺度因子。
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ S8 -->
+<div class="section" id="s8">
+  <h2 class="sec-title">8. 三维可视化与坐标变换</h2>
+
+  <p>系统提供基于 Three.js 的交互式三维查看器，支持点云、相机轨迹与 DEM 网格的同步显示。为兼容 GLB 文件的 OpenGL 坐标约定，系统维护三套坐标系并提供相互转换：</p>
+
+  <table>
+    <tr><th>坐标系</th><th>约定</th><th>用途</th></tr>
+    <tr><td>VGGT 世界系</td><td>X 右，Y 下，Z 前（OpenCV）</td><td>模型原始输出</td></tr>
+    <tr><td>重力对齐系</td><td>X 右，Y 上，Z 前</td><td>高程分析、体积计算</td></tr>
+    <tr><td>显示系（GLB）</td><td>X 右，Y 上，Z 后（OpenGL）</td><td>Three.js 渲染</td></tr>
+  </table>
+
+  <p>从 VGGT 世界系到显示系的变换矩阵 <em>T<sub>display</sub></em> 由以下步骤复合得到：</p>
+
+  <div class="formula-block">
+    <span class="eq-label">(35)</span>
+    T<sub>opengl</sub> = diag(1, −1, −1, 1)  （Y、Z 轴翻转）
+  </div>
+  <div class="formula-block">
+    <span class="eq-label">(36)</span>
+    T<sub>rot180y</sub> = R<sub>y</sub>(180°)  （绕 Y 轴旋转 180°）
+  </div>
+  <div class="formula-block">
+    <span class="eq-label">(37)</span>
+    T<sub>display</sub> = E<sub>0</sub><sup>−1</sup> · T<sub>opengl</sub> · T<sub>rot180y</sub>
+  </div>
+
+  <p>其中 <em>E<sub>0</sub></em> 为第一帧相机外参的 4×4 齐次矩阵，用于将世界坐标系原点对齐至第一帧相机位置。</p>
+
+  <p>查看器数据接口（<code>POST /elevation_viewer_data</code>）同时返回三套坐标下的点云与相机数据，以及 128×128 分辨率的 DEM 网格，供前端按需渲染。</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ S9 -->
+<div class="section" id="s9">
+  <h2 class="sec-title">9. 关键参数与配置</h2>
+
+  <table>
+    <tr><th>参数</th><th>默认值</th><th>范围</th><th>说明</th></tr>
+    <tr><td><code>conf_thres</code></td><td>50.0</td><td>0–100</td><td>点云置信度过滤阈值（%）</td></tr>
+    <tr><td><code>ground_percentile</code></td><td>20.0</td><td>5–50</td><td>无掩码时地面点 Y 百分位阈值</td></tr>
+    <tr><td><code>grid_resolution</code></td><td>128</td><td>32–512</td><td>DEM 网格分辨率（N×N）</td></tr>
+    <tr><td><code>scale_factor</code></td><td>1.0</td><td>&gt;0</td><td>相对尺度到物理单位的转换系数</td></tr>
+    <tr><td><code>RANSAC_ITERS</code></td><td>400</td><td>—</td><td>RANSAC 最大迭代次数</td></tr>
+    <tr><td><code>RANSAC_DIST</code></td><td>0.03</td><td>—</td><td>RANSAC 内点距离阈值（相对单位）</td></tr>
+    <tr><td><code>TRAJ_DEGENERATE_RATIO</code></td><td>0.1</td><td>—</td><td>轨迹退化判断阈值（λ₂/λ₁）</td></tr>
+    <tr><td><code>GRAVITY_DISAGREE_DEG</code></td><td>10.0°</td><td>—</td><td>重力方向一致性校验角度阈值</td></tr>
+    <tr><td><code>band</code></td><td>0.05</td><td>—</td><td>有掩码时地面点 Y 容差带宽（相对 y_range）</td></tr>
+    <tr><td><code>max_classes</code></td><td>10</td><td>1–50</td><td>无提示分割模式最大类别数</td></tr>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ S10 -->
+<div class="section" id="s10">
+  <h2 class="sec-title">10. 参考文献</h2>
+  <ol class="ref-list">
+    <li>Wang, S., et al. "VGGT: Visual Geometry Grounded Deep Structure From Motion." <em>arXiv preprint arXiv:2503.11651</em>, 2025.</li>
+    <li>Wang, A., et al. "YOLOe: Efficient Open-Vocabulary Object Detection." <em>arXiv preprint arXiv:2503.07465</em>, 2025.</li>
+    <li>Fischler, M. A., &amp; Bolles, R. C. "Random sample consensus: a paradigm for model fitting with applications to image analysis and automated cartography." <em>Communications of the ACM</em>, 24(6), 381–395, 1981.</li>
+    <li>Hartley, R., &amp; Zisserman, A. <em>Multiple View Geometry in Computer Vision</em> (2nd ed.). Cambridge University Press, 2004.</li>
+    <li>Rodrigues, O. "Des lois géométriques qui régissent les déplacements d'un système solide." <em>Journal de Mathématiques Pures et Appliquées</em>, 5, 380–440, 1840.</li>
+    <li>Sibson, R. "A brief description of natural neighbour interpolation." <em>Interpreting Multivariate Data</em>, 21–36, 1981.</li>
+    <li>Redmon, J., et al. "You Only Look Once: Unified, Real-Time Object Detection." <em>CVPR</em>, 2016.</li>
+  </ol>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ FOOTER -->
+<div style="text-align:center; color: var(--muted); font-size: 12px; margin-top: 40px; padding: 20px 0; border-top: 1px solid var(--border);">
+  vggt_yoloe Technical Report &nbsp;·&nbsp; Generated 2026-05-30 &nbsp;·&nbsp; /home/maomaoyu/WS/vggt_yoloe/
+</div>
+
+</div><!-- /container -->
+</body>
+</html>
+<div class="section" id="s2">
+  <h2 class="sec-title">2. 总体技术架构</h2>
+
+  <h3 class="sub-title" id="s2a">2.1 微服务架构设计</h3>
+
+  <p>系统采用三进程微服务架构，各服务运行于独立的 Conda 虚拟环境中，通过 HTTP/JSON 接口通信，避免了深度学习框架版本冲突问题。</p>
+
+  <table>
+    <tr><th>服务</th><th>端口</th><th>Conda 环境</th><th>PyTorch 版本</th><th>职责</th></tr>
+    <tr><td>YOLOe Service</td><td>8001</td><td><code>yoloe</code></td><td>2.11.0+cu130</td><td>语义分割，生成逐帧掩码</td></tr>
+    <tr><td>VGGT Service</td><td>8002</td><td><code>vggt50</code></td><td>2.11.0+cu130</td><td>三维重建、高程拟合、点云导出</td></tr>
+    <tr><td>Orchestrator</td><td>7860</td><td><code>vggt50</code></td><td>—</td><td>Gradio UI，协调两服务的调用顺序</td></tr>
+  </table>
+
+  <h3 class="sub-title" id="s2b">2.2 数据流与处理管线</h3>
+
+  <div class="pipeline">
+    <div class="pipe-box">视频 / 图像<div class="env">输入</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-box">帧提取<div class="env">Orchestrator</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-box">语义分割<div class="env">YOLOe :8001</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-box">三维重建<div class="env">VGGT :8002</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-box">重力对齐<div class="env">VGGT :8002</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-box">DEM 拟合<div class="env">VGGT :8002</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-box">GLB 导出<div class="env">输出</div></div>
+  </div>
+  <div class="fig-caption">图 1 — 系统整体数据处理管线</div>
+
+  <p style="margin-top:16px;">各阶段的核心数据载体如下：</p>
+  <ul>
+    <li><strong>帧提取阶段</strong>：输出 JPEG 图像序列，存储于 <code>working_dir/images/</code></li>
+    <li><strong>语义分割阶段</strong>：输出 <code>semantic_masks.npz</code>，形状 <code>(S, H, W)</code>，像素值为语义类别 ID（0 = 背景，1–9 = 目标类别）</li>
+    <li><strong>三维重建阶段</strong>：输出 <code>predictions.npz</code>，包含深度图、世界坐标点云、相机外参/内参等张量</li>
+    <li><strong>高程拟合阶段</strong>：输出 GLB 格式三维网格文件及 JSON 元数据（含重力旋转矩阵、尺度因子）</li>
+  </ul>
+</div>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Elevation Viewer — 功能实现速查</title>
+<style>
+  body { font-family: monospace; font-size: 13px; line-height: 1.7; background: #111; color: #ccc; margin: 0; padding: 24px 32px 60px; }
+  h1 { color: #e94560; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 20px; }
+  h2 { color: #00ccff; font-size: 13px; margin: 28px 0 6px; border-left: 3px solid #00ccff; padding-left: 8px; }
+  h3 { color: #aaa; font-size: 12px; margin: 14px 0 4px; }
+  p, li { margin: 3px 0; color: #bbb; }
+  ul { padding-left: 18px; margin: 4px 0; }
+  code { background: #1e1e2e; color: #7ec8e3; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+  pre { background: #1e1e2e; color: #7ec8e3; padding: 10px 14px; border-radius: 4px; font-size: 12px; overflow-x: auto; margin: 6px 0; border-left: 2px solid #333; }
+  .tag { display: inline-block; background: #0f3460; color: #7ec8e3; font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-left: 4px; vertical-align: middle; }
+  .warn { color: #f0a500; }
+  .sep { border: none; border-top: 1px solid #222; margin: 24px 0; }
+  a { color: #e94560; text-decoration: none; }
+  #toc { background: #1a1a2e; padding: 12px 16px; border-radius: 4px; margin-bottom: 28px; display: inline-block; }
+  #toc a { color: #00ccff; display: block; margin: 2px 0; font-size: 12px; }
+  #toc a:hover { color: #e94560; }
+</style>
+</head>
+<body>
+
+<h1>Elevation Viewer — 功能实现速查</h1>
+
+<div id="toc">
+  <a href="#data">1. 数据加载与坐标系</a>
+  <a href="#pointcloud">2. 点云渲染</a>
+  <a href="#refplane">3. Reference Plane（参考平面）</a>
+  <a href="#axes">4. 坐标轴</a>
+  <a href="#dem">5. DEM Mesh（Fill Holes）</a>
+  <a href="#compare">6. Filled / Original 对比切换</a>
+  <a href="#tooltip">7. Hover Tooltip（悬停坐标）</a>
+  <a href="#selection">8. Region Selection（区域选择）</a>
+  <a href="#volume">9. Volume 体积计算</a>
+  <a href="#cameras">10. Camera Extrinsics</a>
+  <a href="#scale">11. Scale Calibration</a>
+</div>
+
+<!-- ─────────────────────────────────────────── -->
+<h2 id="data">1. 数据加载与坐标系</h2>
+
+<p>页面加载时向后端 <code>POST /elevation_viewer_data</code> 拉取 JSON，存入全局 <code>data</code>。</p>
+
+<h3>关键字段</h3>
+<ul>
+  <li><code>data.points_display</code> — 点云在 Three.js 显示坐标系中的坐标 (N×3)</li>
+  <li><code>data.points_aligned</code> — 点云在重力对齐坐标系中的坐标 (N×3)，Y 轴朝上</li>
+  <li><code>data.colors</code> — 点云 RGB 颜色 (N×3, uint8)</li>
+  <li><code>data.R_align</code> — 3×3 重力对齐旋转矩阵</li>
+  <li><code>data.T_display</code> — 4×4 世界→显示坐标变换矩阵</li>
+  <li><code>data.dem</code> — DEM 网格：<code>grid_res, x_min/max, z_min/max, elev[i][j], has_data[i][j]</code></li>
+  <li><code>data.cameras</code> — 每帧相机光心（aligned 和 display 两套坐标）</li>
+</ul>
+
+<h3>坐标变换函数</h3>
+<pre>// aligned → display（用于所有几何体的最终定位）
+function alignedToDisplay(ax, ay, az) {
+  world = R_align^T @ [ax, ay, az]
+  display = T_display @ [world, 1]
+}
+
+// display → aligned（用于选区反投影）
+function displayToAligned(dx, dy, dz) {
+  world = T_display^-1 @ [dx, dy, dz, 1]   // T_display 为刚体变换，逆 = R^T | -R^T t
+  aligned = R_align @ world
+}</pre>
+
+<hr class="sep">
+
+<!-- ─────────────────────────────────────────── -->
+<h2 id="pointcloud">2. 点云渲染</h2>
+
+<p>函数：<code>buildScene()</code></p>
+<ul>
+  <li>用 <code>points_display</code> 作为 Three.js <code>position</code> attribute</li>
+  <li>同时把 <code>points_aligned</code> 存为额外 attribute <code>alignedPos</code>，供 tooltip 读取</li>
+  <li>备份原始颜色到 <code>originalColors</code>，选区高亮时覆盖，清除时还原</li>
+  <li>渲染完成后用 <code>computeBoundingSphere()</code> 自动定位相机</li>
+</ul>
+
+<hr class="sep">
+
+<!-- ─────────────────────────────────────────── -->
+<h2 id="refplane">3. Reference Plane（参考平面）</h2>
+
+<p>函数：<code>buildRefPlane()</code>，在 <code>populateSidebar()</code> 时调用一次。</p>
+
+<h3>高度计算</h3>
+<p>遍历 DEM 所有格元，取 <code>has_data == false</code>（最近邻填充格元）的高程均值作为参考平面 Y：</p>
+<pre>refY = mean( elev[i][j]  for all (i,j) where has_data[i][j] == false )
+// fallback：若 DEM 全部有数据，取网格中心格元高程</pre>
+
+<p class="warn">设计意图：has_data=false 的格元是地面点稀疏的边缘区域，其最近邻填充值代表远场平坦地面，比有密集点的区域更稳定。</p>
+
+<h3>几何构建</h3>
+<ul>
+  <li>范围：DEM 的 (X, Z) 范围向外扩展 30%（<code>pad = max(xSpan, zSpan) * 0.3</code>）</li>
+  <li>面片：固定高度 <code>refY</code> 的水平矩形，半透明青色（opacity 0.10）</li>
+  <li>网格线：10×10 格线叠加（opacity 0.30）</li>
+  <li>所有顶点坐标经 <code>alignedToDisplay()</code> 转换后写入 Three.js</li>
+</ul>
+
+<h3>作为高度零点</h3>
+<p><code>refYAligned</code> 存为全局变量，tooltip 显示的 Y 值 = <code>(点的 aligned Y − refYAligned) × scaleFactor</code>，即相对参考平面的高度。</p>
+
+<h3>与体积计算的关系</h3>
+<p>体积计算<strong>不使用</strong> refYAligned，而是用选区内 DEM 高程的最小值作为基准（见第 9 节）。两者独立。</p>
+
+<hr class="sep">
+
+<!-- ─────────────────────────────────────────── -->
+<h2 id="axes">4. 坐标轴</h2>
+
+<p>函数：<code>buildAxes(origin, size)</code>，锚定在参考平面中心。</p>
+<ul>
+  <li>X/Y/Z 三轴方向由 <code>alignedToDisplay(1,0,0)</code> 等计算，确保轴方向与重力对齐坐标系一致</li>
+  <li>轴长 = <code>sceneBSRadius * 0.6</code>（场景包围球半径的 60%）</li>
+  <li>用 CSS2DRenderer 渲染 X/Y/Z 文字标签，始终面向相机</li>
+</ul>
+
+<hr class="sep">
+
+<!-- ─────────────────────────────────────────── -->
+<h2 id="dem">5. DEM Mesh（Fill Holes）</h2>
+
+<p>函数：<code>buildDEMMesh()</code>，勾选 "Fill Holes & Show DEM Mesh" 时触发。同时构建两个网格：</p>
+
+<h3>Filled Mesh（默认显示）</h3>
+<p>对 DEM 高程做迭代空洞填充，最多 20 轮，每轮用 8 邻域均值填充空洞格元：</p>
+<pre>for pass in range(20):
+    for each (i,j) where filledMask[i][j] == false:
+        neighbors = 8-connected cells where filledMask == true
+        if neighbors exist:
+            filled[i][j] = mean(neighbors)
+            filledMask[i][j] = true
+    if no cell changed: break</pre>
+<p>颜色编码：<span style="color:#888">灰色</span> = 原始有数据格元，<span style="color:#f0a500">橙色</span> = 填充格元。</p>
+<p>三角化：每个 (i,j) 格元拆成两个三角形，全部格元均参与（含填充区域）。</p>
+
+<h3>Original Mesh（对比用，默认隐藏）</h3>
+<p>只对四角均有真实数据的格元建面，空洞区域直接跳过，保留原始 DEM 的孔洞形态：</p>
+<pre>if hasData[i][j] && hasData[i][j+1] && hasData[i+1][j] && hasData[i+1][j+1]:
+    build quad</pre>
+<p>颜色编码：<span style="color:#888">灰色</span> = 有数据，<span style="color:#333">深灰</span> = 无数据（不建面，仅占位顶点）。</p>
+
+<hr class="sep">
+
+<!-- ─────────────────────────────────────────── -->
+<h2 id="compare">6. Filled / Original 对比切换</h2>
+
+<p>按钮 "Showing: Filled ⇄" 切换 <code>demMesh.visible</code> 与 <code>demMeshOrig.visible</code>，两个 Mesh 始终存在于 scene 中，只切换可见性。</p>
+<p>"Hide original point cloud" 复选框直接控制 <code>pointCloud.visible</code>，方便单独查看 DEM 网格。</p>
+
+<hr class="sep">
+
+<!-- ─────────────────────────────────────────── -->
+<h2 id="tooltip">7. Hover Tooltip（悬停坐标）</h2>
+
+<p>函数：<code>onMouseMove()</code></p>
+<ul>
+  <li>用 Three.js <code>Raycaster</code> 对 <code>pointCloud</code> 做射线检测，取最近命中点的索引</li>
+  <li>从 <code>alignedPos</code> attribute 读取该点的重力对齐坐标</li>
+  <li>X、Z 直接乘 scaleFactor；Y 先减去 <code>refYAligned</code> 再乘 scaleFactor，得到相对参考平面的高度</li>
+  <li>选区模式（<code>selectMode == true</code>）时禁用 tooltip</li>
+</ul>
+
+<hr class="sep">
+
+<!-- ─────────────────────────────────────────── -->
+<h2 id="selection">8. Region Selection（区域选择）</h2>
+
+<p>函数链：<code>startSelectMode → onSelMouseDown/Move/Up → computeSelection</code></p>
+
+<h3>绘制阶段</h3>
+<p>在 overlay canvas（2D）上实时绘制选区形状（矩形 / 圆 / 椭圆），纯视觉反馈，不涉及三维。</p>
+
+<h3>反投影阶段（computeSelection）</h3>
+<p>鼠标抬起后，将屏幕矩形的四个角点反投影到三维地面平面：</p>
+<pre>// 1. 确定地面高度：取 points_aligned 中 Y 坐标最低 10% 的中位数
+groundY_aligned = percentile(points_aligned[:, 1], 10)
+
+// 2. 将 groundY_aligned 转换为 display 空间的 Y 值（用于平面方程）
+groundY_display = T_display @ R_align^T @ [cx_dem, groundY_aligned, cz_dem]
+
+// 3. 对屏幕四角各发射一条射线，与 display 空间中 Y=groundY_display 的水平面求交
+corner_display = ray.intersectPlane( Plane(normal=[0,1,0], constant=-groundY_display) )
+
+// 4. 将交点从 display 转回 aligned XZ
+corner_aligned = displayToAligned(corner_display)</pre>
+
+<h3>点选取</h3>
+<p>在 aligned XZ 平面上按形状判断每个点是否在选区内：</p>
+<ul>
+  <li>矩形：AABB 测试</li>
+  <li>圆：<code>dx²+dz² ≤ r²</code>（取 rxA, rzA 中较小值为半径）</li>
+  <li>椭圆：<code>(dx/rx)²+(dz/rz)² ≤ 1</code></li>
+</ul>
+<p>选中点颜色改为黄色（1.0, 1.0, 0.0），清除时从 <code>originalColors</code> 还原。</p>
+
+<hr class="sep">
+
+<!-- ─────────────────────────────────────────── -->
+<h2 id="volume">9. Volume 体积计算</h2>
+
+<p>在 <code>computeSelection()</code> 末尾执行，基于 DEM 格元而非点云。</p>
+
+<pre>// 只统计 has_data == true 且在选区内的格元
+elevInRegion = [ elev[i][j]  for (i,j) in region if hasData[i][j] ]
+
+// 基准高程 = 选区内最低格元高程
+minElev = min(elevInRegion)
+
+// 体积 = Σ (elev[i][j] - minElev) × cellArea × scaleFactor
+cellArea = cellW × cellH × scaleFactor²
+volume   = Σ (e - minElev) × cellArea × scaleFactor</pre>
+
+<p class="warn">注意：基准是选区内 DEM 的最低点，不是 reference plane。scaleFactor 对面积贡献平方、对高度贡献一次，共三次方，单位为 m³。</p>
+<p>空洞格元（<code>has_data == false</code>）不参与体积计算，即使在选区内也跳过。</p>
+
+<hr class="sep">
+
+<!-- ─────────────────────────────────────────── -->
+<h2 id="cameras">10. Camera Extrinsics</h2>
+
+<p>函数：<code>buildCameraTable()</code> / <code>buildCameraSpheres()</code></p>
+<ul>
+  <li>表格显示每帧相机光心的 aligned 坐标 × scaleFactor（单位 m）</li>
+  <li>勾选 "Show cameras in 3D" 时，用 <code>center_display</code> 坐标在场景中渲染彩色小球（半径 0.008）</li>
+  <li>重力来源（trajectory / ground_mask / cloud_ransac）显示在表格上方</li>
+</ul>
+
+<hr class="sep">
+
+<!-- ─────────────────────────────────────────── -->
+<h2 id="scale">11. Scale Calibration</h2>
+
+<p>全局变量 <code>scaleFactor</code>，默认从 <code>data.scale_factor</code> 读取（后端默认 1.0）。</p>
+<ul>
+  <li>影响 tooltip 显示的 X/Y/Z 数值</li>
+  <li>影响相机表格中的坐标数值</li>
+  <li>影响体积计算（cellArea × scaleFactor²，高度 × scaleFactor，共 ×scaleFactor³）</li>
+  <li><strong>不影响</strong>三维场景的几何渲染（点云、DEM、参考平面的位置不变）</li>
+</ul>
+
+</body>
+</html>

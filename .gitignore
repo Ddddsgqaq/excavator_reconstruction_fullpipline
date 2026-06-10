@@ -1,0 +1,41 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local environments and secrets
+.venv/
+venv/
+env/
+.env
+.env.*
+
+# Local agent/editor metadata
+.agents/
+.codex/
+.claude/
+.gitrepo/
+
+# Generated sessions and reconstruction outputs
+workspaces/
+images/
+*.npz
+*.glb
+*.zip
+
+# Large media inputs
+*.mp4
+*.mov
+*.avi
+*.mkv
+
+# Model weights and large binary artifacts
+*.pt
+*.pth
+*.onnx
+*.safetensors
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak

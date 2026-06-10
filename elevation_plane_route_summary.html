@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>高程图平面拟合方案与路线总结</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --line: #d8e0ea;
+      --code: #0f172a;
+      --accent: #2563eb;
+      --accent-soft: #e8f0ff;
+      --green: #15803d;
+      --amber: #b45309;
+      --purple: #7c3aed;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      line-height: 1.72;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    header {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 42px 28px 34px;
+      border-bottom: 4px solid var(--accent);
+    }
+
+    main {
+      width: min(1120px, calc(100% - 36px));
+      margin: 24px auto 56px;
+    }
+
+    h1, h2, h3 { line-height: 1.25; margin: 0; }
+    h1 { font-size: clamp(28px, 4vw, 42px); letter-spacing: 0; }
+    h2 {
+      font-size: 24px;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+    }
+    h3 { font-size: 18px; margin-top: 20px; margin-bottom: 8px; }
+    p { margin: 8px 0 12px; }
+    a { color: var(--accent); }
+
+    .subtitle {
+      max-width: 920px;
+      margin-top: 12px;
+      color: #cbd5e1;
+      font-size: 16px;
+    }
+
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .toc {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 8px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .toc a {
+      display: block;
+      padding: 10px 12px;
+      background: var(--accent-soft);
+      border: 1px solid #c7d7fe;
+      border-radius: 6px;
+      text-decoration: none;
+      color: #1d4ed8;
+      font-weight: 600;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 10px;
+      margin: 16px 0 6px;
+    }
+
+    .flow-step {
+      min-height: 116px;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfdff;
+    }
+
+    .flow-step strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #0f172a;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .tag.green { background: var(--green); }
+    .tag.amber { background: var(--amber); }
+    .tag.purple { background: var(--purple); }
+    .tag.blue { background: var(--accent); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: #eef2f7;
+      color: #0f172a;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: #0f376e;
+      background: #eef5ff;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 0.92em;
+    }
+
+    pre {
+      overflow-x: auto;
+      background: var(--code);
+      color: #dbeafe;
+      border-radius: 8px;
+      padding: 14px 16px;
+      line-height: 1.55;
+      font-size: 13px;
+    }
+
+    .note {
+      border-left: 4px solid var(--amber);
+      background: #fff7ed;
+      padding: 12px 14px;
+      border-radius: 0 6px 6px 0;
+      color: #7c2d12;
+      margin: 12px 0;
+    }
+
+    .ok {
+      border-left: 4px solid var(--green);
+      background: #f0fdf4;
+      color: #14532d;
+      padding: 12px 14px;
+      border-radius: 0 6px 6px 0;
+      margin: 12px 0;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .formula {
+      background: #f8fafc;
+      border: 1px dashed #b6c2d2;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: #0f172a;
+      margin: 10px 0;
+    }
+
+    @media (max-width: 900px) {
+      .flow { grid-template-columns: 1fr; }
+      .two-col { grid-template-columns: 1fr; }
+      header { padding: 32px 18px 26px; }
+      main { width: min(100% - 24px, 1120px); }
+      .section { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>高程图平面拟合方案与路线总结</h1>
+    <p class="subtitle">
+      基于当前项目代码整理：<code>gravity_alignment.py</code> 负责重力/水平面方向估计，
+      <code>elevation_plane.py</code> 负责 DEM 插值和 GLB 导出，
+      <code>vggt_service.py</code> 与 <code>elevation_viewer.html</code> 提供接口和交互式查看。
+    </p>
+  </header>
+
+  <main>
+    <section class="section">
+      <h2>目录</h2>
+      <ul class="toc">
+        <li><a href="#overview">1. 总体定位</a></li>
+        <li><a href="#pipeline">2. 主流程路线</a></li>
+        <li><a href="#gravity">3. 重力方向与平面拟合</a></li>
+        <li><a href="#ground">4. 地面候选点筛选</a></li>
+        <li><a href="#dem">5. DEM 高程图构建</a></li>
+        <li><a href="#mesh">6. 网格与 GLB 输出</a></li>
+        <li><a href="#viewer">7. 前端查看与体积</a></li>
+        <li><a href="#api">8. 接口、参数与产物</a></li>
+        <li><a href="#notes">9. 当前实现注意点</a></li>
+      </ul>
+    </section>
+
+    <section id="overview" class="section">
+      <h2>1. 总体定位</h2>
+      <p>
+        当前项目中的“高程图平面拟合”不是把全部地形压成一个单一平面，而是分成两层：
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>层级</th>
+            <th>目的</th>
+            <th>实现位置</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>平面拟合 / PCA / RANSAC</td>
+            <td>估计场景中的重力方向，也就是把“向上”对齐到坐标系 +Y。</td>
+            <td><code>gravity_alignment.py</code></td>
+          </tr>
+          <tr>
+            <td>DEM 曲面拟合</td>
+            <td>在重力对齐后的水平 <code>(X, Z)</code> 平面上，对地面点的 <code>Y</code> 值做规则网格插值，得到数字高程模型。</td>
+            <td><code>elevation_plane.py</code>、<code>vggt_service.py:/elevation_viewer_data</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">
+        代码里保留了 <code>use_ransac</code> 参数，但在 <code>fit_elevation_to_glb</code> 中已经标记为兼容旧接口，实际由重力估计级联流程替代。
+      </div>
+    </section>
+
+    <section id="pipeline" class="section">
+      <h2>2. 主流程路线</h2>
+      <div class="flow">
+        <div class="flow-step">
+          <strong>1. VGGT 重建</strong>
+          得到深度图、相机外参、世界点云与置信度，保存到 <code>predictions.npz</code>。
+        </div>
+        <div class="flow-step">
+          <strong>2. 可选 YOLOe 语义</strong>
+          若存在 <code>semantic_masks</code>，语义 ID 为 <code>1</code> 的点被视为地面候选来源。
+        </div>
+        <div class="flow-step">
+          <strong>3. 重力对齐</strong>
+          通过相机轨迹平面、地面 mask 平面或全点云 RANSAC 估计重力方向，并旋转点云。
+        </div>
+        <div class="flow-step">
+          <strong>4. DEM 插值</strong>
+          在对齐坐标中选地面点，用 <code>griddata</code> 在 <code>(X,Z)</code> 规则网格上插值 <code>Y</code>。
+        </div>
+        <div class="flow-step">
+          <strong>5. 输出与查看</strong>
+          生成彩色高程 mesh 的 GLB，并通过 Three.js viewer 展示 DEM、参考平面、体积选择。
+        </div>
+      </div>
+    </section>
+
+    <section id="gravity" class="section">
+      <h2>3. 重力方向与平面拟合</h2>
+      <p>
+        VGGT 输出的世界坐标不保证和真实重力方向一致，因此系统先估计一个世界坐标中的“向上”单位向量
+        <code>n_grav</code>，再构造旋转矩阵 <code>R_align</code>，使：
+      </p>
+      <div class="formula">R_align @ n_grav = [0, 1, 0]</div>
+      <p>
+        应用后，点云坐标变为：
+      </p>
+      <div class="formula">points_aligned = points_world @ R_align.T</div>
+      <p>
+        此后 <code>Y</code> 被当作高程轴，<code>(X, Z)</code> 被当作水平平面。
+      </p>
+
+      <h3>3.1 级联估计策略</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>优先级</th>
+            <th>方法</th>
+            <th>数据来源</th>
+            <th>说明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1 <span class="tag blue">主方法</span></td>
+            <td>相机轨迹平面 PCA</td>
+            <td><code>extrinsic</code> 推出的 camera centers</td>
+            <td>对相机中心做 SVD/PCA，取最小方差方向作为轨迹平面法向量。若轨迹近似直线，判定退化并跳过。</td>
+          </tr>
+          <tr>
+            <td>2 <span class="tag green">语义辅助</span></td>
+            <td>地面 mask RANSAC</td>
+            <td><code>semantic_masks == 1</code> 的 3D 点</td>
+            <td>当有地面语义时拟合地面平面。若轨迹法向已存在，则作为一致性检查或 fallback。</td>
+          </tr>
+          <tr>
+            <td>3 <span class="tag amber">兜底</span></td>
+            <td>全点云 RANSAC</td>
+            <td>全部有效点云，最多采样 200,000 点</td>
+            <td>当轨迹和语义都不可用时使用。若有先验法向，会限制候选平面大致平行于先验。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>3.2 轨迹法退化与一致性检查</h3>
+      <p>
+        轨迹 PCA 中计算前两个主方向方差比 <code>eig[1] / eig[0]</code>。若小于
+        <code>TRAJ_DEGENERATE_RATIO = 0.1</code>，说明相机运动近似一条线，无法可靠确定轨迹平面。
+      </p>
+      <p>
+        当轨迹法和地面 mask 法都可用时，系统计算两个法向夹角。若超过
+        <code>GRAVITY_DISAGREE_DEG = 10°</code>，会记录 warning，但当前策略仍优先使用轨迹法。
+      </p>
+    </section>
+
+    <section id="ground" class="section">
+      <h2>4. 地面候选点筛选</h2>
+      <p>
+        重力对齐后，系统在 <code>_select_ground_aligned</code> 中提取用于高程图插值的地面点。
+      </p>
+      <div class="two-col">
+        <div>
+          <h3>有语义地面 mask</h3>
+          <p>
+            若存在 <code>semantic_masks</code> 且语义 ID <code>1</code> 有足够点数，先取这些点作为地面集合。
+            为减少误分割和非地面物体影响，再按 Y 中位数附近的窄带过滤：
+          </p>
+          <div class="formula">tol = 0.05 * (P98(Y_all) - P2(Y_all))</div>
+          <div class="formula">G = ground_mask_points where abs(Y - median(Y_ground)) &lt;= tol</div>
+        </div>
+        <div>
+          <h3>无语义 mask 或点数不足</h3>
+          <p>
+            使用高程百分位 fallback。默认取 <code>Y</code> 最低的 <code>20%</code> 点作为地面候选：
+          </p>
+          <div class="formula">threshold = percentile(Y_aligned, ground_percentile)</div>
+          <div class="formula">G = points_aligned where Y &lt;= threshold</div>
+        </div>
+      </div>
+      <div class="ok">
+        这里的目标不是重新拟合一个地面斜平面，而是得到足够稳定的地面采样点，用于后续 DEM 曲面插值。
+      </div>
+    </section>
+
+    <section id="dem" class="section">
+      <h2>5. DEM 高程图构建</h2>
+      <h3>5.1 网格范围</h3>
+      <p>
+        <code>elevation_plane.py</code> 使用全部对齐点云的 <code>X</code> 和 <code>Z</code> 范围确定 DEM 覆盖范围，
+        并在两端增加 <code>5%</code> padding。viewer 数据接口中类似逻辑使用 <code>2%</code> padding。
+      </p>
+
+      <h3>5.2 规则网格</h3>
+      <p>
+        根据 <code>grid_resolution</code> 生成 <code>N x N</code> 的规则网格，默认 <code>128 x 128</code>。
+      </p>
+      <div class="formula">xi = linspace(x_min, x_max, grid_resolution)</div>
+      <div class="formula">zi = linspace(z_min, z_max, grid_resolution)</div>
+
+      <h3>5.3 散点插值</h3>
+      <p>
+        以地面候选点 <code>G</code> 的 <code>(X, Z)</code> 作为输入坐标，<code>Y</code> 作为高程值：
+      </p>
+      <pre><code>elev_linear  = griddata(G[:, [0, 2]], G[:, 1], (xx, zz), method="linear")
+elev_nearest = griddata(G[:, [0, 2]], G[:, 1], (xx, zz), method="nearest")
+elev = where(isnan(elev_linear), elev_nearest, elev_linear)</code></pre>
+      <p>
+        <code>linear</code> 插值覆盖真实可插区域，空洞处用 <code>nearest</code> 补齐。viewer 返回的数据还带有
+        <code>has_data</code>，标记哪些格元来自线性插值的有效区域。
+      </p>
+    </section>
+
+    <section id="mesh" class="section">
+      <h2>6. 网格与 GLB 输出</h2>
+      <p>
+        DEM 网格会被转换为三角 mesh。每个网格顶点坐标为：
+      </p>
+      <div class="formula">vertex(i, j) = [X_j, elev(i, j), Z_i]</div>
+      <p>
+        每个相邻四边形拆成两个三角面：
+      </p>
+      <div class="formula">[i00, i10, i01] 和 [i10, i11, i01]</div>
+      <p>
+        顶点颜色按高程归一化后映射到 matplotlib colormap。默认使用 <code>terrain</code>，
+        也支持 <code>viridis</code>、<code>plasma</code>、<code>inferno</code>、<code>magma</code>、
+        <code>cividis</code>、<code>RdYlGn</code>、<code>coolwarm</code>。
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>输出</th>
+            <th>文件名模式</th>
+            <th>说明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>高程 mesh</td>
+            <td><code>elev_r&lt;N&gt;_&lt;cmap&gt;_aligned_only.glb</code></td>
+            <td>只包含 DEM 曲面的 GLB。</td>
+          </tr>
+          <tr>
+            <td>合并场景</td>
+            <td><code>elev_r&lt;N&gt;_&lt;cmap&gt;_aligned_merged.glb</code></td>
+            <td>若传入原始 GLB，则把高程 mesh 叠加到点云场景上；否则与 only 文件相同。</td>
+          </tr>
+          <tr>
+            <td>元数据</td>
+            <td><code>elev_r&lt;N&gt;_&lt;cmap&gt;_aligned_meta.json</code></td>
+            <td>保存 <code>gravity_source</code>、<code>n_grav</code>、<code>R_align</code>、<code>scale_factor</code>、warning 和 debug。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="viewer" class="section">
+      <h2>7. 前端查看与体积</h2>
+      <p>
+        <code>elevation_viewer.html</code> 通过 <code>POST /elevation_viewer_data</code> 获取点云、对齐坐标、
+        DEM、相机轨迹和重力估计信息，用 Three.js 做交互式展示。
+      </p>
+      <h3>7.1 DEM 展示</h3>
+      <p>
+        viewer 会构建两套 DEM mesh：一套使用后端返回的 <code>has_data</code> 显示原始有效区域；
+        另一套对空洞进行最多 20 轮 8 邻域均值填充，用于更连续的可视化效果。
+      </p>
+      <h3>7.2 参考平面</h3>
+      <p>
+        前端参考平面主要用于视觉基准和 tooltip 高度零点。当前逻辑倾向于使用 DEM 中
+        <code>has_data == false</code> 的格元均值作为 <code>refY_aligned</code>，若没有空洞则 fallback 到网格中心高程。
+      </p>
+      <h3>7.3 选区体积</h3>
+      <p>
+        用户在屏幕上框选矩形、圆形或椭圆后，前端把屏幕选区反投影到地面水平面，再转换到 aligned 坐标的
+        <code>(X,Z)</code> 区域。体积使用 DEM 有效格元积分：
+      </p>
+      <div class="formula">volume = sum((elev_cell - min_elev_in_region) * cell_area * scale_factor)</div>
+      <p>
+        其中 <code>cell_area</code> 会乘以 <code>scale_factor^2</code>，高程差再乘一次 <code>scale_factor</code>，
+        因此总体按三次方尺度缩放。
+      </p>
+    </section>
+
+    <section id="api" class="section">
+      <h2>8. 接口、参数与产物</h2>
+      <h3>8.1 拟合接口</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>接口</th>
+            <th>作用</th>
+            <th>核心参数</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>POST /fit_elevation</code></td>
+            <td>运行重力对齐、地面点筛选、DEM 插值、GLB 导出。</td>
+            <td><code>working_dir</code>、<code>source_glb_path</code>、<code>grid_resolution</code>、<code>colormap</code>、<code>ground_percentile</code>、<code>conf_thres</code>、<code>prediction_mode</code>、<code>scale_factor</code></td>
+          </tr>
+          <tr>
+            <td><code>POST /elevation_viewer_data</code></td>
+            <td>返回浏览器查看器所需的点云、DEM、相机、重力对齐矩阵。</td>
+            <td><code>working_dir</code>、<code>conf_thres</code>、<code>prediction_mode</code>、<code>ground_percentile</code></td>
+          </tr>
+          <tr>
+            <td><code>GET /viewer?session=...</code></td>
+            <td>跳转到静态 Three.js 高程查看器。</td>
+            <td><code>session</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>8.2 关键参数建议</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>参数</th>
+            <th>默认值</th>
+            <th>影响</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>grid_resolution</code></td>
+            <td><code>128</code></td>
+            <td>越高 DEM 越细，GLB 面数和计算成本越高。UI 范围是 32 到 512。</td>
+          </tr>
+          <tr>
+            <td><code>ground_percentile</code></td>
+            <td><code>20.0</code></td>
+            <td>无语义地面 mask 时，决定取最低多少百分位点作为地面候选。场景中目标物体多时可适当降低。</td>
+          </tr>
+          <tr>
+            <td><code>conf_thres</code></td>
+            <td><code>50.0</code></td>
+            <td>过滤低置信度点。拟合接口按最大置信度比例过滤；viewer 数据接口按百分位过滤。</td>
+          </tr>
+          <tr>
+            <td><code>scale_factor</code></td>
+            <td><code>1.0</code></td>
+            <td>绝对尺度校准系数。影响导出 mesh 尺寸和体积单位换算。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="notes" class="section">
+      <h2>9. 当前实现注意点</h2>
+      <ol>
+        <li>
+          <strong>地面语义 ID 被硬编码为 1。</strong>
+          <code>elevation_plane.py</code> 和 <code>vggt_service.py</code> 都使用 <code>semantic_masks == 1</code> 作为 ground mask。
+          如果 YOLOe 输出中 ground 不是 ID 1，则不会按预期使用语义地面。
+        </li>
+        <li>
+          <strong><code>use_ransac</code> 已不控制 DEM 拟合。</strong>
+          UI 仍显示 “Refine with RANSAC”，但后端 <code>fit_elevation_to_glb</code> 里实际 <code>del use_ransac</code>。
+          RANSAC 只在重力估计级联中使用。
+        </li>
+        <li>
+          <strong>后端导出 DEM 与 viewer DEM 有轻微差异。</strong>
+          拟合导出使用用户指定 <code>grid_resolution</code> 和 5% padding；viewer 数据接口固定 <code>128 x 128</code> 并使用 2% padding。
+        </li>
+        <li>
+          <strong>当前方案依赖重力对齐质量。</strong>
+          若相机轨迹退化、地面 mask 错误或点云大面积缺失，DEM 会出现倾斜、漂浮或高程基准错误。
+        </li>
+        <li>
+          <strong>体积基准不是 reference plane。</strong>
+          前端体积计算使用选区内 DEM 最低高程作为基准，不使用可视化参考平面。
+        </li>
+      </ol>
+    </section>
+  </main>
+</body>
+</html>
