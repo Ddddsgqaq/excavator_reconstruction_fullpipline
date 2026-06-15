@@ -52,28 +52,29 @@ tr:hover td { background: #1a2a4a; }
   pointer-events: none; display: none; z-index: 1000; white-space: nowrap;
   font-family: monospace; line-height: 1.6;
 }
-/* ── Gravity Viz Modal ── */
-#grav-modal {
+/* ── Diagnostic Modals ── */
+#grav-modal, #ground-modal {
   display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.80);
   z-index: 2000; align-items: center; justify-content: center;
 }
-#grav-modal.open { display: flex; }
-#grav-modal-inner {
+#grav-modal.open, #ground-modal.open { display: flex; }
+#grav-modal-inner, #ground-modal-inner {
   background: #16213e; border: 1px solid #0f3460; border-radius: 8px;
   padding: 20px 24px; max-width: 960px; width: 96vw; max-height: 92vh;
   overflow-y: auto; position: relative;
 }
-#grav-modal-inner h2 { color: #e94560; font-size: 14px; margin-bottom: 14px; }
-#grav-modal-close {
+#ground-modal-inner { max-width: 1060px; }
+#grav-modal-inner h2, #ground-modal-inner h2 { color: #e94560; font-size: 14px; margin-bottom: 14px; }
+#grav-modal-close, #ground-modal-close {
   position: absolute; top: 12px; right: 14px; background: none; border: none;
   color: #888; font-size: 18px; cursor: pointer; width: auto; padding: 0;
 }
-#grav-modal-close:hover { color: #e94560; }
-#grav-main-canvas { border: 1px solid #0f3460; border-radius: 4px; display: block; }
-#grav-info { font-size: 12px; font-family: monospace; color: #aaa; line-height: 1.8; margin-top: 14px; }
-#grav-info .lbl { color: #00ccff; }
-#grav-info .val { color: #e0e0e0; }
-#grav-info .warn { color: #f0a500; }
+#grav-modal-close:hover, #ground-modal-close:hover { color: #e94560; }
+#grav-main-canvas, #ground-main-canvas { border: 1px solid #0f3460; border-radius: 4px; display: block; max-width: 100%; height: auto; }
+#grav-info, #ground-info { font-size: 12px; font-family: monospace; color: #aaa; line-height: 1.8; margin-top: 14px; }
+#grav-info .lbl, #ground-info .lbl { color: #00ccff; }
+#grav-info .val, #ground-info .val { color: #e0e0e0; }
+#grav-info .warn, #ground-info .warn { color: #f0a500; }
 #loading {
   position: absolute; top: 0; left: 0; right: 0; bottom: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -89,6 +90,18 @@ tr:hover td { background: #1a2a4a; }
 .shape-btn { width: auto; flex: 1; padding: 5px 0; font-size: 16px; background: #0f3460; border: 1px solid #1a4a8a; color: #ccc; border-radius: 4px; cursor: pointer; transition: background 0.2s; }
 .shape-btn:hover { background: #1a4a8a; }
 .shape-btn.active { background: #e94560; border-color: #e94560; color: #fff; }
+#legend {
+  position: absolute; bottom: 16px; right: 16px; background: rgba(15,52,96,0.92);
+  border: 1px solid #1a4a8a; border-radius: 6px; padding: 10px 12px; z-index: 50;
+  font-size: 11px; color: #ddd; pointer-events: none; min-width: 132px;
+}
+#legend .legend-title { color: #e94560; font-size: 11px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+#legend .legend-sub { color: #888; font-size: 10px; margin-top: 8px; line-height: 1.5; font-family: monospace; }
+#legend .grad-row { display: flex; align-items: stretch; gap: 8px; }
+#legend .grad-bar { width: 16px; border-radius: 3px; border: 1px solid #0a0a1a; }
+#legend .grad-labels { display: flex; flex-direction: column; justify-content: space-between; font-family: monospace; font-size: 10px; color: #ccc; }
+#legend .cls-row { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; font-family: monospace; }
+#legend .cls-sw { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #0a0a1a; flex: 0 0 auto; }
 </style>
 </head>
 <body>
@@ -102,6 +115,12 @@ tr:hover td { background: #1a2a4a; }
   <!-- Stats -->
   <div class="sidebar-section" id="stats-section">
     <h3>Scene Info</h3>
+    <div style="margin-bottom:10px">
+      <label for="scene-select">Point cloud scene</label>
+      <select id="scene-select" style="width:100%;background:#0f3460;border:1px solid #1a4a8a;color:#e0e0e0;padding:5px 8px;border-radius:4px;font-size:13px;cursor:pointer;">
+        <option value="original">Original (full reconstruction)</option>
+      </select>
+    </div>
     <div class="stat-row"><span class="stat-label">Points</span><span class="stat-val" id="stat-points">—</span></div>
     <div class="stat-row"><span class="stat-label">Cameras</span><span class="stat-val" id="stat-cameras">—</span></div>
     <div class="stat-row"><span class="stat-label">Gravity</span><span class="stat-val" id="stat-gravity">—</span></div>
@@ -110,17 +129,26 @@ tr:hover td { background: #1a2a4a; }
       <span>Show axes</span>
     </div>
     <div class="checkbox-row" style="margin-top:4px">
+      <input type="checkbox" id="color-by-height">
+      <span>Color points by height</span>
+    </div>
+    <div class="checkbox-row" style="margin-top:4px">
       <input type="checkbox" id="show-ref-plane" checked>
       <span>Show reference plane</span>
     </div>
+    <div style="margin-top:10px">
+      <label for="point-size">Point size <span id="point-size-val" style="color:#e94560;float:right">1.0×</span></label>
+      <input type="range" id="point-size" min="0.2" max="5" step="0.1" value="1" style="width:100%;accent-color:#e94560;cursor:pointer;">
+    </div>
     <button id="gravity-viz-btn" style="margin-top:10px;font-size:12px;padding:5px 8px;">Gravity Alignment Viz</button>
+    <button id="ground-filter-viz-btn" style="margin-top:6px;font-size:12px;padding:5px 8px;">Ground Filter Viz</button>
   </div>
 
   <!-- Scale -->
   <div class="sidebar-section">
     <h3>Scale Calibration</h3>
     <label for="scale-input">Scale factor (1 unit = ? meters)</label>
-    <input type="number" id="scale-input" value="1.0" step="0.01" min="0.001">
+    <input type="number" id="scale-input" value="28" step="0.01" min="0.001">
   </div>
 
   <!-- Camera Extrinsics -->
@@ -148,8 +176,16 @@ tr:hover td { background: #1a2a4a; }
   <div class="sidebar-section">
     <h3>DEM Hole Fill</h3>
     <div class="checkbox-row">
+      <input type="checkbox" id="use-ground-filter" checked>
+      <span>Use ground filter for DEM</span>
+    </div>
+    <div class="checkbox-row">
       <input type="checkbox" id="fill-holes">
       <span>Fill Holes &amp; Show DEM Mesh</span>
+    </div>
+    <div class="checkbox-row" id="dem-grid-row" style="display:none;margin-top:4px;padding-left:4px;border-left:2px solid #444;">
+      <input type="checkbox" id="show-dem-grid" checked>
+      <span>Show grid lines on DEM</span>
     </div>
     <div class="checkbox-row" id="hide-pointcloud-row" style="display:none;margin-top:6px;padding-left:4px;border-left:2px solid #444;">
       <input type="checkbox" id="hide-pointcloud">
@@ -157,6 +193,40 @@ tr:hover td { background: #1a2a4a; }
     </div>
     <div id="compare-row" style="display:none;margin-top:6px;">
       <button id="compare-btn" style="font-size:12px;padding:5px 8px;">Showing: Filled &nbsp;&#8644;</button>
+    </div>
+  </div>
+
+  <!-- Terrain Classification -->
+  <div class="sidebar-section">
+    <h3>Terrain Classification (坑/坡)</h3>
+    <label for="classify-thres">Height threshold vs reference plane (m)</label>
+    <input type="number" id="classify-thres" value="1.4" step="0.01" min="0.001">
+    <div style="color:#888;font-size:11px;margin:4px 0 8px;">|height| &gt; threshold → 坡/坑, else 平坦</div>
+    <button id="classify-btn">识别坑/坡 (Classify)</button>
+    <button id="classify-reset-btn" style="margin-top:6px">按高度着色 (Reset)</button>
+    <div id="classify-result" style="display:none;background:#0f3460;border-radius:4px;padding:8px 10px;margin-top:8px;font-size:12px;line-height:1.7;"></div>
+    <div style="margin-top:12px;border-top:1px solid #333;padding-top:10px;">
+      <b style="color:#ddd;font-size:12px;">Top Region Detection</b>
+      <div style="margin:7px 0 4px;font-size:12px;color:#aaa;display:flex;align-items:center;gap:8px;">
+        <label for="detect-n-pits">识别最大坑数量:</label>
+        <input type="number" id="detect-n-pits" value="1" min="0" max="10" style="width:44px;">
+      </div>
+      <div style="margin:0 0 6px;font-size:12px;color:#aaa;display:flex;align-items:center;gap:8px;">
+        <label for="detect-n-mounds">识别最大坡数量:</label>
+        <input type="number" id="detect-n-mounds" value="3" min="0" max="10" style="width:44px;">
+      </div>
+      <button id="detect-btn">识别最大坑/坡体</button>
+      <button id="detect-clear-btn" style="margin-top:5px;">清除高亮</button>
+      <div id="detect-result" style="display:none;background:#0f3460;border-radius:4px;padding:8px 10px;margin-top:8px;font-size:12px;line-height:1.9;"></div>
+      <div id="progress-section" style="display:none;margin-top:10px;border-top:1px solid #333;padding-top:8px;">
+        <b style="color:#ddd;font-size:12px;">施工进度</b>
+        <div style="margin:6px 0 5px;font-size:12px;color:#aaa;display:flex;align-items:center;gap:8px;">
+          <label for="target-depth">目标深度 (m):</label>
+          <input type="number" id="target-depth" value="1.0" min="0.01" step="0.1" style="width:64px;">
+        </div>
+        <button id="calc-progress-btn">识别进度</button>
+        <div id="progress-result" style="display:none;background:#0a2a1a;border-radius:4px;padding:8px 10px;margin-top:8px;font-size:12px;line-height:1.8;"></div>
+      </div>
     </div>
   </div>
 
@@ -182,6 +252,7 @@ tr:hover td { background: #1a2a4a; }
   <canvas id="overlay-canvas"></canvas>
   <div id="loading"><div class="spinner"></div><p>Loading point cloud data…</p></div>
   <div id="error-msg"></div>
+  <div id="legend" style="display:none"></div>
   <div id="split-overlay" style="display:none"></div>
 </div>
 
@@ -194,6 +265,16 @@ tr:hover td { background: #1a2a4a; }
     <h2>Gravity Alignment Visualization</h2>
     <canvas id="grav-main-canvas" width="900" height="520"></canvas>
     <div id="grav-info"></div>
+  </div>
+</div>
+
+<!-- ── _select_ground_aligned Visualization Modal ── -->
+<div id="ground-modal">
+  <div id="ground-modal-inner">
+    <button id="ground-modal-close">&#10005;</button>
+    <h2>_select_ground_aligned Point Filter</h2>
+    <canvas id="ground-main-canvas" width="1000" height="620"></canvas>
+    <div id="ground-info"></div>
   </div>
 </div>
 
@@ -249,6 +330,10 @@ let pointCloud = null;
 let cameraGroup = null;
 let demMesh = null;
 let demMeshOrig = null;
+let demGridLines = null;
+let regionHighlightMeshes = [];
+let pitBBoxLines = null;       // wireframe box for target excavation volume
+let detectedPitData = null;    // {comp, axMin, axMax, azMin, azMax, vol}
 let refPlaneGroup = null;
 let axesGroup = null;
 let sceneBSCenter = new THREE.Vector3();
@@ -256,13 +341,23 @@ let sceneBSRadius = 1.0;
 let selectionHighlight = null;
 let raycaster, mouse;
 let data = null;          // raw API response
-let scaleFactor = 1.0;
+let scaleFactor = 28.0;
 let selectMode = false;
 let selRect = null;       // {x0,y0,x1,y1} screen coords
 let selShape = 'rect';    // 'rect' | 'circle' | 'ellipse'
 let selectedIndices = [];
-let originalColors = null; // Float32Array backup
+let photoColors = null;    // Float32Array backup of original per-point photo colors
+let heightColors = null;   // Float32Array per-point colors by elevation (lazy built)
 let refYAligned = 0;       // aligned-space Y of the reference plane (tooltip zero point)
+let useGroundFilterForDEM = true;
+let sceneList = [];        // [{id, label, semantic_filter_ids, semantic_filter_mode, semantic_masks_path}]
+let currentScene = null;   // the selected scene entry from sceneList
+let heightColorMode = false;          // point cloud: false=photo texture, true=by height
+let demColorMode = 'elevation';       // DEM mesh coloring: 'elevation' | 'classify'
+const POINT_SIZE = 0.0015;            // point size as a fraction of scene bounding radius
+let basePointSize = 1.0;              // bs.radius * POINT_SIZE, set in buildScene; scaled by the slider
+let classifyThreshold = 1.4;          // |height vs ref plane| (scaled units) above which → 坡/坑
+let demStats = null;                  // cached {filled, gr, elevLo, elevHi, cellArea} from last buildDEMMesh
 
 // ─── Coordinate transform (module-level, requires data to be set) ─────────────
 function alignedToDisplay(ax, ay, az) {
@@ -277,8 +372,50 @@ function alignedToDisplay(ax, ay, az) {
   ];
 }
 
-const POINT_SIZE = 0.003;
+// ─── Shared elevation colormap (terrain: blue→green→yellow→brown→white) ────────
+const CMAP_STOPS = [
+  [0.00, [0.13, 0.30, 0.65]],
+  [0.20, [0.10, 0.55, 0.80]],
+  [0.40, [0.15, 0.68, 0.25]],
+  [0.60, [0.82, 0.80, 0.12]],
+  [0.80, [0.60, 0.38, 0.18]],
+  [1.00, [0.92, 0.90, 0.88]],
+];
+function elevColor(t) {
+  t = Math.max(0, Math.min(1, t));
+  for (let k = 1; k < CMAP_STOPS.length; k++) {
+    const [t0, c0] = CMAP_STOPS[k - 1];
+    const [t1, c1] = CMAP_STOPS[k];
+    if (t <= t1) {
+      const f = (t - t0) / (t1 - t0 || 1);
+      return c0.map((v, i) => v + f * (c1[i] - v));
+    }
+  }
+  return CMAP_STOPS[CMAP_STOPS.length - 1][1];
+}
+// Percentile over a numeric array (linear-ish, good enough for normalization)
+function percentileOf(vals, p) {
+  if (!vals.length) return 0;
+  const s = vals.slice().sort((a, b) => a - b);
+  const pos = Math.max(0, Math.min(s.length - 1, Math.round((s.length - 1) * p)));
+  return s[pos];
+}
+// Classification ramps: 坡 warm (yellow→red), 坑 cool (cyan→deep blue), 平坦 neutral
+function moundColor(t) {   // t in [0,1] by magnitude above threshold
+  t = Math.max(0, Math.min(1, t));
+  const a = [0.95, 0.85, 0.20], b = [0.80, 0.12, 0.10];
+  return a.map((v, i) => v + t * (b[i] - v));
+}
+function pitColor(t) {     // t in [0,1] by magnitude below threshold
+  t = Math.max(0, Math.min(1, t));
+  const a = [0.35, 0.80, 0.85], b = [0.06, 0.18, 0.55];
+  return a.map((v, i) => v + t * (b[i] - v));
+}
+const FLAT_COLOR = [0.55, 0.58, 0.52];
 const BASE_URL = `${location.protocol}//${location.host}`;
+const initialParams = new URLSearchParams(location.search);
+const initialGroundFilter = (initialParams.get('use_ground_filter') || 'true').toLowerCase();
+useGroundFilterForDEM = !['false', '0', 'off', 'no'].includes(initialGroundFilter);
 
 // ─── Init Three.js ────────────────────────────────────────────────────────────
 function initThree() {
@@ -339,11 +476,39 @@ function animate() {
   labelRenderer.render(scene, camera);
 }
 
+// ─── Scene list (original + edits) ─────────────────────────────────────────────
+async function loadScenes() {
+  const params = new URLSearchParams(location.search);
+  const workingDir = params.get('session') || '';
+  const sel = document.getElementById('scene-select');
+  try {
+    const resp = await fetch(`${BASE_URL}/elevation_scenes?session=${encodeURIComponent(workingDir)}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const json = await resp.json();
+    sceneList = json.scenes || [];
+  } catch (e) {
+    sceneList = [{ id: 'original', label: 'Original (full reconstruction)',
+                   semantic_filter_ids: [], semantic_filter_mode: 'delete', semantic_masks_path: '' }];
+  }
+  sel.innerHTML = '';
+  for (const s of sceneList) {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s.label;
+    sel.appendChild(opt);
+  }
+  currentScene = sceneList[0] || null;
+  sel.value = currentScene ? currentScene.id : 'original';
+}
+
 // ─── Load Data ────────────────────────────────────────────────────────────────
 async function loadData() {
   const params = new URLSearchParams(location.search);
   const workingDir = params.get('session') || '';
+  const scene = currentScene || {};
 
+  document.getElementById('loading').style.display = 'flex';
+  document.getElementById('error-msg').style.display = 'none';
   try {
     const resp = await fetch(`${BASE_URL}/elevation_viewer_data`, {
       method: 'POST',
@@ -352,7 +517,11 @@ async function loadData() {
         working_dir: workingDir,
         conf_thres: 50.0,
         prediction_mode: 'Depthmap and Camera Branch',
-        ground_percentile: 20.0
+        ground_percentile: 20.0,
+        use_ground_filter: useGroundFilterForDEM,
+        semantic_filter_ids: scene.semantic_filter_ids || [],
+        semantic_filter_mode: scene.semantic_filter_mode || 'delete',
+        semantic_masks_path: scene.semantic_masks_path || ''
       })
     });
     if (!resp.ok) {
@@ -363,6 +532,8 @@ async function loadData() {
     document.getElementById('loading').style.display = 'none';
     buildScene();
     populateSidebar();
+    if (heightColorMode) applyPointColors();   // honor active height-color toggle after reload
+    if (document.getElementById('fill-holes')?.checked) buildDEMMesh();
   } catch (e) {
     document.getElementById('loading').style.display = 'none';
     const em = document.getElementById('error-msg');
@@ -396,20 +567,26 @@ function buildScene() {
     alignedPos[i*3+2] = data.points_aligned[i][2];
   }
 
-  originalColors = colors.slice();
+  photoColors = colors.slice();
+  heightColors = null;  // rebuilt lazily when height coloring is toggled on
 
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   geo.setAttribute('alignedPos', new THREE.BufferAttribute(alignedPos, 3));
 
-  const mat = new THREE.PointsMaterial({ size: POINT_SIZE, vertexColors: true, sizeAttenuation: true });
+  // Bounding sphere first — point size and camera fit both derive from scene scale
+  geo.computeBoundingSphere();
+  const bs = geo.boundingSphere;
+
+  const ptSize = bs.radius * POINT_SIZE;   // size relative to scene extent (VGGT scale is arbitrary)
+  basePointSize = ptSize;
+  const sizeMult = parseFloat(document.getElementById('point-size').value) || 1.0;
+  const mat = new THREE.PointsMaterial({ size: ptSize * sizeMult, vertexColors: true, sizeAttenuation: true });
   pointCloud = new THREE.Points(geo, mat);
   scene.add(pointCloud);
 
   // Fit camera
-  geo.computeBoundingSphere();
-  const bs = geo.boundingSphere;
   camera.position.copy(bs.center).addScaledVector(new THREE.Vector3(0,1,2).normalize(), bs.radius * 2.5);
   controls.target.copy(bs.center);
   controls.update();
@@ -420,6 +597,45 @@ function buildScene() {
   sceneBSRadius = bs.radius;
   document.getElementById('stat-points').textContent = n.toLocaleString();
 }
+
+// ─── Point-cloud base colors (photo texture or by height) ─────────────────────
+// Build per-point colors from aligned-Y, normalized over its 2–98 percentile.
+function buildHeightColors() {
+  const ap = pointCloud.geometry.attributes.alignedPos;
+  const n = ap.count;
+  const ys = new Array(n);
+  for (let i = 0; i < n; i++) ys[i] = ap.getY(i);
+  const lo = percentileOf(ys, 0.02), hi = percentileOf(ys, 0.98);
+  const range = (hi - lo) || 1.0;
+  const out = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const [r, g, b] = elevColor((ys[i] - lo) / range);
+    out[i*3] = r; out[i*3+1] = g; out[i*3+2] = b;
+  }
+  return out;
+}
+
+// The active (unselected) color source for the point cloud.
+function baseColors() {
+  if (heightColorMode) {
+    if (!heightColors) heightColors = buildHeightColors();
+    return heightColors;
+  }
+  return photoColors;
+}
+
+// Repaint the point cloud from baseColors(), keeping current selection highlighted.
+function applyPointColors() {
+  if (!pointCloud) return;
+  const base = baseColors();
+  const colorAttr = pointCloud.geometry.attributes.color;
+  for (let i = 0; i < base.length / 3; i++) {
+    colorAttr.setXYZ(i, base[i*3], base[i*3+1], base[i*3+2]);
+  }
+  for (const idx of selectedIndices) colorAttr.setXYZ(idx, 1.0, 1.0, 0.0);
+  colorAttr.needsUpdate = true;
+}
+
 function makeAxisLabel(text, color) {
   const div = document.createElement('div');
   div.textContent = text;
@@ -462,9 +678,16 @@ function populateSidebar() {
   document.getElementById('stat-cameras').textContent = data.cameras.length;
   document.getElementById('stat-gravity').textContent = data.gravity_source || '—';
   document.getElementById('gravity-source-label').textContent = `Gravity: ${data.gravity_source || 'unknown'}`;
+  document.getElementById('use-ground-filter').checked = data.use_ground_filter !== false;
 
+  const prevSF = scaleFactor;
   scaleFactor = data.scale_factor || 1.0;
   document.getElementById('scale-input').value = scaleFactor;
+  // Sync classify threshold proportionally when loaded scale factor differs
+  if (prevSF !== scaleFactor) {
+    classifyThreshold = parseFloat((classifyThreshold * (scaleFactor / prevSF)).toFixed(4));
+    document.getElementById('classify-thres').value = classifyThreshold;
+  }
 
   buildCameraTable();
   buildRefPlane();
@@ -591,34 +814,47 @@ function buildDEMMesh() {
     if (!changed) break;
   }
 
-  // Elevation colormap — terrain-like: blue → green → yellow → brown → white
-  const CMAP_STOPS = [
-    [0.00, [0.13, 0.30, 0.65]],
-    [0.20, [0.10, 0.55, 0.80]],
-    [0.40, [0.15, 0.68, 0.25]],
-    [0.60, [0.82, 0.80, 0.12]],
-    [0.80, [0.60, 0.38, 0.18]],
-    [1.00, [0.92, 0.90, 0.88]],
-  ];
-  function elevColor(t) {
-    t = Math.max(0, Math.min(1, t));
-    for (let k = 1; k < CMAP_STOPS.length; k++) {
-      const [t0, c0] = CMAP_STOPS[k-1];
-      const [t1, c1] = CMAP_STOPS[k];
-      if (t <= t1) {
-        const f = (t - t0) / (t1 - t0);
-        return c0.map((v, i) => v + f * (c1[i] - v));
-      }
-    }
-    return CMAP_STOPS[CMAP_STOPS.length-1][1];
-  }
-
-  // Elevation range from valid cells only
-  let elevMin = Infinity, elevMax = -Infinity;
+  // Elevation normalization from valid cells, 2–98 percentile (outlier-robust)
+  const validVals = [];
   for (let i = 0; i < gr; i++)
     for (let j = 0; j < gr; j++)
-      if (hasData[i][j]) { elevMin = Math.min(elevMin, elev[i][j]); elevMax = Math.max(elevMax, elev[i][j]); }
-  const elevRange = (elevMax - elevMin) || 1.0;
+      if (hasData[i][j]) validVals.push(elev[i][j]);
+  const elevLo = percentileOf(validVals, 0.02);
+  const elevHi = percentileOf(validVals, 0.98);
+  const elevRange = (elevHi - elevLo) || 1.0;
+
+  // Classification magnitudes (meters vs reference plane) over valid cells
+  let maxMound = 1e-6, maxPit = 1e-6;
+  for (let i = 0; i < gr; i++)
+    for (let j = 0; j < gr; j++)
+      if (hasData[i][j]) {
+        const hM = (elev[i][j] - refYAligned) * scaleFactor;
+        if (hM > maxMound) maxMound = hM;
+        if (-hM > maxPit) maxPit = -hM;
+      }
+
+  // Per-cell color, switching on the active DEM color mode.
+  // Returns rgb in [0,1]; filled (hole) cells are dimmed to 70% in elevation mode.
+  function cellColor(value, isHole) {
+    if (demColorMode === 'classify') {
+      const hM = (value - refYAligned) * scaleFactor;
+      let c;
+      if (hM > classifyThreshold)       c = moundColor((hM - classifyThreshold) / (maxMound - classifyThreshold || 1));
+      else if (hM < -classifyThreshold) c = pitColor((-hM - classifyThreshold) / (maxPit - classifyThreshold || 1));
+      else                              c = FLAT_COLOR;
+      return isHole ? c.map(v => v * 0.7) : c;
+    }
+    const c = elevColor((value - elevLo) / elevRange);
+    return isHole ? c.map(v => v * 0.7) : c;
+  }
+
+  // Cache for legend + classification readout
+  const cellW0 = (dem.x_max - dem.x_min) / (gr - 1);
+  const cellH0 = (dem.z_max - dem.z_min) / (gr - 1);
+  demStats = {
+    filled, gr, elevLo, elevHi, maxMound, maxPit,
+    cellArea: cellW0 * cellH0 * scaleFactor * scaleFactor,
+  };
 
   // Build geometry
   const positions = [];
@@ -632,10 +868,8 @@ function buildDEMMesh() {
       const az = dem.z_min + i*(dem.z_max - dem.z_min)/(gr-1);
       const [dx,dy,dz] = alignedToDisplay(ax, ay, az);
       positions.push(dx, dy, dz);
-      const t = (filled[i][j] - elevMin) / elevRange;
-      const [r, g, b] = elevColor(t);
-      if (hasData[i][j]) { colorsArr.push(r, g, b); }
-      else                { colorsArr.push(r*0.7, g*0.7, b*0.7); }  // hole-fill: slightly dimmed
+      const [r, g, b] = cellColor(filled[i][j], !hasData[i][j]);
+      colorsArr.push(r, g, b);
     }
   }
 
@@ -666,8 +900,7 @@ function buildDEMMesh() {
       const [dx,dy,dz] = alignedToDisplay(ax, ay, az);
       posOrig.push(dx, dy, dz);
       if (hasData[i][j]) {
-        const t = (elev[i][j] - elevMin) / elevRange;
-        const [r, g, b] = elevColor(t);
+        const [r, g, b] = cellColor(elev[i][j], false);
         colOrig.push(r, g, b);
       } else {
         colOrig.push(0.15, 0.15, 0.15);
@@ -690,6 +923,422 @@ function buildDEMMesh() {
   demMeshOrig = new THREE.Mesh(geoOrig, mat.clone());
   demMeshOrig.visible = false;
   scene.add(demMeshOrig);
+
+  // Build grid lines that follow the filled DEM surface (row + col edges only, no diagonals)
+  if (demGridLines) { scene.remove(demGridLines); demGridLines.geometry.dispose(); demGridLines = null; }
+  const gridPts = [];
+  for (let i = 0; i < gr; i++) {
+    for (let j = 0; j < gr - 1; j++) {
+      // horizontal edge: (i,j)→(i,j+1)
+      const ax0 = dem.x_min + j*(dem.x_max - dem.x_min)/(gr-1),     az0 = dem.z_min + i*(dem.z_max - dem.z_min)/(gr-1);
+      const ax1 = dem.x_min + (j+1)*(dem.x_max - dem.x_min)/(gr-1), az1 = az0;
+      const [x0,y0,z0] = alignedToDisplay(ax0, filled[i][j],   az0);
+      const [x1,y1,z1] = alignedToDisplay(ax1, filled[i][j+1], az1);
+      gridPts.push(x0,y0,z0, x1,y1,z1);
+    }
+  }
+  for (let j = 0; j < gr; j++) {
+    for (let i = 0; i < gr - 1; i++) {
+      // vertical edge: (i,j)→(i+1,j)
+      const ax0 = dem.x_min + j*(dem.x_max - dem.x_min)/(gr-1), az0 = dem.z_min + i*(dem.z_max - dem.z_min)/(gr-1);
+      const ax1 = ax0,                                            az1 = dem.z_min + (i+1)*(dem.z_max - dem.z_min)/(gr-1);
+      const [x0,y0,z0] = alignedToDisplay(ax0, filled[i][j],   az0);
+      const [x1,y1,z1] = alignedToDisplay(ax1, filled[i+1][j], az1);
+      gridPts.push(x0,y0,z0, x1,y1,z1);
+    }
+  }
+  const gridGeo = new THREE.BufferGeometry();
+  gridGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(gridPts), 3));
+  demGridLines = new THREE.LineSegments(gridGeo, new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25 }));
+  demGridLines.visible = document.getElementById('show-dem-grid')?.checked ?? true;
+  scene.add(demGridLines);
+
+  updateLegend();
+}
+
+function clearRegionHighlights() {
+  for (const m of regionHighlightMeshes) {
+    scene.remove(m);
+    m.geometry.dispose();
+    m.material.dispose();
+  }
+  regionHighlightMeshes = [];
+  if (pitBBoxLines) { scene.remove(pitBBoxLines); pitBBoxLines.geometry.dispose(); pitBBoxLines = null; }
+  detectedPitData = null;
+  const box = document.getElementById('detect-result');
+  if (box) box.style.display = 'none';
+  const ps = document.getElementById('progress-section');
+  if (ps) ps.style.display = 'none';
+  const pr = document.getElementById('progress-result');
+  if (pr) pr.style.display = 'none';
+}
+
+function clearDEMMeshes() {
+  if (demMesh) { scene.remove(demMesh); demMesh.geometry.dispose(); demMesh = null; }
+  if (demMeshOrig) { scene.remove(demMeshOrig); demMeshOrig.geometry.dispose(); demMeshOrig = null; }
+  if (demGridLines) { scene.remove(demGridLines); demGridLines.geometry.dispose(); demGridLines = null; }
+  clearRegionHighlights();
+  demStats = null;
+  updateLegend();
+}
+
+// ─── Legend / Colorbar ────────────────────────────────────────────────────────
+function rgbCss(c) {
+  return `rgb(${Math.round(c[0]*255)},${Math.round(c[1]*255)},${Math.round(c[2]*255)})`;
+}
+
+function updateLegend() {
+  const el = document.getElementById('legend');
+  if (!el) return;
+  // Show only when a DEM mesh is present
+  if (!demStats || !demMesh) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+
+  if (demColorMode === 'classify') {
+    const thr = classifyThreshold.toFixed(3);
+    const refTxt = (refYAligned * scaleFactor).toFixed(3);
+    el.innerHTML = `
+      <div class="legend-title">坑 / 坡 分类</div>
+      <div class="cls-row"><span class="cls-sw" style="background:${rgbCss(moundColor(0.8))}"></span>坡 (mound) &gt; +${thr} m</div>
+      <div class="cls-row"><span class="cls-sw" style="background:${rgbCss(FLAT_COLOR)}"></span>平坦 (±${thr} m)</div>
+      <div class="cls-row"><span class="cls-sw" style="background:${rgbCss(pitColor(0.8))}"></span>坑 (pit) &lt; −${thr} m</div>
+      <div class="legend-sub">基准: 参考平面 Y=${refTxt} m<br>色深 = 高差大小</div>`;
+    return;
+  }
+
+  // Elevation gradient: heights relative to reference plane (matches tooltip Y)
+  const loM = ((demStats.elevLo - refYAligned) * scaleFactor);
+  const hiM = ((demStats.elevHi - refYAligned) * scaleFactor);
+  const midM = (loM + hiM) / 2;
+  // CSS gradient bottom(low)→top(high): list stops reversed for vertical bar
+  const stops = CMAP_STOPS.map(([t, c]) => `${rgbCss(c)} ${(t*100).toFixed(0)}%`).join(', ');
+  el.innerHTML = `
+    <div class="legend-title">Elevation (m)</div>
+    <div class="grad-row">
+      <div class="grad-bar" style="background:linear-gradient(to top, ${stops});"></div>
+      <div class="grad-labels">
+        <span>${hiM.toFixed(2)}</span>
+        <span>${midM.toFixed(2)}</span>
+        <span>${loM.toFixed(2)}</span>
+      </div>
+    </div>
+    <div class="legend-sub">0 m = 参考平面<br>2–98 pct range</div>`;
+}
+
+// ─── Terrain classification (坑/坡) ───────────────────────────────────────────
+function classifyTerrain() {
+  if (!data) return;
+  // Ensure the DEM mesh exists (classification colors live on it)
+  const fillCb = document.getElementById('fill-holes');
+  if (!fillCb.checked) {
+    fillCb.checked = true;
+    document.getElementById('hide-pointcloud-row').style.display = '';
+    document.getElementById('compare-row').style.display = '';
+  }
+  demColorMode = 'classify';
+  buildDEMMesh();                 // recolors using classify mode + caches demStats
+  if (demMeshOrig) demMeshOrig.visible = false;
+  if (demMesh) demMesh.visible = true;
+
+  // Tally per-class cell counts, area, volume from cached valid-cell grid
+  const dem = data.dem;
+  const gr = demStats.gr;
+  const hasData = dem.has_data;
+  const elev = dem.elev;
+  const area = demStats.cellArea;
+  let nMound = 0, nFlat = 0, nPit = 0;
+  let volMound = 0, volPit = 0;
+  for (let i = 0; i < gr; i++) {
+    for (let j = 0; j < gr; j++) {
+      if (!hasData[i][j]) continue;
+      const hM = (elev[i][j] - refYAligned) * scaleFactor;
+      if (hM > classifyThreshold)       { nMound++; volMound += hM * area; }
+      else if (hM < -classifyThreshold) { nPit++;   volPit  += (-hM) * area; }
+      else                              { nFlat++; }
+    }
+  }
+  const thr = classifyThreshold.toFixed(3);
+  const box = document.getElementById('classify-result');
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div style="color:${rgbCss(moundColor(0.8))}">坡 mound: ${nMound} cells · ${(nMound*area).toFixed(3)} m² · 填方 ${volMound.toFixed(4)} m³</div>
+    <div style="color:${rgbCss(FLAT_COLOR)}">平坦 flat: ${nFlat} cells · ${(nFlat*area).toFixed(3)} m²</div>
+    <div style="color:${rgbCss(pitColor(0.8))}">坑 pit: ${nPit} cells · ${(nPit*area).toFixed(3)} m² · 挖方 ${volPit.toFixed(4)} m³</div>
+    <div style="color:#888;font-size:10.5px;margin-top:5px;font-family:monospace;">
+      阈值 ±${thr} m · 基准 Y=${(refYAligned*scaleFactor).toFixed(3)} m<br>
+      每格面积 ${area.toFixed(5)} m² · 网格 ${gr}×${gr}
+    </div>`;
+}
+
+function resetDEMColoring() {
+  demColorMode = 'elevation';
+  document.getElementById('classify-result').style.display = 'none';
+  if (demMesh) buildDEMMesh();
+  else updateLegend();
+}
+
+// ─── Top Region Detection (watershed expand to ground) ───────────────────────
+function detectTopRegions() {
+  if (!data) return;
+  // Ensure DEM mesh is built
+  const fillCb = document.getElementById('fill-holes');
+  if (!fillCb.checked) {
+    fillCb.checked = true;
+    document.getElementById('hide-pointcloud-row').style.display = '';
+    document.getElementById('compare-row').style.display = '';
+    document.getElementById('dem-grid-row').style.display = '';
+    demColorMode = 'classify';
+    buildDEMMesh();
+  }
+  if (!demStats) return;
+  clearRegionHighlights();
+
+  const dem = data.dem;
+  const gr = demStats.gr;
+  const filled = demStats.filled;
+  const hasData = dem.has_data;
+  const area = demStats.cellArea;
+  const nPitsMax   = Math.max(0, parseInt(document.getElementById('detect-n-pits').value)   ?? 1);
+  const nMoundsMax = Math.max(0, parseInt(document.getElementById('detect-n-mounds').value) ?? 3);
+
+  // Step 1: seed sets — grid vertices above/below threshold
+  const moundSeeds = new Set();
+  const pitSeeds   = new Set();
+  for (let i = 0; i < gr; i++) {
+    for (let j = 0; j < gr; j++) {
+      if (!hasData[i][j]) continue;
+      const hM = (filled[i][j] - refYAligned) * scaleFactor;
+      if (hM >  classifyThreshold) moundSeeds.add(i * gr + j);
+      else if (hM < -classifyThreshold) pitSeeds.add(i * gr + j);
+    }
+  }
+
+  // Step 2: BFS connected components on a seed set
+  function connectedComponents(seeds) {
+    const visited = new Set();
+    const comps = [];
+    for (const start of seeds) {
+      if (visited.has(start)) continue;
+      const comp = [];
+      const q = [start];
+      visited.add(start);
+      while (q.length) {
+        const cur = q.shift();
+        comp.push(cur);
+        const ci = Math.floor(cur / gr), cj = cur % gr;
+        for (const [di, dj] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+          const ni = ci + di, nj = cj + dj;
+          if (ni < 0 || ni >= gr || nj < 0 || nj >= gr) continue;
+          const nidx = ni * gr + nj;
+          if (!visited.has(nidx) && seeds.has(nidx)) { visited.add(nidx); q.push(nidx); }
+        }
+      }
+      comps.push(comp);
+    }
+    return comps;
+  }
+
+  // Helper: peak hM magnitude of a component
+  function peakHM(comp) {
+    let peak = 0;
+    for (const idx of comp) {
+      const hM = Math.abs((filled[Math.floor(idx/gr)][idx%gr] - refYAligned) * scaleFactor);
+      if (hM > peak) peak = hM;
+    }
+    return peak;
+  }
+
+  // Step 3: rank by peak height/depth, pick top N
+  const topMounds = connectedComponents(moundSeeds).sort((a, b) => peakHM(b) - peakHM(a)).slice(0, nMoundsMax);
+  const topPits   = connectedComponents(pitSeeds).sort((a, b) => peakHM(b) - peakHM(a)).slice(0, nPitsMax);
+
+  // Step 4a: expand seed outward by exactly 1 cell (for pits)
+  function expandOneBorder(seedCells) {
+    const expanded = new Set(seedCells);
+    for (const cur of seedCells) {
+      const ci = Math.floor(cur / gr), cj = cur % gr;
+      for (const [di, dj] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+        const ni = ci + di, nj = cj + dj;
+        if (ni < 0 || ni >= gr || nj < 0 || nj >= gr) continue;
+        expanded.add(ni * gr + nj);
+      }
+    }
+    return expanded;
+  }
+
+  // Step 4b: watershed expand for mounds — keep going while hM > 0 (full body to ground)
+  function expandMoundToGround(seedCells) {
+    const expanded = new Set(seedCells);
+    const q = seedCells.slice();
+    while (q.length) {
+      const cur = q.shift();
+      const ci = Math.floor(cur / gr), cj = cur % gr;
+      for (const [di, dj] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+        const ni = ci + di, nj = cj + dj;
+        if (ni < 0 || ni >= gr || nj < 0 || nj >= gr) continue;
+        const nidx = ni * gr + nj;
+        if (expanded.has(nidx)) continue;
+        const hM = (filled[ni][nj] - refYAligned) * scaleFactor;
+        if (hM > 0) { expanded.add(nidx); q.push(nidx); }
+      }
+    }
+    return expanded;
+  }
+
+  // Step 5: build semi-transparent overlay mesh for each expanded region
+  const LIFT = sceneBSRadius * 0.004;
+  function buildOverlayMesh(expandedSet, hexColor) {
+    const positions = [];
+    for (let i = 0; i < gr; i++) {
+      for (let j = 0; j < gr; j++) {
+        const ax = dem.x_min + j * (dem.x_max - dem.x_min) / (gr - 1);
+        const ay = filled[i][j];
+        const az = dem.z_min + i * (dem.z_max - dem.z_min) / (gr - 1);
+        const [dx, dy, dz] = alignedToDisplay(ax, ay, az);
+        positions.push(dx, dy + LIFT, dz);
+      }
+    }
+    const indices = [];
+    for (let i = 0; i < gr - 1; i++) {
+      for (let j = 0; j < gr - 1; j++) {
+        const a = i*gr+j, b = i*gr+j+1, c = (i+1)*gr+j, d = (i+1)*gr+j+1;
+        const cnt = [a,b,c,d].filter(k => expandedSet.has(k)).length;
+        if (cnt >= 2) indices.push(a, b, c, b, d, c);
+      }
+    }
+    if (indices.length === 0) return null;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+    geo.setIndex(indices);
+    const mat = new THREE.MeshBasicMaterial({
+      color: hexColor, transparent: true, opacity: 0.52,
+      side: THREE.DoubleSide, depthWrite: false,
+    });
+    return new THREE.Mesh(geo, mat);
+  }
+
+  // Palette: pit = magenta, mounds = orange / lime / cyan / yellow / violet
+  const PIT_HEX    = 0xff33cc;
+  const MOUND_HEX  = [0xff8c00, 0x33ff55, 0x00d4ff, 0xffee00, 0xcc44ff];
+  const PIT_CSS    = '#ff33cc';
+  const MOUND_CSS  = ['#ff8c00', '#33ff55', '#00d4ff', '#ffee00', '#cc44ff'];
+
+  const lines = [];
+
+  // Pit overlays
+  const PIT_HEX_LIST = [0xff33cc, 0xff0055, 0xcc00ff, 0xff6699, 0xaa00cc];
+  const PIT_CSS_LIST = ['#ff33cc', '#ff0055', '#cc00ff', '#ff6699', '#aa00cc'];
+  topPits.forEach((comp, k) => {
+    const expanded = expandOneBorder(comp);
+    const mesh = buildOverlayMesh(expanded, PIT_HEX_LIST[k % PIT_HEX_LIST.length]);
+    if (mesh) { scene.add(mesh); regionHighlightMeshes.push(mesh); }
+    let vol = 0;
+    for (const idx of comp) {
+      const hM = (filled[Math.floor(idx/gr)][idx%gr] - refYAligned) * scaleFactor;
+      vol += (-hM) * area;
+    }
+    const css = PIT_CSS_LIST[k % PIT_CSS_LIST.length];
+    const pitPeak = peakHM(comp).toFixed(3);
+    lines.push(`<span style="color:${css}">&#9632; 坑 #${k+1} &nbsp;峰深 ${pitPeak} m · 种子 ${comp.length} 格 → 扩展 ${expanded.size} 格 · ${(expanded.size*area).toFixed(3)} m² · 挖方 ${vol.toFixed(4)} m³</span>`);
+    // Store bounding box data for the largest pit (k===0) for progress calc
+    if (k === 0) {
+      let axMin = Infinity, axMax = -Infinity, azMin = Infinity, azMax = -Infinity;
+      for (const idx of expanded) {
+        const ei = Math.floor(idx / gr), ej = idx % gr;
+        const ax = dem.x_min + ej * (dem.x_max - dem.x_min) / (gr - 1);
+        const az = dem.z_min + ei * (dem.z_max - dem.z_min) / (gr - 1);
+        if (ax < axMin) axMin = ax; if (ax > axMax) axMax = ax;
+        if (az < azMin) azMin = az; if (az > azMax) azMax = az;
+      }
+      const cellW = (dem.x_max - dem.x_min) / (gr - 1);
+      const cellH = (dem.z_max - dem.z_min) / (gr - 1);
+      detectedPitData = { comp, expanded, axMin, axMax, azMin, azMax, vol, cellW, cellH };
+      document.getElementById('progress-section').style.display = '';
+    }
+  });
+
+  // Mound overlays
+  topMounds.forEach((comp, k) => {
+    const expanded = expandMoundToGround(comp);
+    const mesh = buildOverlayMesh(expanded, MOUND_HEX[k % MOUND_HEX.length]);
+    if (mesh) { scene.add(mesh); regionHighlightMeshes.push(mesh); }
+    let vol = 0;
+    for (const idx of comp) {
+      const hM = (filled[Math.floor(idx/gr)][idx%gr] - refYAligned) * scaleFactor;
+      vol += hM * area;
+    }
+    const css = MOUND_CSS[k % MOUND_CSS.length];
+    const moundPeak = peakHM(comp).toFixed(3);
+    lines.push(`<span style="color:${css}">&#9632; 坡 #${k+1} &nbsp;峰高 ${moundPeak} m · 种子 ${comp.length} 格 → 扩展 ${expanded.size} 格 · ${(expanded.size*area).toFixed(3)} m² · 填方 ${vol.toFixed(4)} m³</span>`);
+  });
+
+  const box = document.getElementById('detect-result');
+  box.style.display = 'block';
+  box.innerHTML = lines.join('<br>') +
+    `<div style="color:#888;font-size:10.5px;margin-top:5px;font-family:monospace;">种子阈值 ±${classifyThreshold.toFixed(3)} m · 坡: 扩展至 hM=0 · 坑: 外扩 1 格</div>`;
+}
+
+// ─── Construction Progress ────────────────────────────────────────────────────
+function calcProgress() {
+  if (!detectedPitData || !data) return;
+  const targetDepth = parseFloat(document.getElementById('target-depth').value);
+  if (!(targetDepth > 0)) return;
+
+  const { axMin, axMax, azMin, azMax, vol, comp, cellW, cellH } = detectedPitData;
+  const dem = data.dem;
+  const gr = demStats.gr;
+  const filled = demStats.filled;
+
+  // Pad by half a cell on each side so the box covers the full cell area of boundary vertices
+  const paxMin = axMin - cellW * 0.5, paxMax = axMax + cellW * 0.5;
+  const pazMin = azMin - cellH * 0.5, pazMax = azMax + cellH * 0.5;
+
+  // Bounding box dimensions in meters
+  const bboxW = (paxMax - paxMin) * scaleFactor;
+  const bboxL = (pazMax - pazMin) * scaleFactor;
+  const targetVol = bboxW * bboxL * targetDepth;
+  const progress = Math.min(100, (vol / targetVol) * 100);
+
+  // Draw target bounding box wireframe in 3D scene
+  if (pitBBoxLines) { scene.remove(pitBBoxLines); pitBBoxLines.geometry.dispose(); pitBBoxLines = null; }
+
+  const refY = refYAligned;
+  const botY  = refY - targetDepth / scaleFactor;  // bottom of box in aligned space
+  // 8 corners: top face (y=refY) and bottom face (y=botY)
+  const corners = [
+    [paxMin, refY, pazMin], [paxMax, refY, pazMin],
+    [paxMax, refY, pazMax], [paxMin, refY, pazMax],
+    [paxMin, botY, pazMin], [paxMax, botY, pazMin],
+    [paxMax, botY, pazMax], [paxMin, botY, pazMax],
+  ].map(([ax, ay, az]) => alignedToDisplay(ax, ay, az));
+
+  const edges = [
+    0,1, 1,2, 2,3, 3,0,   // top face
+    4,5, 5,6, 6,7, 7,4,   // bottom face
+    0,4, 1,5, 2,6, 3,7,   // verticals
+  ];
+  const pts = [];
+  for (let i = 0; i < edges.length; i += 2) {
+    pts.push(...corners[edges[i]], ...corners[edges[i+1]]);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pts), 3));
+  pitBBoxLines = new THREE.LineSegments(geo,
+    new THREE.LineBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.85 }));
+  scene.add(pitBBoxLines);
+
+  // Result display
+  const bar = Math.round(progress / 5);
+  const barStr = '█'.repeat(bar) + '░'.repeat(20 - bar);
+  const pr = document.getElementById('progress-result');
+  pr.style.display = 'block';
+  pr.innerHTML = `
+    <div style="color:#aaffaa;">包围盒: ${bboxW.toFixed(3)} m × ${bboxL.toFixed(3)} m × ${targetDepth.toFixed(2)} m</div>
+    <div style="color:#aaffaa;">目标体积: ${targetVol.toFixed(4)} m³</div>
+    <div style="color:#ffcc44;">当前挖方: ${vol.toFixed(4)} m³</div>
+    <div style="color:#00e5ff;margin-top:4px;font-size:13px;font-weight:bold;">施工进度: ${progress.toFixed(1)}%</div>
+    <div style="color:#00e5ff;font-family:monospace;letter-spacing:1px;font-size:11px;">${barStr}</div>
+    <div style="color:#888;font-size:10.5px;margin-top:3px;">黄色线框 = 目标长方体</div>`;
 }
 
 // ─── Hover Tooltip ────────────────────────────────────────────────────────────
@@ -898,15 +1547,8 @@ function computeSelection() {
     }
   }
 
-  // Highlight selected points yellow
-  const colorAttr = pointCloud.geometry.attributes.color;
-  for (let i = 0; i < originalColors.length/3; i++) {
-    colorAttr.setXYZ(i, originalColors[i*3], originalColors[i*3+1], originalColors[i*3+2]);
-  }
-  for (const idx of selectedIndices) {
-    colorAttr.setXYZ(idx, 1.0, 1.0, 0.0);
-  }
-  colorAttr.needsUpdate = true;
+  // Highlight selected points yellow (over the active base colors)
+  applyPointColors();
 
   // Compute volume from DEM
   const gr = dem.grid_res;
@@ -953,13 +1595,7 @@ function computeSelection() {
 
 function clearSelection() {
   selectedIndices = [];
-  if (pointCloud && originalColors) {
-    const colorAttr = pointCloud.geometry.attributes.color;
-    for (let i = 0; i < originalColors.length/3; i++) {
-      colorAttr.setXYZ(i, originalColors[i*3], originalColors[i*3+1], originalColors[i*3+2]);
-    }
-    colorAttr.needsUpdate = true;
-  }
+  if (pointCloud) applyPointColors();
   document.getElementById('volume-result').style.display = 'none';
   clearOverlay();
 }
@@ -1264,6 +1900,156 @@ function drawGravityViz() {
   `;
 }
 
+// ─── _select_ground_aligned Visualization ───────────────────────────────────
+
+function drawGroundFilterViz() {
+  if (!data || !data.ground_filter) return;
+
+  const pts = data.points_aligned || [];
+  const gf = data.ground_filter;
+  const mask = gf.keep_mask || [];
+  const cv = document.getElementById('ground-main-canvas');
+  const W = cv.width, H = cv.height;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0a0a1a';
+  ctx.fillRect(0, 0, W, H);
+
+  const MAX_DRAW = 90000;
+  const stride = Math.max(1, Math.ceil(pts.length / MAX_DRAW));
+  const drawIdx = [];
+  for (let i = 0; i < pts.length; i += stride) drawIdx.push(i);
+
+  function percentile(vals, p) {
+    if (!vals.length) return 0;
+    vals = vals.slice().sort((a, b) => a - b);
+    const pos = Math.max(0, Math.min(vals.length - 1, Math.floor((vals.length - 1) * p)));
+    return vals[pos];
+  }
+
+  function boundsFor(a0, a1) {
+    const xs = [], ys = [];
+    for (const i of drawIdx) {
+      const p = pts[i];
+      xs.push(p[a0]); ys.push(p[a1]);
+    }
+    let x0 = percentile(xs, 0.01), x1 = percentile(xs, 0.99);
+    let y0 = percentile(ys, 0.01), y1 = percentile(ys, 0.99);
+    const xPad = (x1 - x0 || 1) * 0.06;
+    const yPad = (y1 - y0 || 1) * 0.06;
+    return { x0: x0 - xPad, x1: x1 + xPad, y0: y0 - yPad, y1: y1 + yPad };
+  }
+
+  function text(t, x, y, color = '#ccc', size = 11, align = 'left', bold = false) {
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.font = (bold ? 'bold ' : '') + size + 'px monospace';
+    ctx.textAlign = align;
+    ctx.fillText(t, x, y);
+    ctx.restore();
+  }
+
+  function panel(rect, title, subtitle) {
+    ctx.save();
+    ctx.strokeStyle = '#1a2a4a';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    ctx.strokeStyle = '#14223a';
+    for (let k = 1; k < 4; k++) {
+      const gx = rect.x + rect.w * k / 4;
+      const gy = rect.y + rect.h * k / 4;
+      ctx.beginPath(); ctx.moveTo(gx, rect.y); ctx.lineTo(gx, rect.y + rect.h); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rect.x, gy); ctx.lineTo(rect.x + rect.w, gy); ctx.stroke();
+    }
+    ctx.restore();
+    text(title, rect.x + rect.w / 2, rect.y - 10, '#e94560', 12, 'center', true);
+    if (subtitle) text(subtitle, rect.x + rect.w / 2, rect.y + 16, '#888', 10, 'center');
+  }
+
+  function drawProjection(rect, axes, title, subtitle, mode, b) {
+    panel(rect, title, subtitle);
+    const plot = {
+      x: rect.x + 34,
+      y: rect.y + 28,
+      w: rect.w - 54,
+      h: rect.h - 52,
+    };
+    function mapPoint(p) {
+      const x = plot.x + (p[axes[0]] - b.x0) / (b.x1 - b.x0 || 1) * plot.w;
+      const y = plot.y + plot.h - (p[axes[1]] - b.y0) / (b.y1 - b.y0 || 1) * plot.h;
+      return [x, y];
+    }
+    function dots(filterFn, color, alpha, size) {
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.globalAlpha = alpha;
+      for (const i of drawIdx) {
+        if (!filterFn(i)) continue;
+        const [x, y] = mapPoint(pts[i]);
+        if (x < plot.x || x > plot.x + plot.w || y < plot.y || y > plot.y + plot.h) continue;
+        ctx.fillRect(x, y, size, size);
+      }
+      ctx.restore();
+    }
+
+    if (mode === 'before') {
+      dots(() => true, '#9aa4b8', 0.42, 1.2);
+    } else {
+      dots(i => !mask[i], '#ff4d5f', 0.34, 1.2);
+      dots(i => !!mask[i], '#33d6d0', 0.72, 1.5);
+    }
+
+    ctx.save();
+    ctx.strokeStyle = '#2b4264';
+    ctx.strokeRect(plot.x, plot.y, plot.w, plot.h);
+    ctx.restore();
+    text(['X','Y','Z'][axes[0]], plot.x + plot.w + 7, plot.y + plot.h + 2, '#aaa', 10);
+    text(['X','Y','Z'][axes[1]], plot.x - 18, plot.y - 6, '#aaa', 10);
+  }
+
+  const left = 32, top = 54, gapX = 30, gapY = 54;
+  const pw = (W - left * 2 - gapX) / 2;
+  const ph = (H - top - 38 - gapY) / 2;
+  const rects = [
+    { x: left, y: top, w: pw, h: ph },
+    { x: left + pw + gapX, y: top, w: pw, h: ph },
+    { x: left, y: top + ph + gapY, w: pw, h: ph },
+    { x: left + pw + gapX, y: top + ph + gapY, w: pw, h: ph },
+  ];
+  const bXY = boundsFor(0, 1);
+  const bXZ = boundsFor(0, 2);
+  drawProjection(rects[0], [0, 1], 'Before: XY projection', 'all aligned points entering the function', 'before', bXY);
+  drawProjection(rects[1], [0, 1], 'After: XY projection', 'cyan kept, red filtered out', 'after', bXY);
+  drawProjection(rects[2], [0, 2], 'Before: XZ projection', 'horizontal footprint before selection', 'before', bXZ);
+  drawProjection(rects[3], [0, 2], 'After: XZ projection', 'ground candidates used for DEM', 'after', bXZ);
+
+  const kept = gf.kept_count || 0;
+  const filtered = gf.filtered_count || 0;
+  const total = kept + filtered;
+  const keptPct = total ? (kept / total * 100).toFixed(1) : '0.0';
+  text('Legend:', 32, 26, '#aaa', 11);
+  text('all input', 92, 26, '#9aa4b8', 11);
+  text('kept', 180, 26, '#33d6d0', 11);
+  text('filtered', 236, 26, '#ff4d5f', 11);
+  text(`sampled ${drawIdx.length.toLocaleString()} / ${pts.length.toLocaleString()} points`, W - 32, 26, '#888', 10, 'right');
+
+  document.getElementById('ground-info').innerHTML = `
+    <div style="display:flex;gap:34px;flex-wrap:wrap">
+      <div>
+        <div><span class="lbl">Function          : </span><span class="val">${gf.function || '_select_ground_aligned'}</span></div>
+        <div><span class="lbl">Kept / total      : </span><span class="val">${kept.toLocaleString()} / ${total.toLocaleString()} (${keptPct}%)</span></div>
+        <div><span class="lbl">Filtered          : </span><span class="val">${filtered.toLocaleString()}</span></div>
+        <div><span class="lbl">DEM source        : </span><span class="val">${gf.enabled_for_dem ? 'filtered points' : 'all pre-filter points'} (${Number(gf.dem_source_count || 0).toLocaleString()})</span></div>
+      </div>
+      <div>
+        <div><span class="lbl">Ground percentile : </span><span class="val">${Number(gf.ground_percentile ?? 0).toFixed(1)}%</span></div>
+        <div><span class="lbl">Semantic mask path: </span><span class="val">${gf.used_semantic_ground_mask ? 'used' : 'not used / unavailable'}</span></div>
+        <div><span class="lbl">Coordinate frame  : </span><span class="val">gravity-aligned, Y = elevation</span></div>
+      </div>
+    </div>
+  `;
+}
+
 // ─── Event Listeners ──────────────────────────────────────────────────────────
 function setupEvents() {
   const container = document.getElementById('canvas-container');
@@ -1273,6 +2059,19 @@ function setupEvents() {
   // Show axes checkbox
   document.getElementById('show-axes').addEventListener('change', e => {
     if (axesGroup) axesGroup.visible = e.target.checked;
+  });
+
+  // Point size slider — scales the scene-relative base size live
+  document.getElementById('point-size').addEventListener('input', e => {
+    const mult = parseFloat(e.target.value) || 1.0;
+    document.getElementById('point-size-val').textContent = mult.toFixed(1) + '×';
+    if (pointCloud) pointCloud.material.size = basePointSize * mult;
+  });
+
+  // Color points by height
+  document.getElementById('color-by-height').addEventListener('change', e => {
+    heightColorMode = e.target.checked;
+    applyPointColors();
   });
 
   // Gravity viz button
@@ -1289,10 +2088,36 @@ function setupEvents() {
       document.getElementById('grav-modal').classList.remove('open');
   });
 
+  // Ground selection viz button
+  document.getElementById('ground-filter-viz-btn').addEventListener('click', () => {
+    if (!data || !data.ground_filter) return;
+    document.getElementById('ground-modal').classList.add('open');
+    drawGroundFilterViz();
+  });
+  document.getElementById('ground-modal-close').addEventListener('click', () => {
+    document.getElementById('ground-modal').classList.remove('open');
+  });
+  document.getElementById('ground-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('ground-modal'))
+      document.getElementById('ground-modal').classList.remove('open');
+  });
+
   // Scale input
   document.getElementById('scale-input').addEventListener('input', e => {
     const v = parseFloat(e.target.value);
-    if (v > 0) { scaleFactor = v; if (data) buildCameraTable(); }
+    if (v > 0) {
+      const ratio = v / scaleFactor;
+      scaleFactor = v;
+      // Sync classify threshold proportionally so real-world cutoff stays the same
+      classifyThreshold = parseFloat((classifyThreshold * ratio).toFixed(4));
+      const thresInput = document.getElementById('classify-thres');
+      thresInput.value = classifyThreshold;
+      if (data) buildCameraTable();
+      if (demMesh) {
+        if (demColorMode === 'classify') classifyTerrain();
+        else { buildDEMMesh(); }
+      }
+    }
   });
 
   // Camera collapsible
@@ -1313,19 +2138,60 @@ function setupEvents() {
     if (!data) return;
     const hideRow = document.getElementById('hide-pointcloud-row');
     const compareRow = document.getElementById('compare-row');
+    const gridRow = document.getElementById('dem-grid-row');
     if (e.target.checked) {
       buildDEMMesh();
       hideRow.style.display = '';
       compareRow.style.display = '';
+      gridRow.style.display = '';
     } else {
-      if (demMesh) { scene.remove(demMesh); demMesh.geometry.dispose(); demMesh = null; }
-      if (demMeshOrig) { scene.remove(demMeshOrig); demMeshOrig.geometry.dispose(); demMeshOrig = null; }
+      clearDEMMeshes();
       hideRow.style.display = 'none';
       compareRow.style.display = 'none';
+      gridRow.style.display = 'none';
       document.getElementById('hide-pointcloud').checked = false;
       document.getElementById('compare-btn').textContent = 'Showing: Filled ⇄';
       if (pointCloud) pointCloud.visible = true;
+      demColorMode = 'elevation';
+      document.getElementById('classify-result').style.display = 'none';
+      clearRegionHighlights();
     }
+  });
+
+  // Top region detection buttons
+  document.getElementById('detect-btn').addEventListener('click', () => {
+    if (data) detectTopRegions();
+  });
+  document.getElementById('detect-clear-btn').addEventListener('click', () => {
+    clearRegionHighlights();
+  });
+
+  document.getElementById('calc-progress-btn').addEventListener('click', () => {
+    if (data) calcProgress();
+  });
+
+  // DEM grid lines toggle
+  document.getElementById('show-dem-grid').addEventListener('change', e => {
+    if (demGridLines) demGridLines.visible = e.target.checked;
+  });
+
+  document.getElementById('use-ground-filter').addEventListener('change', e => {
+    useGroundFilterForDEM = e.target.checked;
+    if (!data) return;
+    clearSelection();
+    clearDEMMeshes();
+    document.getElementById('loading').style.display = 'flex';
+    loadData();
+  });
+
+  // Scene selector — switch between original and edited point clouds
+  document.getElementById('scene-select').addEventListener('change', e => {
+    const next = sceneList.find(s => s.id === e.target.value);
+    if (!next) return;
+    currentScene = next;
+    clearSelection();
+    clearDEMMeshes();
+    loadData();
   });
 
   // Hide point cloud checkbox
@@ -1349,6 +2215,16 @@ function setupEvents() {
       (showingFilled ? 'Showing: Filled' : 'Showing: Original') + ' ⇄';
   });
 
+  // Terrain classification
+  document.getElementById('classify-thres').addEventListener('input', e => {
+    const v = parseFloat(e.target.value);
+    if (v > 0) classifyThreshold = v;
+  });
+  document.getElementById('classify-btn').addEventListener('click', () => {
+    if (data) classifyTerrain();
+  });
+  document.getElementById('classify-reset-btn').addEventListener('click', resetDEMColoring);
+
   // Shape selector buttons
   ['rect', 'circle', 'ellipse'].forEach(s => {
     document.getElementById(`shape-${s}`).addEventListener('click', () => {
@@ -1371,7 +2247,7 @@ function setupEvents() {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 initThree();
 setupEvents();
-loadData();
+loadScenes().then(loadData);
 </script>
 </body>
 </html>

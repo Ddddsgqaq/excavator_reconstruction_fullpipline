@@ -487,7 +487,7 @@ def run_edit_pointcloud(target_dir, semantic_masks_path, selected_classes, opera
 
 
 def run_fit_elevation(target_dir, source_glb_path, grid_resolution,
-                      colormap, ground_percentile, use_ransac,
+                      colormap, ground_percentile, use_ground_filter, use_ransac,
                       conf_thres, prediction_mode):
     if not target_dir or not os.path.isdir(target_dir):
         return None, None, "**Status:** No reconstruction available. Upload and Reconstruct first."
@@ -501,6 +501,7 @@ def run_fit_elevation(target_dir, source_glb_path, grid_resolution,
             "grid_resolution": int(grid_resolution),
             "colormap": colormap,
             "ground_percentile": float(ground_percentile),
+            "use_ground_filter": bool(use_ground_filter),
             "use_ransac": bool(use_ransac),
             "conf_thres": float(conf_thres),
             "prediction_mode": prediction_mode,
@@ -772,8 +773,8 @@ with gr.Blocks(theme=theme, css=CSS) as demo:
                     gr.Markdown("## Elevation Plane Fitting")
                     gr.Markdown(
                         "Fit a DEM (Digital Elevation Model) to the reconstructed point cloud. "
-                        "Ground points are extracted by height percentile, then interpolated onto "
-                        "a regular grid and colored by elevation. "
+                        "You can interpolate from filtered ground candidates or from all aligned "
+                        "points before filtering, then export a colored elevation grid. "
                         "**Requires:** Run Reconstruct first."
                     )
                     with gr.Row():
@@ -816,6 +817,10 @@ with gr.Blocks(theme=theme, css=CSS) as demo:
                                 minimum=5, maximum=50, value=20, step=5,
                                 label="Ground Percentile (%)",
                                 info="Use lowest N% of points as ground candidates")
+                            elev_use_ground_filter = gr.Checkbox(
+                                label="Use ground filter before DEM fitting",
+                                value=True,
+                                info="On: interpolate from filtered ground candidates. Off: interpolate from all aligned points.")
                             elev_use_ransac = gr.Checkbox(
                                 label="Refine with RANSAC", value=True,
                                 info="Fit a plane to ground candidates for cleaner results")
@@ -1027,7 +1032,7 @@ with gr.Blocks(theme=theme, css=CSS) as demo:
     ).then(
         fn=run_fit_elevation,
         inputs=[target_dir_output, elev_source_glb, elev_grid_res,
-                elev_colormap, elev_ground_pct, elev_use_ransac,
+                elev_colormap, elev_ground_pct, elev_use_ground_filter, elev_use_ransac,
                 conf_thres, prediction_mode],
         outputs=[elev_only_viewer, elev_merged_viewer, elev_log]
     ).then(
@@ -1043,11 +1048,12 @@ with gr.Blocks(theme=theme, css=CSS) as demo:
     # Open 3D Elevation Viewer — pure client-side, opens new tab
     open_viewer_btn.click(
         fn=None,
-        inputs=[target_dir_output],
+        inputs=[target_dir_output, elev_use_ground_filter],
         outputs=[],
-        js="""(td) => {
+        js="""(td, useGroundFilter) => {
             if (!td || td === 'None') { alert('Upload and Reconstruct first.'); return; }
-            const url = 'http://localhost:8002/viewer?session=' + encodeURIComponent(td);
+            const url = 'http://localhost:8002/viewer?session=' + encodeURIComponent(td)
+              + '&use_ground_filter=' + encodeURIComponent(Boolean(useGroundFilter));
             window.open(url, '_blank');
         }"""
     )
@@ -1063,6 +1069,3 @@ if __name__ == "__main__":
         share=False,
         allowed_paths=[WORKSPACE_ROOT],
     )
-
-
-

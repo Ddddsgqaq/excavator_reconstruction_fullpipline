@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>度量尺度恢复方法综述 — 2023-2025</title>
+<style>
+ body{font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;max-width:960px;margin:0 auto;
+   padding:36px 30px;color:#222;line-height:1.75;background:#fafafa}
+ h1{font-size:26px;border-bottom:3px solid #2a9d8f;padding-bottom:10px;color:#1d3a3a}
+ h2{font-size:20px;color:#264653;margin-top:40px;border-left:5px solid #2a9d8f;padding-left:12px}
+ h3{font-size:16px;color:#2a9d8f;margin-top:24px}
+ .meta{color:#777;font-size:13px;margin-bottom:24px}
+ .summary{background:#eef7f5;border:1px solid #cfe7e2;border-radius:8px;padding:18px 22px;margin:20px 0}
+ .finding{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:16px 20px;margin:14px 0;
+   box-shadow:0 1px 3px rgba(0,0,0,.04)}
+ .finding.high{border-left:4px solid #2a9d8f}
+ .finding.medium{border-left:4px solid #e9c46a}
+ .evidence{background:#f5f5f5;border-radius:4px;padding:10px 14px;margin:10px 0;font-size:13px;color:#444}
+ .sources a{color:#2a9d8f;font-size:12px;margin-right:10px;word-break:break-all}
+ .vote{display:inline-block;background:#2a9d8f;color:#fff;border-radius:10px;
+   padding:2px 10px;font-size:12px;margin-left:8px}
+ .refuted{background:#fdf3ec;border-left:4px solid #e76f51;border-radius:6px;
+   padding:10px 14px;margin:8px 0;font-size:13.5px}
+ .caveat{background:#fff7ec;border:1px solid #f0d9b5;border-left:4px solid #e9a23b;
+   border-radius:6px;padding:12px 16px;margin:14px 0}
+ .open-q{background:#f2f7fb;border-left:4px solid #3a86b8;border-radius:6px;
+   padding:12px 16px;margin:8px 0;font-size:14px}
+ .stats{display:flex;gap:20px;flex-wrap:wrap;margin:16px 0}
+ .stat{background:#264653;color:#fff;border-radius:8px;padding:10px 18px;text-align:center}
+ .stat b{display:block;font-size:22px}
+ .stat span{font-size:12px;opacity:.8}
+ table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14px}
+ th,td{border:1px solid #ddd;padding:8px 12px;text-align:left;vertical-align:top}
+ th{background:#264653;color:#fff}
+ tr:nth-child(even){background:#f6f6f6}
+ code{background:#eee;padding:1px 5px;border-radius:3px;font-size:13px}
+ .toc{background:#264653;color:#fff;border-radius:8px;padding:14px 22px;margin:18px 0;font-size:14px}
+ .toc a{color:#8ed1c7;text-decoration:none;margin-right:8px}
+ .toc a:hover{text-decoration:underline}
+</style></head><body>
+
+<h1>度量尺度（Metric Scale）恢复方法综述</h1>
+<p class="meta">深度调研报告 · 生成于 2026-06-12 · 覆盖 2023–2025 年文献 · 服务于"VGGT 土方量测竖直压缩纠正"方案选型<br>
+检索角度 5 个 · 抓取源 24 篇 · 提取声明 89 条 · 验证 25 条（对抗投票）· 确认 13 条 · 否决 12 条</p>
+
+<div class="toc"><b>目录：</b>
+<a href="#summary">摘要</a> · <a href="#findings">核心发现</a> · <a href="#routes">三条路线对比</a> ·
+<a href="#refuted">被否决的声明</a> · <a href="#caveats">边界与注意</a> ·
+<a href="#openq">未解问题</a> · <a href="#refs">参考文献</a>
+</div>
+
+<div class="stats">
+  <div class="stat"><b>24</b><span>文献来源</span></div>
+  <div class="stat"><b>89</b><span>提取声明</span></div>
+  <div class="stat"><b>25</b><span>对抗验证</span></div>
+  <div class="stat"><b>13/25</b><span>声明通过</span></div>
+  <div class="stat"><b>106</b><span>子智能体</span></div>
+</div>
+
+<!-- SUMMARY -->
+<div class="summary" id="summary">
+<h3 style="margin-top:0">总结</h3>
+<p>在 2023–2025 年间，度量尺度恢复领域形成了<b>三条技术路径的清晰分野</b>：</p>
+<ol>
+<li><b>传统几何方法</b>（地平面约束、IMU 融合）有明确的先决条件和失效场景；</li>
+<li><b>DUSt3R 范式的前馈大模型</b>（含 VGGT）在训练时以归一化空间为目标，输出本质上是尺度不定的，需额外机制才能恢复度量尺度；</li>
+<li><b>冻结预训练重建模型 + 轻量 scale head</b>（AMB3R、UniScale 等）已成为当前将归一化重建升级为度量重建的<b>主流设计范式</b>，无需从头训练。</li>
+</ol>
+<p>对于"在 VGGT 基础上做土方量测竖直压缩纠正"的任务，<b>AMB3R 和 UniScale 的架构模式（冻结 VGGT + 训练 scale head）是直接可参考的方法路线</b>；单目度量深度模型（UniDepth、ZoeDepth）提供了补充的尺度对齐机制，可用于 scale head 的监督信号来源。</p>
+</div>
+
+<!-- FINDINGS -->
+<h2 id="findings">核心发现（对抗验证通过）</h2>
+
+<div class="finding high">
+<h3>① VGGT 输出本质上是尺度不定的 <span class="vote">HIGH · 3篇独立一手文献</span></h3>
+<p>VGGT 训练时仅对 GT 几何做归一化（除以所有 3D 点到原点的平均距离），模型学习在归一化空间中预测，因此推理输出存在一个<b>未知的序列相关尺度因子</b>，无法直接与 SLAM/SfM 的度量相机位姿融合。</p>
+<div class="evidence">
+AMB3R（arXiv:2511.20343）：<i>"VGGT normalizes only the ground-truth geometry and trains the model to predict in this normalized space."</i><br>
+VFM-Recon（arXiv:2603.12657）：<i>"VGGT is not trained with strict metric supervision, so its depth predictions are only defined up to an unknown sequence-dependent scale."</i><br>
+UniScale（arXiv:2602.23224）也将 VGGT 归类为"normalized reconstruction system"。
+</div>
+<div class="sources">
+<a href="https://arxiv.org/abs/2511.20343" target="_blank">AMB3R arXiv:2511.20343</a>
+<a href="https://arxiv.org/pdf/2603.12657" target="_blank">VFM-Recon arXiv:2603.12657</a>
+<a href="https://arxiv.org/pdf/2602.23224" target="_blank">UniScale arXiv:2602.23224</a>
+</div>
+</div>
+
+<div class="finding high">
+<h3>② 冻结大模型 + 轻量 scale head 已成主流设计范式 <span class="vote">HIGH · CVPR 2026</span></h3>
+<p><b>AMB3R</b>（CVPR 2026）以冻结 VGGT 为前端，附加一个 scale head 回归度量尺度——scale head 作用于冻结的 VGGT 特征，对每帧独立回归<b>中位数深度像素的度量对数深度</b>（per-frame，避免帧组合变化导致过拟合）。<b>UniScale</b> 同样在归一化重建系统上添加专用 scale head，模块化设计，无需从头训练即可升级为度量重建。</p>
+<div class="evidence">
+AMB3R：<i>"AMB3R uses VGGT as its front-end to predict features and geometry, with an additional scale head trained to recover the metric scale."</i><br>
+UniScale：<i>"A dedicated scale head overcomes normalization limits in existing models... Its modular design allows UniScale to upgrade normalized reconstruction systems to metric ones without training from scratch."</i>
+</div>
+<div class="sources">
+<a href="https://arxiv.org/abs/2511.20343" target="_blank">AMB3R arXiv:2511.20343（代码开源）</a>
+<a href="https://arxiv.org/pdf/2602.23224" target="_blank">UniScale arXiv:2602.23224（代码开源）</a>
+</div>
+</div>
+
+<div class="finding high">
+<h3>③ VGGT 在大规模航拍场景下误差严重 <span class="vote">HIGH · 独立评测</span></h3>
+<p>独立评测（191 张航拍图，UseGeo 数据集）：VGGT 点云误差高达 <b>6m</b>（比 COLMAP HR 高 <b>85%</b>），相机位姿漂移高达 <b>42m</b>，无法单独用于大规模航测。户外场景（Tanks and Temples）VGGT F1=51.8 vs VFM-Recon 70.1（差 ~35%）。</p>
+<div class="evidence">
+arXiv:2507.14798（已发表于 Geo-spatial Information Science，2025）：<i>"VGGT demonstrates higher point cloud errors, reaching up to 6 m... camera pose estimates may exhibit drift of up to 42 m."</i>
+</div>
+<div class="sources">
+<a href="https://arxiv.org/abs/2507.14798" target="_blank">航拍块评测 arXiv:2507.14798</a>
+<a href="https://arxiv.org/pdf/2603.12657" target="_blank">VFM-Recon arXiv:2603.12657</a>
+</div>
+</div>
+
+<div class="finding high">
+<h3>④ 传统地平面约束在土方工地不可靠；IMU 融合是成熟路线 <span class="vote">HIGH</span></h3>
+<p>地平面约束的<b>明确失效条件</b>：地面遮挡、地形不满足平面假设、相机高度需已知且恒定——土方工地地面起伏，直接违反假设。IMU 融合（MASt3R-Fusion 的 Sim(3)–SE(3) 因子图框架）是当前成熟路线，通过将 Sim(3) 视觉对齐约束桥接到度量 SE(3) 因子图恢复稳定度量尺度。</p>
+<div class="evidence">
+arXiv:1903.00912：<i>"All ground plane-based methods will fail when the ground plane is occluded for a long time or the road surface doesn't satisfy the plane assumption."</i><br>
+MASt3R-Fusion（arXiv:2509.20757）：<i>"The visual-only MASt3R-SLAM almost fails to complete SLAM at such a large scale... The incorporation of inertial information effectively mitigates these errors."</i>
+</div>
+<div class="sources">
+<a href="https://ar5iv.labs.arxiv.org/html/1903.00912" target="_blank">地平面综述 arXiv:1903.00912</a>
+<a href="https://arxiv.org/html/2509.20757v1" target="_blank">MASt3R-Fusion arXiv:2509.20757</a>
+</div>
+</div>
+
+<div class="finding high">
+<h3>⑤ DUSt3R 范式大模型存在泛化风险，视觉独立版大规模失败 <span class="vote">HIGH</span></h3>
+<p>DUSt3R 本身无尺度；VGGT 和 MASt3R 主要依赖多视图一致性或数据驱动先验，<b>在未见航拍或单目域存在泛化风险</b>。视觉独立 MASt3R-SLAM 在公里级序列几乎失败，必须融合 IMU 才能稳定。</p>
+<div class="sources">
+<a href="https://arxiv.org/pdf/2602.23224" target="_blank">UniScale arXiv:2602.23224</a>
+<a href="https://arxiv.org/html/2509.20757v1" target="_blank">MASt3R-Fusion arXiv:2509.20757</a>
+</div>
+</div>
+
+<div class="finding high">
+<h3>⑥ 单目度量深度模型：两种主要尺度对齐机制 <span class="vote">HIGH</span></h3>
+<p>可作为 scale head 的外部监督信号来源：</p>
+<ul>
+<li><b>ZoeDepth</b>（arXiv:2302.12288）：MiDaS + 度量 bins 模块 + 场景感知路由，零样本跨室内外域泛化。</li>
+<li><b>UniDepth</b>（CVPR 2024, arXiv:2403.18913）：自提示相机模块 + 伪球面输出 + 几何不变性损失，<b>无需输入相机内参</b>即可预测度量 3D 点云，对域迁移鲁棒。</li>
+<li><b>Metric3D v2</b>（arXiv:2404.15506）：Canonical Space Transform（CSTM）将所有图像映射到虚拟正则相机（f=1000），推理时反变换，实现零样本度量深度。</li>
+<li><b>Depth Anything v2 Metric</b>（arXiv:2406.09414）：在相对深度基础上加度量微调头，相机内参作为条件输入。</li>
+</ul>
+<div class="sources">
+<a href="https://arxiv.org/abs/2403.18913" target="_blank">UniDepth arXiv:2403.18913</a>
+<a href="https://arxiv.org/abs/2302.12288" target="_blank">ZoeDepth arXiv:2302.12288</a>
+<a href="https://arxiv.org/abs/2404.15506" target="_blank">Metric3D v2 arXiv:2404.15506</a>
+<a href="https://arxiv.org/abs/2406.09414" target="_blank">Depth Anything v2 arXiv:2406.09414</a>
+</div>
+</div>
+
+<!-- THREE ROUTES -->
+<h2 id="routes">三条路线对比（针对本项目）</h2>
+<table>
+<tr><th>路线</th><th>代表工作</th><th>机制</th><th>适用性</th><th>主要限制</th></tr>
+<tr>
+  <td><b>传统几何</b></td>
+  <td>地平面约束、IMU 融合（VINS-Mono、MASt3R-Fusion）</td>
+  <td>物理先验（重力/已知高度/GPS）解尺度歧义</td>
+  <td>若有遥测：最强；无遥测：地平面在土方工地<b>直接失效</b></td>
+  <td>土方工地地面不平；无 IMU 硬件则无法用</td>
+</tr>
+<tr>
+  <td><b>前馈大模型学习先验</b></td>
+  <td>VGGT 内置先验</td>
+  <td>训练数据隐含度量先验，"赌"出尺度</td>
+  <td>适合室内/自驾训练域；<b>航拍小基线域先验不可靠</b></td>
+  <td>6m 点云误差、42m 漂移（航拍独立评测）</td>
+</tr>
+<tr>
+  <td><b>冻结大模型 + scale head（推荐）</b></td>
+  <td>AMB3R、UniScale、VFM-Recon</td>
+  <td>冻结 VGGT 特征 + 轻量头学纠正，可用已知尺寸物/单目度量深度伪标签监督</td>
+  <td><b>与本项目方向完全吻合</b>；Q2 已证畸变稳定可学</td>
+  <td>现有工作未在航拍/土方场景评测；需少量标注数据</td>
+</tr>
+</table>
+
+<!-- REFUTED -->
+<h2 id="refuted">被对抗验证否决的声明（0-3 投票）</h2>
+<p style="font-size:13px;color:#777">以下声明在 3 轮对抗投票中被全部否决，不应作为可靠依据引用：</p>
+
+<div class="refuted">❌ "相对深度模型不能提供绝对尺度，完全不适用于 SLAM/AR/自驾" — 被否决：实际上通过 scale head 或已知参考可以在后处理阶段恢复。</div>
+<div class="refuted">❌ "零样本泛化的单目深度模型在不知道焦距时从根本上无法恢复度量尺度" — 被否决：UniDepth/Metric3D v2 已通过相机模块设计解决这个问题。</div>
+<div class="refuted">❌ "Metric3D v2 的 CSTM 模块通过虚拟正则相机（f=1000）实现零样本度量深度，且不使用 CSTM 时混合训练会导致模型无法收敛" — 被否决（细节声明过于绝对）。</div>
+<div class="refuted">❌ "AMB3R 与 UniScale 采用完全一致的并发方法" — 被否决：两者在架构细节和训练策略上有显著差异。</div>
+<div class="refuted">❌ "VGGT 在标准 38 张航拍块上点云误差约 1–2m（vs COLMAP 0.06–0.16m）" — 被否决：实际误差量级（6m，191 张）来自不同规模实验，1–2m 这个数字未经证实。</div>
+<div class="refuted">❌ "前馈点图模型缺少外极线约束和多视图一致性，导致点云更密但更不准确" — 被否决：该声明过于笼统，VGGT 实际有跨帧注意力机制。</div>
+
+<!-- CAVEATS -->
+<h2 id="caveats">边界与注意事项</h2>
+<div class="caveat">
+<ol>
+<li><b>时效性</b>：AMB3R（CVPR 2026）和 UniScale（arXiv Feb 2026）为最新工作，该领域迭代极快，2026 年下半年可能已有新进展。</li>
+<li><b>VGGT 误差数字不可直接外推</b>：6m 点云误差、42m 漂移来自 UseGeo 航拍（191 张图像）和 COLMAP HR 基线，不同场景/图像数量下量级不同。</li>
+<li><b>UniScale 部分声明投票 2-1</b>，为 2026 年 2 月预印本，尚未同行评审，需关注后续进展。</li>
+<li><b>关键空白</b>：VGGT 6m 误差是<b>总体误差，未分解竖直 vs 水平分量</b>——我们自己测的"竖直压缩 8×"是这个领域目前最直接的竖直分量定量表征。</li>
+<li>单目度量深度模型（ZoeDepth、UniDepth）综述来自二手综述论文（arXiv:2501.11841），细节引用需核查原始论文。</li>
+</ol>
+</div>
+
+<!-- OPEN QUESTIONS -->
+<h2 id="openq">未解问题（对本项目最关键）</h2>
+<div class="open-q">① VGGT 在 nadir 航拍场景下竖直 vs 水平误差的分解比例是多少？竖直压缩是否是误差的主要来源，量级相对于土方量计算精度要求（通常 ±5%）如何？</div>
+<div class="open-q">② AMB3R 的 scale head 是否在航拍或地形场景上训练/评测过？室内/自驾数据训练的 head 能否零样本迁移到土方工地 nadir 航拍场景？</div>
+<div class="open-q">③ 除 post-hoc scale head 外，是否存在专门针对 nadir 航拍竖直尺度恢复的监督信号来源（已知地物高度、GNSS RTK 控制点、DSM 差分）？如何整合为 scale head 的训练标签？</div>
+<div class="open-q">④ VFM-Recon 的轻量尺度对齐模块 vs AMB3R 的端到端 scale head，在小数据量（单次飞行，50–200 张图像）下的工程可行性和精度对比如何？</div>
+
+<!-- REFS -->
+<h2 id="refs">参考文献（已验证可访问）</h2>
+<table>
+<tr><th>ArXiv/DOI</th><th>标题</th><th>来源类型</th></tr>
+<tr><td><a href="https://arxiv.org/abs/2511.20343" target="_blank">2511.20343</a></td><td>AMB3R: Accurate Feed-forward Metric-scale 3D Reconstruction with Backend</td><td>一手（CVPR 2026）</td></tr>
+<tr><td><a href="https://arxiv.org/pdf/2602.23224" target="_blank">2602.23224</a></td><td>UniScale: Towards Unified Metric Scale Estimation from a Single Image</td><td>一手（2026.02）</td></tr>
+<tr><td><a href="https://arxiv.org/pdf/2603.12657" target="_blank">2603.12657</a></td><td>VFM-Recon: Lightweight Scale Alignment on VGGT Features</td><td>一手（2026.03）</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2507.14798" target="_blank">2507.14798</a></td><td>An Evaluation of DUSt3R/MASt3R/VGGT on Photogrammetric Aerial Blocks</td><td>一手（Geo-Spatial Info Sci 2025）</td></tr>
+<tr><td><a href="https://arxiv.org/html/2509.20757v1" target="_blank">2509.20757</a></td><td>MASt3R-Fusion: Tightly Integrating Visual and Inertial Sensors</td><td>一手（2025）</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2403.18913" target="_blank">2403.18913</a></td><td>UniDepth: Universal Monocular Metric Depth Estimation</td><td>一手（CVPR 2024）</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2404.15506" target="_blank">2404.15506</a></td><td>Metric3D v2: A Versatile Monocular Geometric Foundation Model</td><td>一手（2024）</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2302.12288" target="_blank">2302.12288</a></td><td>ZoeDepth: Zero-shot Transfer by Combining Relative and Metric Depth</td><td>一手（2023）</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2406.09414" target="_blank">2406.09414</a></td><td>Depth Anything V2</td><td>一手（NeurIPS 2024）</td></tr>
+<tr><td><a href="https://ar5iv.labs.arxiv.org/html/1903.00912" target="_blank">1903.00912</a></td><td>Monocular Depth Estimation: A Survey (含地平面约束综述)</td><td>综述</td></tr>
+<tr><td><a href="https://arxiv.org/html/2501.11841v4" target="_blank">2501.11841</a></td><td>Recent Advances in Monocular Depth Estimation (综述)</td><td>综述（2025）</td></tr>
+</table>
+
+<p class="meta" style="margin-top:40px">— 深度调研报告 · 106 子智能体 · 25 条声明对抗验证 · 2026-06-12 · 生成工具：Claude Code deep-research skill</p>
+</body></html>

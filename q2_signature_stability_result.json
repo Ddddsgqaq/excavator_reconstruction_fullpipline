@@ -1,0 +1,23 @@
+{
+ "source": "vertical_fidelity_results.json (18 entries / 10 distinct scenes)",
+ "metric": "aspect deficit = canonical_HW / measured_aspect (= k_vertical / k_horizontal, scale-free)",
+ "per_class": {
+  "person": {
+   "n": 8,
+   "mean": 4.154,
+   "std": 2.287,
+   "cv_pct": 55.0,
+   "min": 2.408,
+   "max": 9.548
+  },
+  "excavator": {
+   "n": 10,
+   "mean": 2.248,
+   "std": 0.042,
+   "cv_pct": 1.9,
+   "min": 2.203,
+   "max": 2.342
+  }
+ },
+ "verdict": "excavator distortion signature is STABLE across scenes (CV 1.9%) => the failure mode is systematic & reproducible, NOT scene noise => pre-calibration / a learned corrector (Direction 2) is viable. Person probe is noisy (small mask). CAVEAT: aspect mixes halo footprint inflation with vertical compression (moderate conf); confirming ABSOLUTE k_vertical stability needs per-scene metric scale."
+}

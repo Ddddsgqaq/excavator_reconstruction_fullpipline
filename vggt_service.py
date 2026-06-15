@@ -40,7 +40,7 @@ from vggt.utils.pose_enc import pose_encoding_to_extri_intri
 from vggt.utils.geometry import unproject_depth_map_to_point_map
 
 sys.path.insert(0, "/home/maomaoyu/WS/vggt_yoloe")
-from elevation_plane import fit_elevation_to_glb
+from elevation_plane import fit_elevation_to_glb, _select_ground_aligned_mask
 from gravity_alignment import estimate_gravity, apply_alignment_to_points, apply_alignment_to_extrinsics
 
 VGGT_YOLOE_DIR = "/home/maomaoyu/WS/vggt_yoloe"
@@ -104,6 +104,12 @@ class ElevationViewerRequest(BaseModel):
     conf_thres: float = 50.0
     prediction_mode: str = "Depthmap and Camera Branch"
     ground_percentile: float = 20.0
+    use_ground_filter: bool = True
+    # Optional semantic edit applied to the raw cloud before alignment/DEM.
+    # Mirrors the Point Cloud Editing tab; empty list = use the original scene.
+    semantic_filter_ids: List[int] = []
+    semantic_filter_mode: str = "delete"  # "delete" or "extract"
+    semantic_masks_path: str = ""
 
 
 class FitElevationRequest(BaseModel):
@@ -116,6 +122,7 @@ class FitElevationRequest(BaseModel):
     conf_thres: float = 50.0
     prediction_mode: str = "Depthmap and Camera Branch"
     scale_factor: float = 1.0          # multiplier applied after gravity alignment for absolute units
+    use_ground_filter: bool = True     # if false, interpolate DEM from all aligned points
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -179,6 +186,37 @@ def _frame_filter_choices(working_dir: str) -> List[str]:
         return ["All"]
     files = sorted(os.listdir(images_dir))
     return ["All"] + [f"{i}: {f}" for i, f in enumerate(files)]
+
+
+# ── Edited-scene registry ─────────────────────────────────────────────────────
+# Records each point-cloud edit so the elevation viewer can re-derive the same
+# filtered cloud from raw predictions. One JSON file per workspace.
+SCENES_FILENAME = "edited_scenes.json"
+
+
+def _scenes_path(working_dir: str) -> str:
+    return os.path.join(working_dir, SCENES_FILENAME)
+
+
+def _load_scenes(working_dir: str) -> List[dict]:
+    path = _scenes_path(working_dir)
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path, "r") as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except (json.JSONDecodeError, OSError):
+        return []
+
+
+def _register_scene(working_dir: str, scene: dict) -> None:
+    """Add or replace an edited-scene entry, keyed by its `id`."""
+    scenes = _load_scenes(working_dir)
+    scenes = [s for s in scenes if s.get("id") != scene["id"]]
+    scenes.append(scene)
+    with open(_scenes_path(working_dir), "w") as f:
+        json.dump(scenes, f, indent=2)
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -343,9 +381,23 @@ def edit_pointcloud(req: EditPointcloudRequest):
 
     class_ids_str = ", ".join(str(i) for i in req.selected_semantic_ids)
     op_label = "deleted" if req.operation == "delete" else "extracted"
+
+    # Register this edit so the elevation viewer can re-derive the same cloud
+    sorted_ids = sorted(req.selected_semantic_ids)
+    scene_id = f"{req.operation}_ids{ids_tag}"
+    _register_scene(req.working_dir, {
+        "id": scene_id,
+        "label": f"{op_label.capitalize()}: IDs [{class_ids_str}]",
+        "semantic_filter_ids": sorted_ids,
+        "semantic_filter_mode": req.operation,
+        "semantic_masks_path": req.semantic_masks_path,
+        "glb_path": glbfile,
+    })
+
     return {
         "status": "ok",
         "glb_path": glbfile,
+        "scene_id": scene_id,
         "log": f"Point cloud edit complete — semantic IDs [{class_ids_str}] {op_label}.",
     }
 
@@ -373,6 +425,7 @@ def fit_elevation(req: FitElevationRequest):
             conf_thres=req.conf_thres,
             prediction_mode=req.prediction_mode,
             scale_factor=req.scale_factor,
+            use_ground_filter=req.use_ground_filter,
         )
     except Exception as e:
         raise HTTPException(500, f"Elevation fitting failed: {e}")
@@ -385,9 +438,34 @@ def fit_elevation(req: FitElevationRequest):
         "n_grav": result["n_grav"],
         "R_align": result["R_align"],
         "scale_factor": result["scale_factor"],
+        "use_ground_filter": result["use_ground_filter"],
+        "dem_source": result["dem_source"],
         "warnings": result["warnings"],
         "log": result["log"],
     }
+
+
+@app.get("/elevation_scenes")
+def elevation_scenes(session: str = ""):
+    """List point-cloud scenes the elevation viewer can load: the original
+    reconstruction plus every edit registered by /edit_pointcloud."""
+    scenes = [{
+        "id": "original",
+        "label": "Original (full reconstruction)",
+        "semantic_filter_ids": [],
+        "semantic_filter_mode": "delete",
+        "semantic_masks_path": "",
+    }]
+    if session:
+        for s in _load_scenes(session):
+            scenes.append({
+                "id": s.get("id"),
+                "label": s.get("label", s.get("id")),
+                "semantic_filter_ids": s.get("semantic_filter_ids", []),
+                "semantic_filter_mode": s.get("semantic_filter_mode", "delete"),
+                "semantic_masks_path": s.get("semantic_masks_path", ""),
+            })
+    return {"scenes": scenes}
 
 
 @app.post("/elevation_viewer_data")
@@ -422,6 +500,11 @@ def elevation_viewer_data(req: ElevationViewerRequest):
 
     sem = predictions.get("semantic_masks")
     gmask_3d = (np.asarray(sem) == 1) if sem is not None else None
+    ground_flat = None
+    if sem is not None:
+        sem_arr = np.asarray(sem)
+        if sem_arr.shape == raw_pts.shape[:3]:
+            ground_flat = (sem_arr == 1).reshape(-1)
 
     grav = estimate_gravity(
         extrinsic=extrinsic,
@@ -446,8 +529,29 @@ def elevation_viewer_data(req: ElevationViewerRequest):
     conf_thres_val = np.percentile(conf_flat, req.conf_thres) if req.conf_thres > 0 else 0.0
     keep = (conf_flat >= conf_thres_val) & np.isfinite(pts_world).all(axis=1)
 
+    # ── Optional semantic edit (mirrors the Point Cloud Editing tab) ─────────
+    # Apply the same np.isin filter on raw points so the chosen edited scene
+    # drives gravity alignment and DEM fitting consistently with the GLB export.
+    if req.semantic_filter_ids:
+        n_pts = pts_world.shape[0]
+        sem_for_filter = None
+        # Prefer an explicit masks file; fall back to masks baked into predictions.
+        if req.semantic_masks_path:
+            pred_h, pred_w = predictions["depth"].shape[1], predictions["depth"].shape[2]
+            sem_for_filter = _load_semantic_masks(req.semantic_masks_path, pred_h, pred_w)
+        if sem_for_filter is None and sem is not None:
+            sem_for_filter = np.asarray(sem)
+        if sem_for_filter is not None and sem_for_filter.size == n_pts:
+            sem_flat = sem_for_filter.reshape(-1)
+            class_mask = np.isin(sem_flat, req.semantic_filter_ids)
+            if req.semantic_filter_mode == "delete":
+                keep = keep & ~class_mask
+            else:  # extract
+                keep = keep & class_mask
+
     pts_world_kept = pts_world[keep]
     conf_kept = conf_flat[keep]
+    ground_kept = ground_flat[keep] if ground_flat is not None else None
 
     # Apply T_display to get display-space coords (matches GLB)
     pts_h = np.concatenate([pts_world_kept, np.ones((pts_world_kept.shape[0], 1))], axis=1)
@@ -473,6 +577,8 @@ def elevation_viewer_data(req: ElevationViewerRequest):
         pts_display = pts_display[idx]
         pts_aligned = pts_aligned[idx]
         colors_kept = colors_kept[idx]
+        if ground_kept is not None:
+            ground_kept = ground_kept[idx]
 
     # ── Camera extrinsics ────────────────────────────────────────────────────
     # Raw camera centers in world space
@@ -503,9 +609,13 @@ def elevation_viewer_data(req: ElevationViewerRequest):
 
     # ── DEM grid (for hole-fill and volume) ──────────────────────────────────
     # Use gravity-aligned points; Y is elevation, (X,Z) is horizontal plane
-    ground_y_thresh = float(np.percentile(pts_aligned[:, 1], req.ground_percentile))
-    ground_mask_pts = pts_aligned[:, 1] <= ground_y_thresh
-    ground_pts = pts_aligned[ground_mask_pts]
+    ground_filter_mask = _select_ground_aligned_mask(
+        pts_aligned, ground_kept, req.ground_percentile
+    )
+    dem_source_mask = ground_filter_mask if req.use_ground_filter else np.ones(
+        pts_aligned.shape[0], dtype=bool
+    )
+    ground_pts = pts_aligned[dem_source_mask]
 
     GRID_RES = 128
     x_min, x_max = float(pts_aligned[:, 0].min()), float(pts_aligned[:, 0].max())
@@ -535,9 +645,21 @@ def elevation_viewer_data(req: ElevationViewerRequest):
         "R_align": R_align.tolist(),
         "T_display": T_display.tolist(),
         "scale_factor": 1.0,
+        "use_ground_filter": bool(req.use_ground_filter),
+        "dem_source": "ground-filtered" if req.use_ground_filter else "unfiltered",
         "n_points": int(pts_display.shape[0]),
         "points_display": pts_display.astype(np.float32).tolist(),
         "points_aligned": pts_aligned.astype(np.float32).tolist(),
+        "ground_filter": {
+            "function": "_select_ground_aligned",
+            "enabled_for_dem": bool(req.use_ground_filter),
+            "ground_percentile": float(req.ground_percentile),
+            "used_semantic_ground_mask": bool(ground_kept is not None and ground_kept.any()),
+            "kept_count": int(ground_filter_mask.sum()),
+            "filtered_count": int(ground_filter_mask.shape[0] - ground_filter_mask.sum()),
+            "dem_source_count": int(dem_source_mask.sum()),
+            "keep_mask": ground_filter_mask.astype(np.uint8).tolist(),
+        },
         "colors": colors_kept.tolist(),
         "cameras": cameras,
         "dem": {

@@ -77,6 +77,8 @@ Typical generated outputs include:
 - `predictions.npz`: VGGT predictions.
 - `semantic_masks.npz`: YOLOe semantic masks.
 - `glbscene_*.glb`: reconstructed scene.
+- `edited_<op>_ids<...>.glb`: semantically edited scene from the editing tab.
+- `edited_scenes.json`: registry of edits, used by the elevation viewer's scene selector.
 - `elev_r<N>_<cmap>_aligned_only.glb`: elevation-only DEM mesh.
 - `elev_r<N>_<cmap>_aligned_merged.glb`: point cloud plus DEM mesh.
 - `elev_r<N>_<cmap>_aligned_meta.json`: gravity alignment and fitting metadata.
@@ -86,6 +88,7 @@ Generated data is stored under `workspaces/` and is intentionally ignored by Git
 ## Notes
 
 - The semantic ground class is currently expected to use ID `1`.
+- The elevation viewer has a **scene selector** (sidebar): each edit applied in the Point Cloud Editing tab is recorded to `edited_scenes.json` in the workspace, and the viewer can re-derive that filtered cloud from raw predictions. Switching scenes re-runs gravity alignment and DEM fitting on the selected (filtered) point cloud.
 - `use_ransac` is kept for API compatibility; gravity estimation is handled by the cascade in `gravity_alignment.py`.
 - The elevation viewer uses a fixed `128 x 128` DEM grid from `/elevation_viewer_data`, while exported DEM GLBs use the UI-selected grid resolution.
 - Large media, workspaces, GLB/NPZ/ZIP outputs, and model weights are excluded by `.gitignore`.

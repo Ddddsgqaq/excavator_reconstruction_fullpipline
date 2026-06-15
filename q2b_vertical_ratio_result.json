@@ -1,0 +1,56 @@
+{
+ "metric": "R = excavator_Yext / person_Yext (scale-free, halo-light), ideal uniform = 1.76",
+ "ideal": 1.765,
+ "px_threshold": 350,
+ "well_resolved": {
+  "n": 5,
+  "mean": 2.999,
+  "std": 0.034,
+  "cv_pct": 1.1
+ },
+ "rows": [
+  {
+   "scene": "20260529_154544_122316",
+   "R": 1.631,
+   "person_px": 234
+  },
+  {
+   "scene": "20260531_023910_280850",
+   "R": 1.56,
+   "person_px": 243
+  },
+  {
+   "scene": "20260530_185058_223622",
+   "R": 1.592,
+   "person_px": 302
+  },
+  {
+   "scene": "20260529_145349_115750",
+   "R": 3.058,
+   "person_px": 399
+  },
+  {
+   "scene": "20260529_153216_192549",
+   "R": 2.955,
+   "person_px": 399
+  },
+  {
+   "scene": "20260529_095128_207530",
+   "R": 2.983,
+   "person_px": 399
+  },
+  {
+   "scene": "20260611_162643_869764",
+   "R": 2.993,
+   "person_px": 409
+  },
+  {
+   "scene": "20260522_103239_731587",
+   "R": 3.007,
+   "person_px": 409
+  }
+ ],
+ "relative_compression_person_over_excavator": 1.7,
+ "identifiability_note": "absolute k_v needs an external horizontal ruler / telemetry (the big-pit poles); only the scale-free RATIO is identifiable here.",
+ "verdict": "cross-object vertical ratio is highly stable (CV 1.1%) when both probes are well-resolved -> reinforces Q2: vertical distortion is systematic & reproducible at the object level. Person is compressed 1.70x more than excavator (small-object effect)."
+}

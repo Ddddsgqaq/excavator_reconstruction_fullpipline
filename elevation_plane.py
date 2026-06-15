@@ -73,6 +73,38 @@ def _extract_points_with_conf(predictions: dict,
 
 # ── Ground selection in the aligned frame ────────────────────────────────────
 
+def _select_ground_aligned_mask(points_aligned: np.ndarray,
+                                 ground_mask: np.ndarray | None,
+                                 ground_percentile: float,
+                                 band: float = 0.05) -> np.ndarray:
+    """
+    Boolean mask version of `_select_ground_aligned`.
+
+    This keeps the selection logic in one place so callers that need to
+    visualize before/after filtering can identify which source points survived.
+    """
+    y = points_aligned[:, 1]
+    y_range = float(np.percentile(y, 98) - np.percentile(y, 2)) or 1.0
+
+    if ground_mask is not None and ground_mask.any():
+        ground_mask = np.asarray(ground_mask, dtype=bool)
+        ground_idx = np.flatnonzero(ground_mask)
+        gpts = points_aligned[ground_idx]
+        if gpts.shape[0] >= 50:
+            y_med = float(np.median(gpts[:, 1]))
+            tol = band * y_range
+            tight_local = np.abs(gpts[:, 1] - y_med) <= tol
+            out = np.zeros(points_aligned.shape[0], dtype=bool)
+            if int(tight_local.sum()) >= 50:
+                out[ground_idx[tight_local]] = True
+                return out
+            out[ground_idx] = True
+            return out
+
+    thresh = np.percentile(y, ground_percentile)
+    return y <= thresh
+
+
 def _select_ground_aligned(points_aligned: np.ndarray,
                             ground_mask: np.ndarray | None,
                             ground_percentile: float,
@@ -85,21 +117,10 @@ def _select_ground_aligned(points_aligned: np.ndarray,
         is within ±`band`·(Y range) of the masked-points Y-mode (median).
       * Otherwise, take the lowest `ground_percentile`% by Y.
     """
-    y = points_aligned[:, 1]
-    y_range = float(np.percentile(y, 98) - np.percentile(y, 2)) or 1.0
-
-    if ground_mask is not None and ground_mask.any():
-        gpts = points_aligned[ground_mask]
-        if gpts.shape[0] >= 50:
-            y_med = float(np.median(gpts[:, 1]))
-            tol = band * y_range
-            tight = gpts[np.abs(gpts[:, 1] - y_med) <= tol]
-            if tight.shape[0] >= 50:
-                return tight
-            return gpts
-
-    thresh = np.percentile(y, ground_percentile)
-    return points_aligned[y <= thresh]
+    keep = _select_ground_aligned_mask(
+        points_aligned, ground_mask, ground_percentile, band
+    )
+    return points_aligned[keep]
 
 
 # ── DEM grid interpolation ───────────────────────────────────────────────────
@@ -194,6 +215,7 @@ def fit_elevation_to_glb(
     conf_thres: float = 50.0,
     prediction_mode: str = "Depthmap and Camera Branch",
     scale_factor: float = 1.0,                # multiplier for absolute scale calibration
+    use_ground_filter: bool = True,           # choose DEM source: filtered ground candidates or all aligned points
 ) -> dict:
     """
     Fit a gravity-aligned elevation plane and export GLBs.
@@ -230,8 +252,13 @@ def fit_elevation_to_glb(
     # 3. Rotate points into the aligned frame and apply scale.
     pts_aligned = apply_alignment_to_points(pts_world, grav.R_align) * scale_factor
 
-    # 4. Pick ground points in the aligned frame.
-    ground_pts = _select_ground_aligned(pts_aligned, ground_world, ground_percentile)
+    # 4. Pick DEM source points in the aligned frame.
+    if use_ground_filter:
+        ground_pts = _select_ground_aligned(pts_aligned, ground_world, ground_percentile)
+        dem_source = "ground-filtered"
+    else:
+        ground_pts = pts_aligned
+        dem_source = "unfiltered"
     if ground_pts.shape[0] < 50:
         raise ValueError(f"Too few ground candidates after alignment ({ground_pts.shape[0]}).")
 
@@ -241,6 +268,8 @@ def fit_elevation_to_glb(
 
     # 6. Export.
     tag = f"elev_r{grid_resolution}_{colormap}_aligned"
+    if not use_ground_filter:
+        tag += "_allpoints"
     elev_only_path = os.path.join(working_dir, f"{tag}_only.glb")
     _scene_with(elev_mesh).export(file_obj=elev_only_path)
 
@@ -257,6 +286,8 @@ def fit_elevation_to_glb(
         "n_grav": grav.n_grav.tolist(),
         "R_align": grav.R_align.tolist(),
         "scale_factor": float(scale_factor),
+        "use_ground_filter": bool(use_ground_filter),
+        "dem_source": dem_source,
         "warnings": grav.warnings,
         "debug": grav.debug,
     }
@@ -266,6 +297,7 @@ def fit_elevation_to_glb(
     log_lines = [
         f"Gravity: {grav.source} (inliers={grav.inlier_count})",
         f"DEM: {grid_resolution}x{grid_resolution}, colormap={colormap}, scale={scale_factor}",
+        f"DEM source: {dem_source} points ({ground_pts.shape[0]}/{pts_aligned.shape[0]})",
     ]
     log_lines.extend(grav.warnings)
 
@@ -276,6 +308,8 @@ def fit_elevation_to_glb(
         "n_grav": grav.n_grav.tolist(),
         "R_align": grav.R_align.tolist(),
         "scale_factor": float(scale_factor),
+        "use_ground_filter": bool(use_ground_filter),
+        "dem_source": dem_source,
         "warnings": grav.warnings,
         "log": " | ".join(log_lines),
     }
