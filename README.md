@@ -48,11 +48,29 @@ This project builds a reconstruction pipeline that combines VGGT 3D reconstructi
 
 ## Run
 
-The project assumes the related VGGT and YOLOe repositories/environments are available at the paths used in `start_all.sh`:
+This repository is the **pipeline glue only**. It orchestrates two external repositories that must be checked out alongside it (paths are used directly in `start_all.sh` and the service files):
 
-- `/home/maomaoyu/WS/vggt`
-- `/home/maomaoyu/WS/yoloe`
-- `/home/maomaoyu/WS/vggt_yoloe`
+- `/home/maomaoyu/WS/vggt` — the VGGT reconstruction repo, including its model weights (`model.pt`).
+- `/home/maomaoyu/WS/yoloe` — the YOLOe / ultralytics repo. YOLOe weights are pulled from HuggingFace (`jameslahm/yoloe`) on first run.
+- `/home/maomaoyu/WS/vggt_yoloe` — this repo.
+
+### Install dependencies
+
+The two services need different dependency sets, so they run in two separate conda environments. `torch`/`torchvision` are pinned to CUDA 13.0 builds — install torch first from the matching index, then the rest.
+
+```bash
+# VGGT env (runs vggt_service.py, orchestrator.py, streaming/)
+conda create -n vggt50 python=3.10 -y && conda activate vggt50
+pip install torch==2.11.0 torchvision==0.26.0 --index-url https://download.pytorch.org/whl/cu130
+pip install -r requirements-vggt.txt
+
+# YOLOe env (runs yoloe_service.py)
+conda create -n yoloe python=3.10 -y && conda activate yoloe
+pip install torch==2.11.0 torchvision==0.26.0
+pip install -r requirements-yoloe.txt
+```
+
+If your CUDA version differs, pick the matching torch build from https://pytorch.org and keep the other pins. Adjust the env names in `start_all.sh` (`yoloe`, `vggt50`) if you named yours differently.
 
 Start all services:
 

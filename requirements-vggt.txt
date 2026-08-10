@@ -1,0 +1,31 @@
+# VGGT env (conda env name: vggt50) — runs vggt_service.py + orchestrator.py + streaming/
+# Python 3.10.8
+#
+# torch/torchvision below are CUDA 13.0 builds. Install torch FIRST from the
+# matching index, then the rest:
+#   conda create -n vggt50 python=3.10 -y && conda activate vggt50
+#   pip install torch==2.11.0 torchvision==0.26.0 --index-url https://download.pytorch.org/whl/cu130
+#   pip install -r requirements-vggt.txt
+#
+# NOTE: this repo is only the pipeline glue. It also needs the external VGGT repo
+# checked out at /home/maomaoyu/WS/vggt (with model weights model.pt). See README.
+
+torch==2.11.0
+torchvision==0.26.0
+numpy==2.2.6
+scipy==1.15.3
+opencv-python==4.13.0.92
+pillow==12.2.0
+matplotlib==3.10.8
+trimesh==4.11.5
+einops==0.8.2
+safetensors==0.7.0
+huggingface_hub==1.9.1
+
+# web / service layer
+gradio==5.17.1
+fastapi==0.135.3
+uvicorn==0.44.0
+pydantic==2.10.6
+python-multipart==0.0.24
+requests==2.33.1

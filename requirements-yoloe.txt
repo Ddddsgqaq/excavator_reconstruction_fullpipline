@@ -1,0 +1,30 @@
+# YOLOe env (conda env name: yoloe) — runs yoloe_service.py
+# Python 3.10.20
+#
+# Install:
+#   conda create -n yoloe python=3.10 -y && conda activate yoloe
+#   pip install torch==2.11.0 torchvision==0.26.0
+#   pip install -r requirements-yoloe.txt
+#
+# NOTE: yoloe_service.py imports from the external YOLOe/ultralytics repo checked
+# out at /home/maomaoyu/WS/yoloe (sys.path.insert). Model weights are pulled from
+# HuggingFace (repo_id="jameslahm/yoloe") on first run. See README.
+
+torch==2.11.0
+torchvision==0.26.0
+numpy==2.2.6
+scipy==1.15.3
+opencv-python==4.13.0.92
+pillow==10.4.0
+matplotlib==3.10.8
+safetensors==0.7.0
+huggingface_hub==0.26.3
+ultralytics==8.3.39
+
+# web / service layer
+gradio==4.42.0
+fastapi==0.112.2
+uvicorn==0.45.0
+pydantic==2.10.6
+python-multipart==0.0.26
+requests==2.33.1
