@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>双 GLB 场景叠加预览</title>
+  <style>
+    *{box-sizing:border-box} body{margin:0;background:#111827;color:#e5e7eb;font:14px system-ui,sans-serif;display:flex;height:100vh}
+    aside{width:320px;padding:20px;background:#172033;border-right:1px solid #34435f;overflow:auto} h1{font-size:18px;margin:0 0 8px;color:#f472b6} p,.hint{color:#9ca3af;line-height:1.55;font-size:12px} section{border-top:1px solid #34435f;margin-top:16px;padding-top:16px} label{display:block;margin:10px 0 5px;color:#cbd5e1;font-size:12px} input[type=file],input[type=range]{width:100%} button{width:100%;margin-top:8px;padding:8px 10px;background:#263754;border:1px solid #47658d;border-radius:5px;color:#e5e7eb;cursor:pointer} button:hover{background:#344d73}.row{display:flex;gap:8px;align-items:center;margin-top:9px}.row input{accent-color:#f472b6} #status{margin-top:14px;padding:9px;background:#111827;border-radius:5px;color:#9ca3af;font-size:12px;line-height:1.45} main{position:relative;flex:1} canvas{display:block;width:100%;height:100%}.badge{position:absolute;right:14px;bottom:14px;padding:8px 10px;background:#111827cc;border-radius:5px;font-size:12px;color:#9ca3af}
+  </style>
+</head>
+<body>
+  <aside>
+    <h1>双 GLB 场景叠加</h1>
+    <p>独立预览工具：将“叠加三盒纸巾”和“取下一盒后”的两个场景置于同一 Three.js 场景中，先观察导出坐标下的初始重叠效果。</p>
+    <section>
+      <label for="scene-a">场景 A</label><input id="scene-a" type="file" accept=".glb,model/gltf-binary">
+      <label for="scene-b">场景 B</label><input id="scene-b" type="file" accept=".glb,model/gltf-binary">
+      <button id="load-samples">加载 fusion 文件夹中的两个示例</button>
+    </section>
+    <section>
+      <div class="row"><input id="show-a" type="checkbox" checked><label for="show-a">显示场景 A</label></div>
+      <div class="row"><input id="show-b" type="checkbox" checked><label for="show-b">显示场景 B</label></div>
+      <label for="opacity">叠加透明度 <span id="opacity-value">65%</span></label><input id="opacity" type="range" min="0.1" max="1" step="0.05" value="0.65">
+      <button id="frame">聚焦已加载场景</button><button id="clear">清除场景</button>
+    </section>
+    <section>
+      <b>手动静态点配准（Sim(3)）</b>
+      <p class="hint">依次点击场景 A 与场景 B 中同一个未变化背景点；不要点纸巾。完成至少 3 对后即可对齐 B 到 A。</p>
+      <button id="pick-a">1. 选择场景 A 的背景点</button><button id="pick-b">2. 选择场景 B 的对应点</button>
+      <button id="align" disabled>应用 Sim(3) 对齐</button><button id="undo-pair">撤销最后一对</button><button id="reset-align">重置 B 的对齐</button>
+      <div id="pairs" class="hint">对应点：0 对</div>
+    </section>
+    <div id="status">尚未加载 GLB。</div>
+  </aside>
+  <main><canvas id="canvas"></canvas><div class="badge">左键旋转 · 右键平移 · 滚轮缩放</div></main>
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/"}}</script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    const canvas=document.querySelector('#canvas'), scene=new THREE.Scene(), renderer=new THREE.WebGLRenderer({canvas,antialias:true}), camera=new THREE.PerspectiveCamera(55,1,.001,1e6), controls=new OrbitControls(camera,canvas), loader=new GLTFLoader(), layers={a:null,b:null}, raycaster=new THREE.Raycaster(), pointer=new THREE.Vector2();
+    let pickMode=null, pendingA=null; const pairs=[], pairMarkers=[];
+    renderer.setPixelRatio(devicePixelRatio); renderer.setClearColor(0x111827); camera.position.set(2,1.4,2); controls.enableDamping=true;
+    scene.add(new THREE.HemisphereLight(0xffffff,0x334155,2)); const light=new THREE.DirectionalLight(0xffffff,2); light.position.set(3,5,2); scene.add(light); scene.add(new THREE.GridHelper(10,20,0x475569,0x263244));
+    const status=(text,error=false)=>{const e=document.querySelector('#status');e.textContent=text;e.style.color=error?'#fb7185':'#9ca3af'};
+    function resize(){const p=canvas.parentElement;renderer.setSize(p.clientWidth,p.clientHeight,false);camera.aspect=p.clientWidth/p.clientHeight;camera.updateProjectionMatrix()} addEventListener('resize',resize);resize();
+    function render(){requestAnimationFrame(render);controls.update();renderer.render(scene,camera)}render();
+    function dispose(root){root?.traverse(o=>{if(o.isMesh){o.geometry?.dispose();(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m?.dispose())}})}
+    function remove(key){if(layers[key]){scene.remove(layers[key]);dispose(layers[key]);layers[key]=null}}
+    function updatePairs(){document.querySelector('#pairs').textContent=`对应点：${pairs.length} 对${pickMode?`（请点击场景 ${pickMode.toUpperCase()}）`:''}`;document.querySelector('#align').disabled=pairs.length<3}
+    function marker(p,color){const m=new THREE.Mesh(new THREE.SphereGeometry(.008,10,10),new THREE.MeshBasicMaterial({color}));m.position.copy(p);scene.add(m);pairMarkers.push(m)}
+    function clearPairs(){pairs.length=0;pendingA=null;pairMarkers.splice(0).forEach(m=>{scene.remove(m);m.geometry.dispose();m.material.dispose()});updatePairs()}
+    function opacity(value){Object.values(layers).forEach(root=>root?.traverse(o=>{if(!o.isMesh)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{m.transparent=value<1;m.opacity=value;m.depthWrite=value>=1;m.needsUpdate=true})}))}
+    function frame(){const roots=Object.values(layers).filter(Boolean);if(!roots.length)return;const box=new THREE.Box3();roots.forEach(r=>box.expandByObject(r));if(box.isEmpty())return;const s=box.getBoundingSphere(new THREE.Sphere()),d=s.radius/Math.sin(THREE.MathUtils.degToRad(camera.fov*.45));camera.position.copy(s.center).add(new THREE.Vector3(1,.7,1).normalize().multiplyScalar(d));controls.target.copy(s.center);controls.update()}
+    async function load(key,source,label){remove(key);status(`正在加载${label}…`);try{const gltf=await new Promise((ok,fail)=>{if(source instanceof File){const r=new FileReader();r.onload=()=>loader.parse(r.result,'',ok,fail);r.onerror=()=>fail(new Error('无法读取本地文件'));r.readAsArrayBuffer(source)}else loader.load(source,ok,undefined,fail)});const root=gltf.scene||gltf.scenes?.[0];if(!root)throw new Error('GLB 中没有场景');layers[key]=root;root.visible=document.querySelector(`#show-${key}`).checked;scene.add(root);opacity(+document.querySelector('#opacity').value);frame();status(`已加载 ${Object.entries(layers).filter(([,v])=>v).map(([k])=>`场景 ${k.toUpperCase()}`).join(' 和 ')}；当前为原始导出坐标叠加。`)}catch(e){console.error(e);status(`加载${label}失败：${e.message||e}`,true)}}
+    document.querySelector('#scene-a').onchange=e=>e.target.files[0]&&load('a',e.target.files[0],'场景 A');document.querySelector('#scene-b').onchange=e=>e.target.files[0]&&load('b',e.target.files[0],'场景 B');
+    document.querySelector('#show-a').onchange=e=>{if(layers.a)layers.a.visible=e.target.checked};document.querySelector('#show-b').onchange=e=>{if(layers.b)layers.b.visible=e.target.checked};
+    document.querySelector('#opacity').oninput=e=>{const v=+e.target.value;document.querySelector('#opacity-value').textContent=`${Math.round(v*100)}%`;opacity(v)};document.querySelector('#frame').onclick=frame;document.querySelector('#clear').onclick=()=>{remove('a');remove('b');status('尚未加载 GLB。')};
+    document.querySelector('#load-samples').onclick=async()=>{await load('a','/static/fusion/glbscene_25.0_All_maskbFalse_maskwFalse_camTrue_skyFalse_predDepthmap_and_Camera_Branch_semFalse.glb','fusion 场景 A');await load('b','/static/fusion/glbscene_50.0_All_maskbFalse_maskwFalse_camTrue_skyFalse_predDepthmap_and_Camera_Branch_semFalse.glb','fusion 场景 B')};
+    function bestQuaternion(s){const [xx,xy,xz,yx,yy,yz,zx,zy,zz]=s.flat();const k=[[xx+yy+zz,yz-zy,zx-xz,xy-yx],[yz-zy,xx-yy-zz,xy+yx,zx+xz],[zx-xz,xy+yx,-xx+yy-zz,yz+zy],[xy-yx,zx+xz,yz+zy,-xx-yy+zz]];let q=[1,0,0,0];for(let n=0;n<60;n++){const v=k.map(row=>row.reduce((sum,x,i)=>sum+x*q[i],0)),len=Math.hypot(...v);q=v.map(x=>x/len)}return new THREE.Quaternion(q[1],q[2],q[3],q[0])}
+    function alignSimilarity(){if(pairs.length<3||!layers.b)return;const ca=new THREE.Vector3(),cb=new THREE.Vector3();pairs.forEach(([a,b])=>{ca.add(a);cb.add(b)});ca.multiplyScalar(1/pairs.length);cb.multiplyScalar(1/pairs.length);const h=[[0,0,0],[0,0,0],[0,0,0]];pairs.forEach(([a,b])=>{a=a.clone().sub(ca);b=b.clone().sub(cb);h[0][0]+=b.x*a.x;h[0][1]+=b.x*a.y;h[0][2]+=b.x*a.z;h[1][0]+=b.y*a.x;h[1][1]+=b.y*a.y;h[1][2]+=b.y*a.z;h[2][0]+=b.z*a.x;h[2][1]+=b.z*a.y;h[2][2]+=b.z*a.z});const q=bestQuaternion(h),rb=new THREE.Vector3();let num=0,den=0;pairs.forEach(([a,b])=>{rb.copy(b).sub(cb).applyQuaternion(q);num+=a.clone().sub(ca).dot(rb);den+=b.clone().sub(cb).lengthSq()});const scale=num/den;if(!Number.isFinite(scale)||scale<=0){status('对应点无法得到有效尺度，请重新选择。',true);return}const translation=ca.clone().sub(cb.clone().applyQuaternion(q).multiplyScalar(scale));layers.b.matrixAutoUpdate=false;layers.b.matrix.compose(translation,q,new THREE.Vector3(scale,scale,scale));layers.b.updateMatrixWorld(true);const residual=Math.sqrt(pairs.reduce((sum,[a,b])=>sum+a.distanceTo(b.clone().applyMatrix4(layers.b.matrixWorld))**2,0)/pairs.length);status(`已将 B 对齐到 A：尺度 ${scale.toFixed(4)}，${pairs.length} 对点 RMS ${residual.toFixed(4)}。`);clearPairs();frame()}
+    function pick(event){if(!pickMode||!layers[pickMode])return;const rect=canvas.getBoundingClientRect();pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(pointer,camera);raycaster.params.Points.threshold=.02;const hit=raycaster.intersectObject(layers[pickMode],true)[0];if(!hit){status(`没有命中场景 ${pickMode.toUpperCase()}；请靠近可见点云点击。`,true);return}const p=hit.point.clone();marker(p,pickMode==='a'?0x38bdf8:0xfb7185);if(pickMode==='a'){pendingA=p;pickMode=null;status('已记录 A 点；请点击“选择场景 B 的对应点”。')}else if(!pendingA){status('请先选择场景 A 的点。',true)}else{pairs.push([pendingA,p]);pendingA=null;pickMode=null;status(`已记录第 ${pairs.length} 对静态点。`)}updatePairs()}
+    canvas.addEventListener('click',pick);
+    document.querySelector('#pick-a').onclick=()=>{if(!layers.a)return status('请先加载场景 A。',true);pickMode='a';status('请在场景 A 中点击一个未变化背景点。');updatePairs()};
+    document.querySelector('#pick-b').onclick=()=>{if(!pendingA)return status('请先选择场景 A 的点。',true);if(!layers.b)return status('请先加载场景 B。',true);pickMode='b';status('请在场景 B 中点击同一个背景点。');updatePairs()};
+    document.querySelector('#undo-pair').onclick=()=>{if(pairs.length){pairs.pop();for(let n=0;n<2;n++){const m=pairMarkers.pop();if(m){scene.remove(m);m.geometry.dispose();m.material.dispose()}}}updatePairs()};document.querySelector('#align').onclick=alignSimilarity;
+    document.querySelector('#reset-align').onclick=()=>{if(!layers.b)return;layers.b.matrix.identity();layers.b.matrixAutoUpdate=false;layers.b.updateMatrixWorld(true);status('已恢复场景 B 的原始导出坐标。')};updatePairs();
+  </script>
+</body></html>

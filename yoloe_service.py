@@ -15,7 +15,7 @@ import time
 import argparse
 import numpy as np
 import cv2
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Sequence
 
 import torch
 from fastapi import FastAPI, HTTPException
@@ -28,6 +28,7 @@ from ultralytics.utils.torch_utils import smart_inference_mode
 from ultralytics.models.yolo.yoloe.predict_vp import YOLOEVPSegPredictor
 from huggingface_hub import hf_hub_download
 from PIL import Image as PILImage
+from resource_profiler import ResourceProfiler
 
 app = FastAPI(title="YOLOe Segmentation Service")
 
@@ -92,6 +93,109 @@ def get_image_list(working_dir: str) -> List[str]:
     return sorted(paths)
 
 
+# ── Keyframe similarity: ORB feature matching (measures VIEWPOINT change) ──────
+# Keyframes are picked by how much the camera VIEWPOINT moved, not by colour.
+# An HSV histogram only compares colour distributions, so it reports
+# near-identical scores across large viewpoint swings (same scene from a
+# different angle has the same palette). ORB keypoints + a RANSAC homography
+# measure geometric overlap instead, which is what "did the view change?" means.
+_ORB_FEATURES = 1500     # ORB keypoint budget per frame
+_ORB_RATIO    = 0.75     # Lowe ratio-test threshold
+_ORB_RANSAC   = 4.0      # homography RANSAC reprojection threshold (px)
+_ORB_WIDTH    = 320      # downscale frames to this width before ORB (speed)
+
+
+def _frame_signature(img_path: str):
+    """ORB signature for viewpoint comparison: (keypoint xy, descriptors, diag).
+
+    The frame is downscaled to `_ORB_WIDTH` before detection: ORB at full
+    1080p costs ~56 ms/frame, vs ~8 ms at 320px. The similarity score is
+    scale-invariant — `inlier_ratio` is a ratio, and `_frame_similarity`
+    normalizes parallax by the (same-scale) image diagonal — so the downscale
+    does not change the keep/skip decision.
+    """
+    img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+    h, w = img.shape[:2]
+    if _ORB_WIDTH and w > _ORB_WIDTH:
+        scale = _ORB_WIDTH / w
+        img = cv2.resize(img, (_ORB_WIDTH, int(round(h * scale))),
+                         interpolation=cv2.INTER_AREA)
+    orb = cv2.ORB_create(nfeatures=_ORB_FEATURES)
+    kp, des = orb.detectAndCompute(img, None)
+    pts = np.float32([k.pt for k in kp]) if kp else np.empty((0, 2), np.float32)
+    diag = float(np.hypot(*img.shape[:2]))
+    return pts, des, diag
+
+
+def _frame_similarity(sig_a, sig_b) -> float:
+    """Viewpoint similarity in [0,1] between two ORB signatures (1 = same view)."""
+    ptsA, desA, diag = sig_a
+    ptsB, desB, _ = sig_b
+    if desA is None or desB is None or len(ptsA) < 8 or len(ptsB) < 8:
+        return 0.0
+    bf = cv2.BFMatcher(cv2.NORM_HAMMING)
+    knn = bf.knnMatch(desA, desB, k=2)
+    good = [m for pair in knn if len(pair) == 2
+            for m, n in [pair] if m.distance < _ORB_RATIO * n.distance]
+    if len(good) < 8:
+        return 0.0
+    pA = np.float32([ptsA[m.queryIdx] for m in good])
+    pB = np.float32([ptsB[m.trainIdx] for m in good])
+    H, mask = cv2.findHomography(pA, pB, cv2.RANSAC, _ORB_RANSAC)
+    if H is None or mask is None:
+        return 0.0
+    mask = mask.ravel().astype(bool)
+    n_in = int(mask.sum())
+    if n_in == 0:
+        return 0.0
+    # Backbone = inlier_ratio (graded geometric overlap), discounted by parallax
+    # (median pixel motion of inlier matches, relative to the image diagonal —
+    # a proxy for camera-motion angle).
+    inlier_ratio = n_in / len(good)
+    parallax = float(np.median(np.linalg.norm(pA[mask] - pB[mask], axis=1)))
+    par_term = 1.0 / (1.0 + (parallax / diag / 0.06) ** 2)
+    return float(inlier_ratio * par_term)
+
+
+def select_keyframe_indices(image_paths: List[str], mode: str = "all",
+                            stride: int = 3, sim_thresh: float = 0.92) -> List[int]:
+    """Pick which frames to actually segment.
+
+    A scene is many overlapping views; segmenting near-duplicate frames wastes
+    time. Returns the indices to run YOLOe on; skipped frames are left unlabeled
+    and recovered later by 3D label fusion at reconstruction time.
+
+    Modes:
+      "all"        — segment every frame (no saving; default, back-compatible).
+      "stride"     — keep every `stride`-th frame (plus first and last).
+      "similarity" — keep a frame only when its VIEWPOINT differs enough (ORB
+                     viewpoint similarity < `sim_thresh`) from the last kept
+                     keyframe. `sim_thresh` is in [0,1]; higher keeps more
+                     frames. ~0.45 is a good default.
+    """
+    n = len(image_paths)
+    if mode == "all" or n <= 2:
+        return list(range(n))
+    if mode == "stride":
+        idx = list(range(0, n, max(1, stride)))
+        if (n - 1) not in idx:
+            idx.append(n - 1)
+        return idx
+    # similarity — keep a frame when its viewpoint differs enough from the last
+    # kept keyframe (ORB viewpoint similarity < sim_thresh).
+    keep = [0]
+    last_sig = _frame_signature(image_paths[0])
+    for i in range(1, n):
+        sig = _frame_signature(image_paths[i])
+        sim = _frame_similarity(last_sig, sig)
+        if sim < sim_thresh:
+            keep.append(i)
+            last_sig = sig
+    if (n - 1) not in keep:
+        keep.append(n - 1)
+    return sorted(keep)
+
+
 def make_run_dir(working_dir: str, mode: str) -> str:
     """Create a fresh per-invocation directory; never overwrites previous runs."""
     runs_root = os.path.join(working_dir, "yoloe_runs")
@@ -113,21 +217,39 @@ def save_run_meta(run_dir: str, meta: dict) -> None:
         json.dump(meta, f, indent=2, default=str)
 
 
-def make_previews(image_paths: List[str], masks: np.ndarray, run_dir: str) -> List[str]:
+def make_previews(image_paths: List[str], masks: np.ndarray, run_dir: str,
+                  frame_indices: Optional[Sequence[int]] = None,
+                  max_width: int = 640, fmt: str = "jpg") -> List[str]:
+    """Render mask-overlay previews.
+
+    Only the frames in `frame_indices` are rendered (others were skipped during
+    keyframe-only segmentation and carry no mask, so their preview would just be
+    the raw image). Previews are downscaled to `max_width` and saved as JPEG by
+    default, since full-resolution PNG encoding dominates the endpoint wall-clock.
+    """
     preview_dir = os.path.join(run_dir, "previews")
     os.makedirs(preview_dir, exist_ok=True)
+    idx_iter = range(len(image_paths)) if frame_indices is None else frame_indices
+    ext = "jpg" if fmt.lower() in ("jpg", "jpeg") else "png"
     out = []
-    for i, (img_path, mask) in enumerate(zip(image_paths, masks)):
-        img = cv2.imread(img_path)
+    max_id = int(masks.max())
+    for i in idx_iter:
+        img = cv2.imread(image_paths[i])
         if img is None:
             continue
+        mask = masks[i]
         overlay = img.copy()
-        for sem_id in range(1, int(masks.max()) + 1):
+        for sem_id in range(1, max_id + 1):
             region = mask == sem_id
             if region.any():
                 color = np.array(_PALETTE[(sem_id - 1) % len(_PALETTE)], dtype=np.float32)
                 overlay[region] = (0.4 * overlay[region] + 0.6 * color).astype(np.uint8)
-        p = os.path.join(preview_dir, f"preview_{i:04d}.png")
+        h, w = overlay.shape[:2]
+        if max_width and w > max_width:
+            scale = max_width / w
+            overlay = cv2.resize(overlay, (max_width, int(round(h * scale))),
+                                 interpolation=cv2.INTER_AREA)
+        p = os.path.join(preview_dir, f"preview_{i:04d}.{ext}")
         cv2.imwrite(p, overlay)
         out.append(p)
     return out
@@ -170,6 +292,10 @@ class TextSegRequest(BaseModel):
     image_size: int = 640
     conf_threshold: float = 0.25
     iou_threshold: float = 0.70
+    # Keyframe selection: "all" | "stride" | "similarity" (see select_keyframe_indices)
+    keyframe_mode: str = "all"
+    keyframe_stride: int = 3
+    keyframe_sim_thresh: float = 0.45
 
 
 class VisualSegRequest(BaseModel):
@@ -180,6 +306,9 @@ class VisualSegRequest(BaseModel):
     image_size: int = 640
     conf_threshold: float = 0.20
     iou_threshold: float = 0.70
+    keyframe_mode: str = "all"
+    keyframe_stride: int = 3
+    keyframe_sim_thresh: float = 0.45
 
 
 class PromptFreeRequest(BaseModel):
@@ -189,6 +318,9 @@ class PromptFreeRequest(BaseModel):
     conf_threshold: float = 0.25
     iou_threshold: float = 0.70
     max_classes: int = 9
+    keyframe_mode: str = "all"
+    keyframe_stride: int = 3
+    keyframe_sim_thresh: float = 0.45
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -201,15 +333,25 @@ def health():
 @app.post("/segment")
 @smart_inference_mode()
 def segment_text(req: TextSegRequest):
-    image_paths = get_image_list(req.working_dir)
+    t0 = time.perf_counter()
+    profiler = ResourceProfiler(
+        "yoloe_segment_text", req.working_dir, torch_module=torch,
+        metadata={
+            "model_id": req.model_id, "image_size": req.image_size,
+            "prompt_count": len(req.text_prompts), "keyframe_mode": req.keyframe_mode,
+        },
+    )
+    with profiler.stage("discover_input_frames"):
+        image_paths = get_image_list(req.working_dir)
     if not image_paths:
         raise HTTPException(400, "No images found")
 
     sem_id_map = req.semantic_id_map or {cls: i + 1 for i, cls in enumerate(req.text_prompts)}
 
     # Only reload when prompt arity changes; otherwise reuse cached model.
-    model = get_model_for_classes(req.model_id, len(req.text_prompts))
-    model.set_classes(req.text_prompts, model.get_text_pe(req.text_prompts))
+    with profiler.stage("load_model_and_encode_text_prompts"):
+        model = get_model_for_classes(req.model_id, len(req.text_prompts))
+        model.set_classes(req.text_prompts, model.get_text_pe(req.text_prompts))
     print(f"[YOLOe text] prompts={req.text_prompts} -> sem_id_map={sem_id_map} "
           f"model.names={model.names if hasattr(model, 'names') else '?'}", flush=True)
 
@@ -219,45 +361,61 @@ def segment_text(req: TextSegRequest):
     detected_classes: Dict[str, List[str]] = {}
     total_detections = 0
 
-    for i, img_path in enumerate(image_paths):
-        pil_img = PILImage.open(img_path).convert("RGB")
-        results = model.predict(source=pil_img, imgsz=req.image_size,
-                                conf=req.conf_threshold, iou=req.iou_threshold, verbose=False)
-        semantic_masks[i] = masks_from_results(results, H, W, sem_id_map)
-        result = results[0]
-        if result.boxes is not None:
-            n_box = len(result.boxes.cls)
-            total_detections += n_box
-            cls_arr = result.boxes.cls.cpu().numpy().astype(int)
-            names = result.names
-            if isinstance(names, list):
-                names = {i: n for i, n in enumerate(names)}
-            print(f"[YOLOe text] frame {i}: result.names={result.names} "
-                  f"raw_cls_ids={cls_arr.tolist()} "
-                  f"mapped={[names.get(int(c), '?') for c in cls_arr]}", flush=True)
-            detected_classes[str(i)] = list({names[int(c)] for c in cls_arr if int(c) in names})
-        else:
-            detected_classes[str(i)] = []
+    with profiler.stage("select_keyframes"):
+        keyframe_idx = select_keyframe_indices(
+            image_paths, req.keyframe_mode, req.keyframe_stride, req.keyframe_sim_thresh)
+    print(f"[YOLOe text] keyframe_mode={req.keyframe_mode}: segmenting "
+          f"{len(keyframe_idx)}/{len(image_paths)} frames", flush=True)
+
+    with profiler.stage("segment_keyframes_and_build_masks", metadata={
+            "keyframes": len(keyframe_idx), "total_frames": len(image_paths)}):
+        for i in keyframe_idx:
+            img_path = image_paths[i]
+            pil_img = PILImage.open(img_path).convert("RGB")
+            results = model.predict(source=pil_img, imgsz=req.image_size,
+                                    conf=req.conf_threshold, iou=req.iou_threshold, verbose=False)
+            semantic_masks[i] = masks_from_results(results, H, W, sem_id_map)
+            result = results[0]
+            if result.boxes is not None:
+                n_box = len(result.boxes.cls)
+                total_detections += n_box
+                cls_arr = result.boxes.cls.cpu().numpy().astype(int)
+                names = result.names
+                if isinstance(names, list):
+                    names = {i: n for i, n in enumerate(names)}
+                print(f"[YOLOe text] frame {i}: result.names={result.names} "
+                      f"raw_cls_ids={cls_arr.tolist()} "
+                      f"mapped={[names.get(int(c), '?') for c in cls_arr]}", flush=True)
+                detected_classes[str(i)] = list(
+                    {names[int(c)] for c in cls_arr if int(c) in names})
+            else:
+                detected_classes[str(i)] = []
 
     print(f"[YOLOe text] {total_detections} detections across {len(image_paths)} frames "
           f"(prompts={req.text_prompts}, conf={req.conf_threshold})", flush=True)
 
-    run_dir = make_run_dir(req.working_dir, "text")
-    preview_paths = make_previews(image_paths, semantic_masks, run_dir)
-    masks_path = save_masks_npz(semantic_masks, run_dir)
-    save_run_meta(run_dir, {
-        "mode": "text",
-        "prompts": req.text_prompts,
-        "model_id": req.model_id,
-        "image_size": req.image_size,
-        "conf_threshold": req.conf_threshold,
-        "iou_threshold": req.iou_threshold,
-        "semantic_id_map": sem_id_map,
-        "total_detections": total_detections,
-        "num_frames": len(image_paths),
-        "timestamp": time.time(),
+    with profiler.stage("write_masks_previews_and_metadata"):
+        run_dir = make_run_dir(req.working_dir, "text")
+        preview_paths = make_previews(image_paths, semantic_masks, run_dir,
+                                      frame_indices=keyframe_idx)
+        masks_path = save_masks_npz(semantic_masks, run_dir)
+        save_run_meta(run_dir, {
+            "mode": "text", "prompts": req.text_prompts, "model_id": req.model_id,
+            "image_size": req.image_size, "conf_threshold": req.conf_threshold,
+            "iou_threshold": req.iou_threshold, "semantic_id_map": sem_id_map,
+            "total_detections": total_detections, "num_frames": len(image_paths),
+            "keyframe_mode": req.keyframe_mode, "num_keyframes": len(keyframe_idx),
+            "keyframe_indices": keyframe_idx, "timestamp": time.time(),
+            "resource_profile_path": str(profiler.path),
+        })
+
+    profile_path = profiler.finish(metadata={
+        "frames": len(image_paths), "keyframes": len(keyframe_idx),
+        "detections": total_detections,
     })
 
+    print(f"[timing] segment (text): {len(keyframe_idx)}/{len(image_paths)} "
+          f"frames in {time.perf_counter() - t0:.2f}s", flush=True)
     return {
         "status": "ok",
         "run_dir": run_dir,
@@ -266,67 +424,89 @@ def segment_text(req: TextSegRequest):
         "detected_classes": detected_classes,
         "semantic_id_map": sem_id_map,
         "num_frames": len(image_paths),
+        "num_keyframes": len(keyframe_idx),
         "total_detections": total_detections,
+        "resource_profile_path": profile_path,
     }
 
 
 @app.post("/segment_visual")
 @smart_inference_mode()
 def segment_visual(req: VisualSegRequest):
-    image_paths = get_image_list(req.working_dir)
+    t0 = time.perf_counter()
+    profiler = ResourceProfiler(
+        "yoloe_segment_visual", req.working_dir, torch_module=torch,
+        metadata={
+            "model_id": req.model_id, "image_size": req.image_size,
+            "bbox_count": len(req.bboxes), "keyframe_mode": req.keyframe_mode,
+        },
+    )
+    with profiler.stage("discover_input_frames"):
+        image_paths = get_image_list(req.working_dir)
     if not image_paths:
         raise HTTPException(400, "No images found")
     if not os.path.exists(req.reference_image_path):
         raise HTTPException(400, f"Reference image not found: {req.reference_image_path}")
 
-    ref_img = PILImage.open(req.reference_image_path).convert("RGB")
-    # Visual mode ends up calling set_classes(["object"], ...) — arity 1.
-    # get_model_for_classes will reload only if arity actually changed.
-    model = get_model_for_classes(req.model_id, 1)
-
-    bboxes = np.array(req.bboxes)
-    prompts = {"bboxes": bboxes, "cls": np.zeros(len(bboxes), dtype=int)}
-
-    # Extract visual prompt embedding
-    model.predict(source=ref_img, imgsz=req.image_size, conf=req.conf_threshold,
-                  iou=req.iou_threshold, return_vpe=True,
-                  prompts=prompts, predictor=YOLOEVPSegPredictor, verbose=False)
-    model.set_classes(["object"], model.predictor.vpe)
-    model.predictor = None
+    with profiler.stage("load_model_and_encode_visual_prompt"):
+        ref_img = PILImage.open(req.reference_image_path).convert("RGB")
+        model = get_model_for_classes(req.model_id, 1)
+        bboxes = np.array(req.bboxes)
+        prompts = {"bboxes": bboxes, "cls": np.zeros(len(bboxes), dtype=int)}
+        model.predict(source=ref_img, imgsz=req.image_size, conf=req.conf_threshold,
+                      iou=req.iou_threshold, return_vpe=True,
+                      prompts=prompts, predictor=YOLOEVPSegPredictor, verbose=False)
+        model.set_classes(["object"], model.predictor.vpe)
+        model.predictor = None
 
     first = cv2.imread(image_paths[0])
     H, W = first.shape[:2]
     semantic_masks = np.zeros((len(image_paths), H, W), dtype=np.uint8)
     total_detections = 0
 
-    for i, img_path in enumerate(image_paths):
-        pil_img = PILImage.open(img_path).convert("RGB")
-        results = model.predict(source=pil_img, imgsz=req.image_size,
-                                conf=req.conf_threshold, iou=req.iou_threshold, verbose=False)
-        semantic_masks[i] = masks_from_results(results, H, W, {"object": 1})
-        if results[0].boxes is not None:
-            total_detections += len(results[0].boxes.cls)
+    with profiler.stage("select_keyframes"):
+        keyframe_idx = select_keyframe_indices(
+            image_paths, req.keyframe_mode, req.keyframe_stride, req.keyframe_sim_thresh)
+    print(f"[YOLOe visual] keyframe_mode={req.keyframe_mode}: segmenting "
+          f"{len(keyframe_idx)}/{len(image_paths)} frames", flush=True)
+
+    with profiler.stage("segment_keyframes_and_build_masks", metadata={
+            "keyframes": len(keyframe_idx), "total_frames": len(image_paths)}):
+        for i in keyframe_idx:
+            img_path = image_paths[i]
+            pil_img = PILImage.open(img_path).convert("RGB")
+            results = model.predict(source=pil_img, imgsz=req.image_size,
+                                    conf=req.conf_threshold, iou=req.iou_threshold, verbose=False)
+            semantic_masks[i] = masks_from_results(results, H, W, {"object": 1})
+            if results[0].boxes is not None:
+                total_detections += len(results[0].boxes.cls)
 
     print(f"[YOLOe visual] {total_detections} detections across {len(image_paths)} frames "
           f"(conf={req.conf_threshold})", flush=True)
 
-    run_dir = make_run_dir(req.working_dir, "visual")
-    preview_paths = make_previews(image_paths, semantic_masks, run_dir)
-    masks_path = save_masks_npz(semantic_masks, run_dir)
-    save_run_meta(run_dir, {
-        "mode": "visual",
-        "reference_image_path": req.reference_image_path,
-        "bboxes": req.bboxes,
-        "model_id": req.model_id,
-        "image_size": req.image_size,
-        "conf_threshold": req.conf_threshold,
-        "iou_threshold": req.iou_threshold,
-        "semantic_id_map": {"object": 1},
-        "total_detections": total_detections,
-        "num_frames": len(image_paths),
-        "timestamp": time.time(),
+    with profiler.stage("write_masks_previews_and_metadata"):
+        run_dir = make_run_dir(req.working_dir, "visual")
+        preview_paths = make_previews(image_paths, semantic_masks, run_dir,
+                                      frame_indices=keyframe_idx)
+        masks_path = save_masks_npz(semantic_masks, run_dir)
+        save_run_meta(run_dir, {
+            "mode": "visual", "reference_image_path": req.reference_image_path,
+            "bboxes": req.bboxes, "model_id": req.model_id,
+            "image_size": req.image_size, "conf_threshold": req.conf_threshold,
+            "iou_threshold": req.iou_threshold, "semantic_id_map": {"object": 1},
+            "total_detections": total_detections, "num_frames": len(image_paths),
+            "keyframe_mode": req.keyframe_mode, "num_keyframes": len(keyframe_idx),
+            "keyframe_indices": keyframe_idx, "timestamp": time.time(),
+            "resource_profile_path": str(profiler.path),
+        })
+
+    profile_path = profiler.finish(metadata={
+        "frames": len(image_paths), "keyframes": len(keyframe_idx),
+        "detections": total_detections,
     })
 
+    print(f"[timing] segment (visual): {len(keyframe_idx)}/{len(image_paths)} "
+          f"frames in {time.perf_counter() - t0:.2f}s", flush=True)
     return {
         "status": "ok",
         "run_dir": run_dir,
@@ -335,46 +515,63 @@ def segment_visual(req: VisualSegRequest):
         "detected_classes": {},
         "semantic_id_map": {"object": 1},
         "num_frames": len(image_paths),
+        "num_keyframes": len(keyframe_idx),
         "total_detections": total_detections,
+        "resource_profile_path": profile_path,
     }
 
 
 @app.post("/segment_promptfree")
 @smart_inference_mode()
 def segment_promptfree(req: PromptFreeRequest):
-    image_paths = get_image_list(req.working_dir)
+    t0 = time.perf_counter()
+    profiler = ResourceProfiler(
+        "yoloe_segment_promptfree", req.working_dir, torch_module=torch,
+        metadata={
+            "model_id": req.model_id, "image_size": req.image_size,
+            "max_classes": req.max_classes, "keyframe_mode": req.keyframe_mode,
+        },
+    )
+    with profiler.stage("discover_input_frames"):
+        image_paths = get_image_list(req.working_dir)
     if not image_paths:
         raise HTTPException(400, "No images found")
 
-    ram_tag_path = "/home/maomaoyu/WS/yoloe/tools/ram_tag_list.txt"
-    with open(ram_tag_path) as f:
-        texts = [x.strip() for x in f.readlines()]
-
-    # Prompt-free uses a fixed vocabulary (RAM tag list); class count never
-    # changes between calls, so a plain cached load is safe.
-    model = get_model(req.model_id)
-    vocab = model.get_vocab(texts)
-    pf_model = get_model(req.model_id, is_pf=True)
-    pf_model.set_vocab(vocab, names=texts)
-    pf_model.model.model[-1].is_fused = True
-    pf_model.model.model[-1].conf = 0.001
-    pf_model.model.model[-1].max_det = 1000
+    with profiler.stage("load_models_and_build_promptfree_vocabulary"):
+        ram_tag_path = "/home/maomaoyu/WS/yoloe/tools/ram_tag_list.txt"
+        with open(ram_tag_path) as f:
+            texts = [x.strip() for x in f.readlines()]
+        model = get_model(req.model_id)
+        vocab = model.get_vocab(texts)
+        pf_model = get_model(req.model_id, is_pf=True)
+        pf_model.set_vocab(vocab, names=texts)
+        pf_model.model.model[-1].is_fused = True
+        pf_model.model.model[-1].conf = 0.001
+        pf_model.model.model[-1].max_det = 1000
 
     first = cv2.imread(image_paths[0])
     H, W = first.shape[:2]
 
+    with profiler.stage("select_keyframes"):
+        keyframe_idx = select_keyframe_indices(
+            image_paths, req.keyframe_mode, req.keyframe_stride, req.keyframe_sim_thresh)
+    print(f"[YOLOe prompt-free] keyframe_mode={req.keyframe_mode}: segmenting "
+          f"{len(keyframe_idx)}/{len(image_paths)} frames", flush=True)
+
     # Two-pass: collect classes first, then build ID map
-    all_results = []
+    results_by_idx: Dict[int, object] = {}
     class_freq: Dict[str, int] = {}
-    for img_path in image_paths:
-        pil_img = PILImage.open(img_path).convert("RGB")
-        res = pf_model.predict(source=pil_img, imgsz=req.image_size,
-                               conf=req.conf_threshold, iou=req.iou_threshold, verbose=False)
-        all_results.append(res[0])
-        if res[0].boxes is not None:
-            for cls_id in res[0].boxes.cls.cpu().numpy().astype(int):
-                name = res[0].names[cls_id]
-                class_freq[name] = class_freq.get(name, 0) + 1
+    with profiler.stage("promptfree_keyframe_inference", metadata={
+            "keyframes": len(keyframe_idx), "total_frames": len(image_paths)}):
+        for i in keyframe_idx:
+            pil_img = PILImage.open(image_paths[i]).convert("RGB")
+            res = pf_model.predict(source=pil_img, imgsz=req.image_size,
+                                   conf=req.conf_threshold, iou=req.iou_threshold, verbose=False)
+            results_by_idx[i] = res[0]
+            if res[0].boxes is not None:
+                for cls_id in res[0].boxes.cls.cpu().numpy().astype(int):
+                    name = res[0].names[cls_id]
+                    class_freq[name] = class_freq.get(name, 0) + 1
 
     top_classes = sorted(class_freq, key=lambda x: -class_freq[x])[:req.max_classes]
     sem_id_map = {cls: i + 1 for i, cls in enumerate(top_classes)}
@@ -382,52 +579,59 @@ def segment_promptfree(req: PromptFreeRequest):
     semantic_masks = np.zeros((len(image_paths), H, W), dtype=np.uint8)
     detected_classes: Dict[str, List[str]] = {}
 
-    for i, result in enumerate(all_results):
-        if result.masks is None or len(result.masks) == 0:
-            detected_classes[str(i)] = []
-            continue
-        masks_data = result.masks.data.cpu().numpy()
-        classes = result.boxes.cls.cpu().numpy().astype(int)
-        orig_h, orig_w = result.orig_shape
-        mH, mW = masks_data.shape[1], masks_data.shape[2]
-        scale = min(mH / orig_h, mW / orig_w)
-        pad_h = (mH - orig_h * scale) / 2
-        pad_w = (mW - orig_w * scale) / 2
-        ry1, ry2 = int(round(pad_h)), int(round(pad_h + orig_h * scale))
-        rx1, rx2 = int(round(pad_w)), int(round(pad_w + orig_w * scale))
-        frame_cls = []
-        for mask_data, cls_id in zip(masks_data, classes):
-            name = result.names[cls_id]
-            sem_id = sem_id_map.get(name, 0)
-            if sem_id == 0:
+    with profiler.stage("build_promptfree_semantic_masks"):
+        for i, result in results_by_idx.items():
+            if result.masks is None or len(result.masks) == 0:
+                detected_classes[str(i)] = []
                 continue
-            cropped = mask_data[ry1:ry2, rx1:rx2]
-            m = cv2.resize(cropped.astype(np.uint8), (W, H), interpolation=cv2.INTER_LINEAR)
-            semantic_masks[i][m > 0] = sem_id
-            frame_cls.append(name)
-        detected_classes[str(i)] = list(set(frame_cls))
-
-    run_dir = make_run_dir(req.working_dir, "promptfree")
-    preview_paths = make_previews(image_paths, semantic_masks, run_dir)
-    masks_path = save_masks_npz(semantic_masks, run_dir)
+            masks_data = result.masks.data.cpu().numpy()
+            classes = result.boxes.cls.cpu().numpy().astype(int)
+            orig_h, orig_w = result.orig_shape
+            mH, mW = masks_data.shape[1], masks_data.shape[2]
+            scale = min(mH / orig_h, mW / orig_w)
+            pad_h = (mH - orig_h * scale) / 2
+            pad_w = (mW - orig_w * scale) / 2
+            ry1, ry2 = int(round(pad_h)), int(round(pad_h + orig_h * scale))
+            rx1, rx2 = int(round(pad_w)), int(round(pad_w + orig_w * scale))
+            frame_cls = []
+            for mask_data, cls_id in zip(masks_data, classes):
+                name = result.names[cls_id]
+                sem_id = sem_id_map.get(name, 0)
+                if sem_id == 0:
+                    continue
+                cropped = mask_data[ry1:ry2, rx1:rx2]
+                m = cv2.resize(
+                    cropped.astype(np.uint8), (W, H), interpolation=cv2.INTER_LINEAR)
+                semantic_masks[i][m > 0] = sem_id
+                frame_cls.append(name)
+            detected_classes[str(i)] = list(set(frame_cls))
 
     total_detections = sum(class_freq.values())
     print(f"[YOLOe prompt-free] {total_detections} detections across {len(image_paths)} frames "
           f"(top classes: {list(sem_id_map.keys())}, conf={req.conf_threshold})", flush=True)
 
-    save_run_meta(run_dir, {
-        "mode": "promptfree",
-        "model_id": req.model_id,
-        "image_size": req.image_size,
-        "conf_threshold": req.conf_threshold,
-        "iou_threshold": req.iou_threshold,
-        "max_classes": req.max_classes,
-        "semantic_id_map": sem_id_map,
-        "total_detections": total_detections,
-        "num_frames": len(image_paths),
-        "timestamp": time.time(),
+    with profiler.stage("write_masks_previews_and_metadata"):
+        run_dir = make_run_dir(req.working_dir, "promptfree")
+        preview_paths = make_previews(image_paths, semantic_masks, run_dir,
+                                      frame_indices=keyframe_idx)
+        masks_path = save_masks_npz(semantic_masks, run_dir)
+        save_run_meta(run_dir, {
+            "mode": "promptfree", "model_id": req.model_id,
+            "image_size": req.image_size, "conf_threshold": req.conf_threshold,
+            "iou_threshold": req.iou_threshold, "max_classes": req.max_classes,
+            "semantic_id_map": sem_id_map, "total_detections": total_detections,
+            "num_frames": len(image_paths), "keyframe_mode": req.keyframe_mode,
+            "num_keyframes": len(keyframe_idx), "keyframe_indices": keyframe_idx,
+            "timestamp": time.time(), "resource_profile_path": str(profiler.path),
+        })
+
+    profile_path = profiler.finish(metadata={
+        "frames": len(image_paths), "keyframes": len(keyframe_idx),
+        "detections": total_detections,
     })
 
+    print(f"[timing] segment (prompt-free): {len(keyframe_idx)}/{len(image_paths)} "
+          f"frames in {time.perf_counter() - t0:.2f}s", flush=True)
     return {
         "status": "ok",
         "run_dir": run_dir,
@@ -437,6 +641,7 @@ def segment_promptfree(req: PromptFreeRequest):
         "semantic_id_map": sem_id_map,
         "num_frames": len(image_paths),
         "total_detections": total_detections,
+        "resource_profile_path": profile_path,
     }
 
 

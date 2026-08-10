@@ -24,6 +24,9 @@ import numpy as np
 import requests
 import gradio as gr
 from PIL import Image, ImageDraw
+from streaming import gradio_controls as live_controls
+from streaming import session_gradio_controls as session_controls
+from resource_profiler import ResourceProfiler
 
 # ── CLI args (parsed before Gradio builds the UI) ────────────────────────────
 _parser = argparse.ArgumentParser(add_help=False)
@@ -73,43 +76,73 @@ def check_services() -> str:
 
 # ── Upload / frame extraction ─────────────────────────────────────────────────
 
+
+def _uploaded_path(value, preferred_key=None):
+    """Normalize Gradio 4/5 upload values, FileData objects, and legacy paths."""
+    if value is None or value == "":
+        return None
+    if isinstance(value, (str, os.PathLike)):
+        return os.fspath(value)
+    if isinstance(value, dict):
+        keys = ([preferred_key] if preferred_key else []) + ["path", "name", "video"]
+        for key in keys:
+            if key and value.get(key):
+                return _uploaded_path(value[key])
+    for attr in ("path", "name"):
+        candidate = getattr(value, attr, None)
+        if candidate:
+            return _uploaded_path(candidate)
+    raise ValueError(f"Unsupported Gradio upload value: {type(value).__name__}")
+
 def handle_uploads(input_video, input_images, frame_interval_sec=1.0, max_frames=0):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     target_dir = os.path.join(WORKSPACE_ROOT, f"session_{timestamp}")
     target_dir_images = os.path.join(target_dir, "images")
     os.makedirs(target_dir_images)
+    profiler = ResourceProfiler(
+        "offline_input_preparation", target_dir,
+        metadata={
+            "frame_interval_s": float(frame_interval_sec),
+            "max_frames": int(max_frames),
+            "has_video": bool(input_video),
+            "uploaded_image_count": len(input_images or []),
+        },
+    )
 
     image_paths = []
 
-    if input_images:
-        for file_data in input_images:
-            fp = file_data["name"] if isinstance(file_data, dict) else file_data
-            dst = os.path.join(target_dir_images, os.path.basename(fp))
-            shutil.copy(fp, dst)
-            image_paths.append(dst)
+    with profiler.stage("copy_uploaded_images"):
+        if input_images:
+            for file_data in input_images:
+                fp = _uploaded_path(file_data)
+                dst = os.path.join(target_dir_images, os.path.basename(fp))
+                shutil.copy(fp, dst)
+                image_paths.append(dst)
 
-    if input_video:
-        vp = input_video["name"] if isinstance(input_video, dict) else input_video
-        vs = cv2.VideoCapture(vp)
-        fps = vs.get(cv2.CAP_PROP_FPS) or 25.0
-        interval = max(1, int(fps * frame_interval_sec))
-        max_f = int(max_frames)
-        count = vf = 0
-        while True:
-            ok, frame = vs.read()
-            if not ok:
-                break
-            count += 1
-            if count % interval == 0:
-                p = os.path.join(target_dir_images, f"{vf:06d}.png")
-                cv2.imwrite(p, frame)
-                image_paths.append(p)
-                vf += 1
-                if max_f > 0 and vf >= max_f:
+    with profiler.stage("decode_video_and_write_frames"):
+        if input_video:
+            vp = _uploaded_path(input_video, preferred_key="video")
+            vs = cv2.VideoCapture(vp)
+            fps = vs.get(cv2.CAP_PROP_FPS) or 25.0
+            interval = max(1, int(fps * frame_interval_sec))
+            max_f = int(max_frames)
+            count = vf = 0
+            while True:
+                ok, frame = vs.read()
+                if not ok:
                     break
-        vs.release()
+                count += 1
+                if count % interval == 0:
+                    p = os.path.join(target_dir_images, f"{vf:06d}.png")
+                    cv2.imwrite(p, frame)
+                    image_paths.append(p)
+                    vf += 1
+                    if max_f > 0 and vf >= max_f:
+                        break
+            vs.release()
 
     image_paths = sorted(image_paths)
+    profiler.finish(metadata={"output_frames": len(image_paths)})
     return target_dir, image_paths
 
 
@@ -285,7 +318,8 @@ def clear_all_annotations():
 # ── YOLOe segmentation calls ──────────────────────────────────────────────────
 
 def run_yoloe_text(target_dir, text_prompts_str, model_id, image_size,
-                   conf_threshold, iou_threshold):
+                   conf_threshold, iou_threshold,
+                   keyframe_mode="all", keyframe_stride=3, keyframe_sim_thresh=0.45):
     """Call YOLOe service with text prompts; return (masks_path, preview_paths, sem_id_map, status)."""
     if not target_dir or not os.path.isdir(target_dir):
         return None, [], {}, "**Status:** No images loaded"
@@ -300,6 +334,9 @@ def run_yoloe_text(target_dir, text_prompts_str, model_id, image_size,
             "image_size": int(image_size),
             "conf_threshold": float(conf_threshold),
             "iou_threshold": float(iou_threshold),
+            "keyframe_mode": keyframe_mode,
+            "keyframe_stride": int(keyframe_stride),
+            "keyframe_sim_thresh": float(keyframe_sim_thresh),
         })
         sem_map = result.get("semantic_id_map", {})
         n_det = result.get("total_detections", 0)
@@ -318,7 +355,8 @@ def run_yoloe_text(target_dir, text_prompts_str, model_id, image_size,
 
 
 def run_yoloe_visual(target_dir, reference_image_path, bboxes_json,
-                     model_id, image_size, conf_threshold, iou_threshold):
+                     model_id, image_size, conf_threshold, iou_threshold,
+                     keyframe_mode="all", keyframe_stride=3, keyframe_sim_thresh=0.45):
     if not target_dir or not os.path.isdir(target_dir):
         return None, [], {}, "**Status:** No images loaded"
     if not reference_image_path or not os.path.exists(reference_image_path):
@@ -338,6 +376,9 @@ def run_yoloe_visual(target_dir, reference_image_path, bboxes_json,
             "image_size": int(image_size),
             "conf_threshold": float(conf_threshold),
             "iou_threshold": float(iou_threshold),
+            "keyframe_mode": keyframe_mode,
+            "keyframe_stride": int(keyframe_stride),
+            "keyframe_sim_thresh": float(keyframe_sim_thresh),
         })
         n_det = result.get("total_detections", 0)
         run_dir = result.get("run_dir", "")
@@ -352,7 +393,8 @@ def run_yoloe_visual(target_dir, reference_image_path, bboxes_json,
         return None, [], {}, f"**Status:** YOLOe error — {e}"
 
 
-def run_yoloe_promptfree(target_dir, model_id, image_size, conf_threshold, iou_threshold, max_classes):
+def run_yoloe_promptfree(target_dir, model_id, image_size, conf_threshold, iou_threshold, max_classes,
+                         keyframe_mode="all", keyframe_stride=3, keyframe_sim_thresh=0.45):
     if not target_dir or not os.path.isdir(target_dir):
         return None, [], {}, "**Status:** No images loaded"
     try:
@@ -363,6 +405,9 @@ def run_yoloe_promptfree(target_dir, model_id, image_size, conf_threshold, iou_t
             "conf_threshold": float(conf_threshold),
             "iou_threshold": float(iou_threshold),
             "max_classes": int(max_classes),
+            "keyframe_mode": keyframe_mode,
+            "keyframe_stride": int(keyframe_stride),
+            "keyframe_sim_thresh": float(keyframe_sim_thresh),
         })
         sem_map = result.get("semantic_id_map", {})
         n_det = result.get("total_detections", 0)
@@ -382,7 +427,9 @@ def run_yoloe_promptfree(target_dir, model_id, image_size, conf_threshold, iou_t
 
 def gradio_reconstruct(target_dir, conf_thres, frame_filter, mask_black_bg,
                         mask_white_bg, show_cam, mask_sky, prediction_mode,
-                        semantic_masks_path, enable_semantic):
+                        semantic_masks_path, enable_semantic,
+                        fuse_3d=False, fuse_eps=0.05, fuse_dilate_radius=0.0,
+                        fuse_min_cluster=30):
     if not target_dir or not os.path.isdir(target_dir):
         return None, "No valid target directory. Please upload first.", None, [], [], [], [], []
     try:
@@ -397,15 +444,23 @@ def gradio_reconstruct(target_dir, conf_thres, frame_filter, mask_black_bg,
             "mask_sky": bool(mask_sky),
             "prediction_mode": prediction_mode,
             "enable_semantic": bool(enable_semantic),
+            "fuse_3d": bool(fuse_3d),
+            "fuse_eps": float(fuse_eps),
+            "fuse_dilate_radius": float(fuse_dilate_radius),
+            "fuse_min_cluster": int(fuse_min_cluster),
         }, timeout=600)
     except Exception as e:
         return None, f"VGGT error: {e}", None, [], [], [], [], []
 
     choices = result.get("frame_filter_choices", ["All"])
     dd = gr.Dropdown(choices=choices, value=frame_filter or "All", interactive=True)
+    profile_note = result.get("resource_profile_path", "")
+    reconstruction_log = result["log"]
+    if profile_note:
+        reconstruction_log += f" | resource profile: {profile_note}"
     return (
         result["glb_path"],
-        result["log"],
+        reconstruction_log,
         dd,
         result["depth_paths"],
         result["pointmap_paths"],
@@ -486,31 +541,6 @@ def run_edit_pointcloud(target_dir, semantic_masks_path, selected_classes, opera
         return None, f"**Status:** Edit error — {e}", None
 
 
-def run_fit_elevation(target_dir, source_glb_path, grid_resolution,
-                      colormap, ground_percentile, use_ground_filter, use_ransac,
-                      conf_thres, prediction_mode):
-    if not target_dir or not os.path.isdir(target_dir):
-        return None, None, "**Status:** No reconstruction available. Upload and Reconstruct first."
-    predictions_path = os.path.join(target_dir, "predictions.npz")
-    if not os.path.exists(predictions_path):
-        return None, None, "**Status:** No saved predictions. Run Reconstruct first."
-    try:
-        result = _post(f"{VGGT_URL}/fit_elevation", {
-            "working_dir": target_dir,
-            "source_glb_path": source_glb_path or "",
-            "grid_resolution": int(grid_resolution),
-            "colormap": colormap,
-            "ground_percentile": float(ground_percentile),
-            "use_ground_filter": bool(use_ground_filter),
-            "use_ransac": bool(use_ransac),
-            "conf_thres": float(conf_thres),
-            "prediction_mode": prediction_mode,
-        }, timeout=120)
-        return result["elev_only_path"], result["merged_path"], f"**Status:** {result['log']}"
-    except Exception as e:
-        return None, None, f"**Status:** Elevation fitting error — {e}"
-
-
 # ── Example pipeline ──────────────────────────────────────────────────────────
 
 def example_pipeline(input_video, num_images_str, input_images, conf_thres,
@@ -570,7 +600,236 @@ with gr.Blocks(theme=theme, css=CSS) as demo:
 
     service_status = gr.Markdown(check_services())
     refresh_status_btn = gr.Button("🔄 Refresh Service Status", size="sm")
-    refresh_status_btn.click(fn=check_services, outputs=[service_status])
+    refresh_status_btn.click(fn=check_services, outputs=[service_status], queue=False)
+
+    # ── Live camera monitor (isolated from the existing offline workflow) ─────
+    with gr.Accordion("📷 实时相机与在线建图", open=False):
+        gr.Markdown(
+            "默认使用下方上传的文件做静态重建。只有显式勾选后才会开放实时取流按钮；"
+            "进入实时模式后，仍需先做 **仅取流预览**，再手动启动 VGGT 滑窗重建。"
+        )
+        enable_live_mode = gr.Checkbox(
+            label="我要接入实时视频流",
+            value=False,
+            info="默认关闭。取流必须经过此开关和下方的‘连接并预览’两步。",
+        )
+        with gr.Row():
+            live_source_type = gr.Dropdown(
+                choices=["usb", "http", "rtsp", "video"], value="usb", label="输入类型"
+            )
+            live_source_uri = gr.Textbox(
+                value="0", label="设备编号 / HTTP根地址或MJPEG URL / RTSP URL / 视频路径",
+                info=("USB 可填 0 或 /dev/video0；IP Webcam 根地址示例："
+                      "http://192.168.1.20:8080/；URL 凭据不会显示在状态信息中"),
+            )
+            live_backend = gr.Dropdown(
+                choices=["auto", "v4l2", "ffmpeg", "gstreamer"],
+                value="auto", label="OpenCV 后端",
+            )
+            live_target_fps = gr.Slider(0.5, 10.0, value=3.0, step=0.5, label="ORB 模式候选帧 FPS")
+        with gr.Row():
+            live_use_orb = gr.Checkbox(
+                value=True, label="启用 ORB 视角关键帧筛选",
+                info="关闭后完全跳过 ORB，按右侧时间间隔采样帧送入 VGGT。",
+            )
+            live_frame_sample_interval = gr.Slider(
+                0.1, 10.0, value=1.0, step=0.1, label="关闭 ORB 时的采样间隔（秒）",
+                interactive=False,
+            )
+        with gr.Row():
+            live_interval = gr.Slider(3.0, 20.0, value=6.0, step=1.0, label="重建间隔（秒）")
+            live_min_frames = gr.Slider(2, 12, value=4, step=1, label="最少关键帧")
+            live_capacity = gr.Slider(4, 24, value=12, step=1, label="滑窗容量")
+            live_file_out = gr.Textbox(
+                value="/mnt/d/tuanjie/exea1/excavator-app-unity-main/live_elevation",
+                label="DEM 输出目录（Unity 正在轮询；留空则自动创建 workspace）",
+            )
+            live_save_glb = gr.Checkbox(
+                value=False, label="保存 VGGT 重建点云 GLB（存至 pointclouds/，便于监督过程）"
+            )
+            live_fusion = gr.Checkbox(
+                value=True, label="启用跨轮 DEM 融合",
+                info="开启：右侧 Global DEM 持久融合并供 Unity 发布；关闭：每轮 DEM 覆盖旧结果。",
+            )
+            live_scale_factor = gr.Number(
+                value=28.0, label="物理尺度（1 unit = ? m）", precision=2,
+                info="与原版 Elevation Viewer 默认值一致；Unity 50m tile 下决定有效栅格覆盖率。",
+            )
+        with gr.Row():
+            live_connect_btn = gr.Button(
+                "① 连接并预览（不运行 VGGT）", variant="secondary", interactive=False
+            )
+            live_reconstruct_btn = gr.Button(
+                "② 启动相机 → VGGT 滑窗重建", variant="primary", interactive=False
+            )
+            live_stop_btn = gr.Button("停止实时任务", variant="stop", interactive=False)
+            live_refresh_btn = gr.Button("刷新预览/状态", interactive=False)
+        live_action_status = gr.Markdown("**状态：** 未连接")
+        live_monitor_status = gr.Markdown("**监控：** 未运行")
+        live_preview = gr.Image(label="后端最新帧", type="pil", interactive=False, height=420)
+        gr.HTML(f"""
+        <div style="margin:12px 0 8px;display:flex;justify-content:space-between;align-items:center">
+          <strong>实时高程双视图（本轮 DEM + 融合 Global DEM）</strong>
+          <a href="{VGGT_URL}/stream/viewer?v=dem_fusion_v3" target="_blank">在新窗口打开双视图</a>
+        </div>
+        <iframe src="{VGGT_URL}/stream/viewer?v=dem_fusion_v3" title="实时高程查看器"
+          style="width:100%;height:1180px;border:1px solid #334155;border-radius:10px;background:#071018"></iframe>
+        """)
+        with gr.Accordion("🗺️ 正式两阶段 MapSession", open=False):
+            gr.Markdown(
+                "初始化会在采满关键帧后停止并等待审核；只有 READY 会话才能开始可信增量更新。"
+            )
+            with gr.Row():
+                live_session_dir = gr.Textbox(value="", label="MapSession 目录（留空自动创建）")
+                live_init_frames = gr.Slider(6, 48, value=12, step=1, label="初始化关键帧数")
+            with gr.Row():
+                live_init_btn = gr.Button("③ 初始化基准地图", variant="primary", interactive=False)
+                live_approve_btn = gr.Button("④ 审核通过 → READY", interactive=False)
+                live_reject_btn = gr.Button(
+                    "审核拒绝 → 重新初始化", variant="stop", interactive=False)
+                live_update_btn = gr.Button(
+                    "⑤ 启动可信增量更新", variant="primary", interactive=False)
+
+        # Idle by default: only poll the backend once a stream has been started, so an
+        # untouched page never hammers VGGT (and never blocks on /stream/status).
+        live_timer = gr.Timer(value=2.0, active=False)
+
+        def _connect(enabled, st, uri, backend, fps, use_orb, sample_interval):
+            if not enabled:
+                return "**状态：** ❌ 请先勾选‘我要接入实时视频流’。", gr.Timer(active=False)
+            msg = live_controls.connect_camera(
+                VGGT_URL, st, uri, backend, fps, use_orb, sample_interval
+            )
+            return msg, gr.Timer(active="❌" not in msg)
+
+        def _start_recon(enabled, st, uri, backend, fps, use_orb, sample_interval,
+                         interval, min_frames, capacity, out_dir, save_glb, fusion, scale_factor):
+            if not enabled:
+                return ("**状态：** ❌ 请先勾选‘我要接入实时视频流’。",
+                        str(out_dir or ""), gr.Timer(active=False))
+            msg, out = live_controls.start_live_reconstruction(
+                VGGT_URL, WORKSPACE_ROOT, st, uri, backend, fps,
+                interval, min_frames, capacity, out_dir, save_glb,
+                use_orb, sample_interval, fusion, scale_factor,
+            )
+            return msg, out, gr.Timer(active="❌" not in msg)
+
+        def _init_session(enabled, st, uri, backend, fps, use_orb, sample_interval,
+                          interval, capacity, path, init_frames):
+            if not enabled:
+                return ("**状态：** ❌ 请先勾选‘我要接入实时视频流’。",
+                        str(path or ""), gr.Timer(active=False))
+            msg, path = session_controls.initialize_session(
+                VGGT_URL, WORKSPACE_ROOT, st, uri, backend, fps,
+                use_orb, sample_interval, interval, capacity, path, init_frames,
+            )
+            return msg, path, gr.Timer(active="❌" not in msg)
+
+        def _review_session(enabled, path, approved):
+            if not enabled:
+                return "**状态：** ❌ 请先勾选‘我要接入实时视频流’。"
+            return session_controls.finalize_session(VGGT_URL, path, approved)
+
+        def _start_session_update(enabled, st, uri, backend, fps, use_orb,
+                                  sample_interval, interval, min_frames, capacity,
+                                  path, out_dir):
+            if not enabled:
+                return ("**状态：** ❌ 请先勾选‘我要接入实时视频流’。",
+                        str(out_dir or ""), gr.Timer(active=False))
+            msg, out = session_controls.start_session_update(
+                VGGT_URL, st, uri, backend, fps, use_orb, sample_interval,
+                interval, min_frames, capacity, path, out_dir,
+            )
+            return msg, out, gr.Timer(active="❌" not in msg)
+
+
+        def _toggle_live_mode(enabled):
+            button_update = gr.update(interactive=bool(enabled))
+            if enabled:
+                return (button_update, button_update, button_update, button_update,
+                        button_update, button_update, button_update, button_update,
+                        "**状态：** 实时模式已开放，请先连接并预览。",
+                        None, "**监控：** 未运行", gr.Timer(active=False))
+            live_controls.stop_camera(VGGT_URL)
+            return (button_update, button_update, button_update, button_update,
+                    button_update, button_update, button_update, button_update,
+                    "**状态：** 已返回静态重建模式。",
+                    None, "**监控：** 未运行", gr.Timer(active=False))
+
+        enable_live_mode.change(
+            fn=_toggle_live_mode,
+            inputs=[enable_live_mode],
+            outputs=[live_connect_btn, live_reconstruct_btn, live_stop_btn, live_refresh_btn,
+                     live_init_btn, live_approve_btn, live_reject_btn, live_update_btn,
+                     live_action_status, live_preview, live_monitor_status, live_timer],
+            queue=False,
+        )
+
+        live_use_orb.change(
+            fn=lambda enabled: gr.update(interactive=not bool(enabled)),
+            inputs=[live_use_orb], outputs=[live_frame_sample_interval], queue=False,
+        )
+
+        live_connect_btn.click(
+            fn=_connect,
+            inputs=[enable_live_mode, live_source_type, live_source_uri, live_backend, live_target_fps,
+                    live_use_orb, live_frame_sample_interval],
+            outputs=[live_action_status, live_timer],
+            queue=False,
+        )
+        live_reconstruct_btn.click(
+            fn=_start_recon,
+            inputs=[enable_live_mode, live_source_type, live_source_uri, live_backend, live_target_fps,
+                    live_use_orb, live_frame_sample_interval, live_interval, live_min_frames,
+                    live_capacity, live_file_out, live_save_glb, live_fusion, live_scale_factor],
+            outputs=[live_action_status, live_file_out, live_timer],
+            queue=False,
+        )
+        live_init_btn.click(
+            fn=_init_session,
+            inputs=[enable_live_mode, live_source_type, live_source_uri, live_backend, live_target_fps,
+                    live_use_orb, live_frame_sample_interval, live_interval, live_capacity,
+                    live_session_dir, live_init_frames],
+            outputs=[live_action_status, live_session_dir, live_timer],
+            queue=False,
+        )
+        live_approve_btn.click(
+            fn=lambda enabled, path: _review_session(enabled, path, True),
+            inputs=[enable_live_mode, live_session_dir],
+            outputs=[live_action_status],
+            queue=False,
+        )
+        live_reject_btn.click(
+            fn=lambda enabled, path: _review_session(enabled, path, False),
+            inputs=[enable_live_mode, live_session_dir],
+            outputs=[live_action_status],
+            queue=False,
+        )
+        live_update_btn.click(
+            fn=_start_session_update,
+            inputs=[enable_live_mode, live_source_type, live_source_uri, live_backend, live_target_fps,
+                    live_use_orb, live_frame_sample_interval, live_interval, live_min_frames,
+                    live_capacity, live_session_dir, live_file_out],
+            outputs=[live_action_status, live_file_out, live_timer],
+            queue=False,
+        )
+
+        live_stop_btn.click(
+            fn=lambda: (live_controls.stop_camera(VGGT_URL), gr.Timer(active=False)),
+            outputs=[live_action_status, live_timer],
+            queue=False,
+        )
+        live_refresh_btn.click(
+            fn=lambda: live_controls.poll_camera(VGGT_URL),
+            outputs=[live_preview, live_monitor_status],
+            queue=False,
+        )
+        live_timer.tick(
+            fn=lambda: live_controls.poll_camera(VGGT_URL),
+            outputs=[live_preview, live_monitor_status],
+            show_progress="hidden",
+            queue=False,
+        )
 
     # ── Row: upload + 3D viewer ───────────────────────────────────────────────
     with gr.Row():
@@ -644,6 +903,24 @@ with gr.Blocks(theme=theme, css=CSS) as demo:
 
                     enable_semantic_cb = gr.Checkbox(label="Enable Semantic Segmentation in Reconstruction", value=False)
 
+                    with gr.Accordion("3D Label Fusion (recover keyframe-skipped frames)", open=False):
+                        gr.Markdown(
+                            "After reconstruction, propagate semantic labels through the "
+                            "shared 3D cloud: fills targets only segmented on some "
+                            "(key)frames and drops isolated mis-detections. Applied during "
+                            "**Reconstruct** when Semantic Segmentation is enabled.")
+                        recon_fuse_3d = gr.Checkbox(value=False, label="Enable 3D Fusion")
+                        with gr.Row():
+                            recon_fuse_eps = gr.Slider(
+                                0.005, 0.5, value=0.05, step=0.005,
+                                label="Cluster radius (eps)", info="World units")
+                            recon_fuse_radius = gr.Slider(
+                                0.0, 0.5, value=0.0, step=0.005,
+                                label="Dilate radius", info="0 = same as eps")
+                        recon_fuse_min = gr.Slider(
+                            1, 200, value=30, step=1, label="Min cluster size",
+                            info="Drop clusters smaller than this as noise")
+
                     with gr.Row():
                         # Left: annotation image
                         with gr.Column(scale=2):
@@ -691,6 +968,25 @@ with gr.Blocks(theme=theme, css=CSS) as demo:
                             yoloe_image_size = gr.Slider(320, 1280, value=640, step=32, label="Image Size")
                             yoloe_conf = gr.Slider(0.0, 1.0, value=0.25, step=0.05, label="Confidence")
                             yoloe_iou  = gr.Slider(0.0, 1.0, value=0.70, step=0.05, label="IoU")
+
+                            gr.Markdown("### Keyframe Selection")
+                            gr.Markdown(
+                                "Segment only representative frames to save time. "
+                                "Skipped frames are recovered by **3D Fusion** at "
+                                "reconstruction (enable it on the Reconstruct controls).")
+                            yoloe_keyframe_mode = gr.Radio(
+                                ["all", "stride", "similarity"], value="all",
+                                label="Keyframe Mode",
+                                info="all: every frame · stride: every Nth · "
+                                     "similarity: skip near-duplicate frames")
+                            yoloe_keyframe_stride = gr.Slider(
+                                1, 20, value=3, step=1, label="Stride (N)",
+                                info="Used in 'stride' mode")
+                            yoloe_keyframe_sim = gr.Slider(
+                                0.1, 0.9, value=0.45, step=0.05,
+                                label="Viewpoint similarity threshold",
+                                info="Used in 'similarity' mode (ORB viewpoint match); "
+                                     "higher = keep more frames")
 
                             run_yoloe_btn = gr.Button("▶ Run YOLOe", variant="primary", size="lg")
                             yoloe_status  = gr.Markdown("**Status:** Ready")
@@ -768,66 +1064,34 @@ with gr.Blocks(theme=theme, css=CSS) as demo:
                             apply_edit_btn = gr.Button(
                                 "▶ Apply Edit", variant="primary", size="lg")
 
+                # Independent two-scene overlay tool (does not share elevation viewer state).
+                with gr.TabItem("GLB Scene Alignment"):
+                    gr.Markdown("## 双 GLB 场景叠加预览")
+                    gr.Markdown(
+                        "用于验证挖掘前后两个导出场景的初始重叠效果。"
+                        "该工具在独立页面运行，不会影响高程查看器；当前仅按导出坐标叠加，"
+                        "后续可在此基础上加入自动对齐。"
+                    )
+                    open_fusion_viewer_btn = gr.Button(
+                        "🌐 打开双 GLB 叠加工具", variant="primary", size="lg"
+                    )
+
                 # Elevation Plane
                 with gr.TabItem("Elevation Plane"):
-                    gr.Markdown("## Elevation Plane Fitting")
+                    gr.Markdown("## 3D Elevation Viewer")
                     gr.Markdown(
-                        "Fit a DEM (Digital Elevation Model) to the reconstructed point cloud. "
-                        "You can interpolate from filtered ground candidates or from all aligned "
-                        "points before filtering, then export a colored elevation grid. "
-                        "**Requires:** Run Reconstruct first."
+                        "Open the interactive 3D elevation viewer to inspect the "
+                        "gravity-aligned point cloud, DEM, camera trajectory, and "
+                        "volume selection. **Requires:** Run Reconstruct first."
                     )
                     with gr.Row():
-                        # Left: elevation-only viewer
-                        with gr.Column(scale=3):
-                            elev_only_viewer = gr.Model3D(
-                                height=420, zoom_speed=0.5, pan_speed=0.5,
-                                label="Elevation Mesh Only")
-                            elev_only_dl_btn = gr.DownloadButton(
-                                "Download Elevation Mesh (.glb)", variant="secondary")
-
-                        # Right: merged viewer
-                        with gr.Column(scale=3):
-                            elev_merged_viewer = gr.Model3D(
-                                height=420, zoom_speed=0.5, pan_speed=0.5,
-                                label="Point Cloud + Elevation Mesh")
-                            elev_merged_dl_btn = gr.DownloadButton(
-                                "Download Merged Scene (.glb)", variant="secondary")
-
-                    elev_log = gr.Markdown("**Status:** Run Reconstruct first, then click Fit Elevation.")
-
-                    with gr.Row():
-                        with gr.Column(scale=2):
-                            elev_source_glb = gr.Textbox(
-                                label="Source GLB path (leave blank to use current reconstruction)",
-                                placeholder="Optional: paste a .glb path to merge with",
-                                value="")
-                            elev_grid_res = gr.Slider(
-                                minimum=32, maximum=512, value=128, step=32,
-                                label="Grid Resolution (N×N)",
-                                info="Higher = finer DEM, slower computation")
-                            elev_colormap = gr.Dropdown(
-                                choices=["terrain", "viridis", "plasma", "inferno",
-                                         "magma", "cividis", "RdYlGn", "coolwarm"],
-                                value="terrain",
-                                label="Colormap")
-
                         with gr.Column(scale=1):
-                            elev_ground_pct = gr.Slider(
-                                minimum=5, maximum=50, value=20, step=5,
-                                label="Ground Percentile (%)",
-                                info="Use lowest N% of points as ground candidates")
                             elev_use_ground_filter = gr.Checkbox(
-                                label="Use ground filter before DEM fitting",
+                                label="Use ground filter for DEM",
                                 value=True,
-                                info="On: interpolate from filtered ground candidates. Off: interpolate from all aligned points.")
-                            elev_use_ransac = gr.Checkbox(
-                                label="Refine with RANSAC", value=True,
-                                info="Fit a plane to ground candidates for cleaner results")
-                            fit_elevation_btn = gr.Button(
-                                "▶ Fit Elevation", variant="primary", size="lg")
+                                info="On: build the DEM from filtered ground candidates. Off: from all aligned points.")
                             open_viewer_btn = gr.Button(
-                                "🌐 Open 3D Elevation Viewer", variant="secondary", size="lg")
+                                "🌐 Open 3D Elevation Viewer", variant="primary", size="lg")
 
     # ── Examples ──────────────────────────────────────────────────────────────
     EXAMPLES_DIR = "/home/maomaoyu/WS/vggt/examples/videos"
@@ -891,16 +1155,20 @@ with gr.Blocks(theme=theme, css=CSS) as demo:
 
     # Run YOLOe button
     def _run_yoloe_dispatch(target_dir, mode, text_prompts, ref_img, bboxes_json,
-                             model_id, img_size, conf, iou, max_cls):
+                             model_id, img_size, conf, iou, max_cls,
+                             kf_mode, kf_stride, kf_sim):
         if mode == "Text":
             masks_path, previews, sem_map, status = run_yoloe_text(
-                target_dir, text_prompts, model_id, img_size, conf, iou)
+                target_dir, text_prompts, model_id, img_size, conf, iou,
+                kf_mode, kf_stride, kf_sim)
         elif mode == "Visual":
             masks_path, previews, sem_map, status = run_yoloe_visual(
-                target_dir, ref_img, bboxes_json, model_id, img_size, conf, iou)
+                target_dir, ref_img, bboxes_json, model_id, img_size, conf, iou,
+                kf_mode, kf_stride, kf_sim)
         else:
             masks_path, previews, sem_map, status = run_yoloe_promptfree(
-                target_dir, model_id, img_size, conf, iou, max_cls)
+                target_dir, model_id, img_size, conf, iou, max_cls,
+                kf_mode, kf_stride, kf_sim)
         return masks_path or "", previews, status, json.dumps(sem_map)
 
     run_yoloe_btn.click(
@@ -908,7 +1176,8 @@ with gr.Blocks(theme=theme, css=CSS) as demo:
         inputs=[target_dir_output, yoloe_prompt_mode, yoloe_text_prompts,
                 yoloe_ref_image, yoloe_bboxes_json,
                 yoloe_model_id, yoloe_image_size, yoloe_conf, yoloe_iou,
-                yoloe_max_classes],
+                yoloe_max_classes,
+                yoloe_keyframe_mode, yoloe_keyframe_stride, yoloe_keyframe_sim],
         outputs=[semantic_masks_path_state, yoloe_preview_gallery, yoloe_status,
                  semantic_id_map_state])
 
@@ -970,7 +1239,8 @@ with gr.Blocks(theme=theme, css=CSS) as demo:
         fn=gradio_reconstruct,
         inputs=[target_dir_output, conf_thres, frame_filter, mask_black_bg, mask_white_bg,
                 show_cam, mask_sky, prediction_mode,
-                semantic_masks_path_state, enable_semantic_cb],
+                semantic_masks_path_state, enable_semantic_cb,
+                recon_fuse_3d, recon_fuse_eps, recon_fuse_radius, recon_fuse_min],
         outputs=[reconstruction_output, log_output, frame_filter,
                  depth_gallery, pointmap_gallery,
                  semantic_depth_gallery, semantic_pointmap_gallery, sam_mask_gallery]
@@ -1025,26 +1295,6 @@ with gr.Blocks(theme=theme, css=CSS) as demo:
                 show_cam, mask_sky, prediction_mode],
         outputs=[edit_result_viewer, edit_log, edit_dl_btn])
 
-    # Fit Elevation button
-    fit_elevation_btn.click(
-        fn=lambda: "**Status:** Fitting elevation plane...",
-        outputs=[elev_log]
-    ).then(
-        fn=run_fit_elevation,
-        inputs=[target_dir_output, elev_source_glb, elev_grid_res,
-                elev_colormap, elev_ground_pct, elev_use_ground_filter, elev_use_ransac,
-                conf_thres, prediction_mode],
-        outputs=[elev_only_viewer, elev_merged_viewer, elev_log]
-    ).then(
-        fn=lambda p: p,
-        inputs=[elev_only_viewer],
-        outputs=[elev_only_dl_btn]
-    ).then(
-        fn=lambda p: p,
-        inputs=[elev_merged_viewer],
-        outputs=[elev_merged_dl_btn]
-    )
-
     # Open 3D Elevation Viewer — pure client-side, opens new tab
     open_viewer_btn.click(
         fn=None,
@@ -1056,6 +1306,14 @@ with gr.Blocks(theme=theme, css=CSS) as demo:
               + '&use_ground_filter=' + encodeURIComponent(Boolean(useGroundFilter));
             window.open(url, '_blank');
         }"""
+    )
+
+    # Standalone GLB overlay page, served by the VGGT static-file endpoint.
+    open_fusion_viewer_btn.click(
+        fn=None,
+        inputs=[],
+        outputs=[],
+        js="""() => window.open('http://localhost:8002/static/fusion_viewer.html', '_blank')"""
     )
 
 

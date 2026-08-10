@@ -1,0 +1,235 @@
+{
+  "schema_version": 1,
+  "operation": "yoloe_segment_visual",
+  "status": "ok",
+  "started_at_utc": "2026-08-09T07:53:07.526113+00:00",
+  "completed_at_utc": "2026-08-09T07:53:10.755543+00:00",
+  "working_dir": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809",
+  "profile_path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/resource_profiles/yoloe_segment_visual_20260809T075307_526113Z_pid13239.json",
+  "pid": 13239,
+  "metadata": {
+    "model_id": "yoloe-v8l",
+    "image_size": 640,
+    "bbox_count": 1,
+    "keyframe_mode": "all",
+    "frames": 21,
+    "keyframes": 21,
+    "detections": 24
+  },
+  "measurement_notes": {
+    "wall_time": "CUDA is synchronized at stage boundaries when available.",
+    "rss_mb": "Current Linux process resident memory at the boundary.",
+    "rss_peak_mb": "Lifetime process RSS high-water mark, not a per-stage-only peak.",
+    "cuda_allocated_mb": "Live tensors owned by the current PyTorch process.",
+    "cuda_reserved_mb": "Memory held by the current PyTorch caching allocator.",
+    "cuda_peak_extra_allocated_mb": "Stage peak allocated minus stage-start allocated.",
+    "cuda_device_used_mb": "Whole-device usage (all processes), derived from mem_get_info."
+  },
+  "baseline": {
+    "rss_mb": 1817.34,
+    "rss_peak_mb": 1904.418,
+    "cuda_available": true,
+    "cuda_device_index": 0,
+    "cuda_device_name": "NVIDIA GeForce RTX 5070 Ti",
+    "cuda_device_total_mb": 16302.562,
+    "cuda_device_used_mb": 2821.562,
+    "cuda_allocated_mb": 242.479,
+    "cuda_reserved_mb": 1450.0
+  },
+  "stages": [
+    {
+      "name": "discover_input_frames",
+      "status": "ok",
+      "wall_time_s": 0.000899,
+      "cpu_time_s": 0.000882,
+      "metadata": {},
+      "start": {
+        "rss_mb": 1817.34,
+        "rss_peak_mb": 1904.418,
+        "cuda_available": true,
+        "cuda_device_index": 0,
+        "cuda_device_name": "NVIDIA GeForce RTX 5070 Ti",
+        "cuda_device_total_mb": 16302.562,
+        "cuda_device_used_mb": 2821.562,
+        "cuda_allocated_mb": 242.479,
+        "cuda_reserved_mb": 1450.0
+      },
+      "end": {
+        "rss_mb": 1817.34,
+        "rss_peak_mb": 1904.418,
+        "cuda_available": true,
+        "cuda_device_index": 0,
+        "cuda_device_name": "NVIDIA GeForce RTX 5070 Ti",
+        "cuda_device_total_mb": 16302.562,
+        "cuda_device_used_mb": 2821.562,
+        "cuda_allocated_mb": 242.479,
+        "cuda_reserved_mb": 1450.0,
+        "cuda_peak_allocated_mb": 242.479,
+        "cuda_peak_reserved_mb": 1450.0
+      },
+      "rss_delta_mb": 0.0,
+      "cuda_allocated_delta_mb": 0.0,
+      "cuda_peak_extra_allocated_mb": 0.0,
+      "error": null
+    },
+    {
+      "name": "load_model_and_encode_visual_prompt",
+      "status": "ok",
+      "wall_time_s": 1.116975,
+      "cpu_time_s": 1.535434,
+      "metadata": {},
+      "start": {
+        "rss_mb": 1817.34,
+        "rss_peak_mb": 1904.418,
+        "cuda_available": true,
+        "cuda_device_index": 0,
+        "cuda_device_name": "NVIDIA GeForce RTX 5070 Ti",
+        "cuda_device_total_mb": 16302.562,
+        "cuda_device_used_mb": 2821.562,
+        "cuda_allocated_mb": 242.479,
+        "cuda_reserved_mb": 1450.0
+      },
+      "end": {
+        "rss_mb": 1966.602,
+        "rss_peak_mb": 1992.766,
+        "cuda_available": true,
+        "cuda_device_index": 0,
+        "cuda_device_name": "NVIDIA GeForce RTX 5070 Ti",
+        "cuda_device_total_mb": 16302.562,
+        "cuda_device_used_mb": 1771.562,
+        "cuda_allocated_mb": 240.503,
+        "cuda_reserved_mb": 400.0,
+        "cuda_peak_allocated_mb": 346.868,
+        "cuda_peak_reserved_mb": 1450.0
+      },
+      "rss_delta_mb": 149.262,
+      "cuda_allocated_delta_mb": -1.976,
+      "cuda_peak_extra_allocated_mb": 104.389,
+      "error": null
+    },
+    {
+      "name": "select_keyframes",
+      "status": "ok",
+      "wall_time_s": 0.000493,
+      "cpu_time_s": 0.000416,
+      "metadata": {},
+      "start": {
+        "rss_mb": 1966.605,
+        "rss_peak_mb": 1992.766,
+        "cuda_available": true,
+        "cuda_device_index": 0,
+        "cuda_device_name": "NVIDIA GeForce RTX 5070 Ti",
+        "cuda_device_total_mb": 16302.562,
+        "cuda_device_used_mb": 1771.562,
+        "cuda_allocated_mb": 240.503,
+        "cuda_reserved_mb": 400.0
+      },
+      "end": {
+        "rss_mb": 1966.605,
+        "rss_peak_mb": 1992.766,
+        "cuda_available": true,
+        "cuda_device_index": 0,
+        "cuda_device_name": "NVIDIA GeForce RTX 5070 Ti",
+        "cuda_device_total_mb": 16302.562,
+        "cuda_device_used_mb": 1771.562,
+        "cuda_allocated_mb": 240.503,
+        "cuda_reserved_mb": 400.0,
+        "cuda_peak_allocated_mb": 240.503,
+        "cuda_peak_reserved_mb": 400.0
+      },
+      "rss_delta_mb": 0.0,
+      "cuda_allocated_delta_mb": 0.0,
+      "cuda_peak_extra_allocated_mb": 0.0,
+      "error": null
+    },
+    {
+      "name": "segment_keyframes_and_build_masks",
+      "status": "ok",
+      "wall_time_s": 1.202976,
+      "cpu_time_s": 3.657123,
+      "metadata": {
+        "keyframes": 21,
+        "total_frames": 21
+      },
+      "start": {
+        "rss_mb": 1966.605,
+        "rss_peak_mb": 1992.766,
+        "cuda_available": true,
+        "cuda_device_index": 0,
+        "cuda_device_name": "NVIDIA GeForce RTX 5070 Ti",
+        "cuda_device_total_mb": 16302.562,
+        "cuda_device_used_mb": 1771.562,
+        "cuda_allocated_mb": 240.503,
+        "cuda_reserved_mb": 400.0
+      },
+      "end": {
+        "rss_mb": 2025.824,
+        "rss_peak_mb": 2025.824,
+        "cuda_available": true,
+        "cuda_device_index": 0,
+        "cuda_device_name": "NVIDIA GeForce RTX 5070 Ti",
+        "cuda_device_total_mb": 16302.562,
+        "cuda_device_used_mb": 1771.562,
+        "cuda_allocated_mb": 237.776,
+        "cuda_reserved_mb": 400.0,
+        "cuda_peak_allocated_mb": 347.403,
+        "cuda_peak_reserved_mb": 400.0
+      },
+      "rss_delta_mb": 59.219,
+      "cuda_allocated_delta_mb": -2.727,
+      "cuda_peak_extra_allocated_mb": 106.9,
+      "error": null
+    },
+    {
+      "name": "write_masks_previews_and_metadata",
+      "status": "ok",
+      "wall_time_s": 0.878528,
+      "cpu_time_s": 0.904785,
+      "metadata": {},
+      "start": {
+        "rss_mb": 2025.824,
+        "rss_peak_mb": 2025.824,
+        "cuda_available": true,
+        "cuda_device_index": 0,
+        "cuda_device_name": "NVIDIA GeForce RTX 5070 Ti",
+        "cuda_device_total_mb": 16302.562,
+        "cuda_device_used_mb": 1771.562,
+        "cuda_allocated_mb": 237.776,
+        "cuda_reserved_mb": 400.0
+      },
+      "end": {
+        "rss_mb": 2051.723,
+        "rss_peak_mb": 2051.723,
+        "cuda_available": true,
+        "cuda_device_index": 0,
+        "cuda_device_name": "NVIDIA GeForce RTX 5070 Ti",
+        "cuda_device_total_mb": 16302.562,
+        "cuda_device_used_mb": 1771.562,
+        "cuda_allocated_mb": 237.776,
+        "cuda_reserved_mb": 400.0,
+        "cuda_peak_allocated_mb": 237.776,
+        "cuda_peak_reserved_mb": 400.0
+      },
+      "rss_delta_mb": 25.899,
+      "cuda_allocated_delta_mb": 0.0,
+      "cuda_peak_extra_allocated_mb": 0.0,
+      "error": null
+    }
+  ],
+  "total": {
+    "wall_time_s": 3.229455,
+    "cpu_time_s": 6.128819,
+    "end": {
+      "rss_mb": 2051.723,
+      "rss_peak_mb": 2051.723,
+      "cuda_available": true,
+      "cuda_device_index": 0,
+      "cuda_device_name": "NVIDIA GeForce RTX 5070 Ti",
+      "cuda_device_total_mb": 16302.562,
+      "cuda_device_used_mb": 1771.562,
+      "cuda_allocated_mb": 237.776,
+      "cuda_reserved_mb": 400.0
+    },
+    "stage_count": 5
+  }
+}

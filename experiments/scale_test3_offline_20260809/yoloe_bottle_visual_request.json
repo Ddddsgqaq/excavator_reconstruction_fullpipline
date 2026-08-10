@@ -1,0 +1,14 @@
+{
+  "working_dir": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809",
+  "reference_image_path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000017.png",
+  "bboxes": [
+    [810, 10, 1710, 830]
+  ],
+  "model_id": "yoloe-v8l",
+  "image_size": 640,
+  "conf_threshold": 0.15,
+  "iou_threshold": 0.7,
+  "keyframe_mode": "all",
+  "keyframe_stride": 3,
+  "keyframe_sim_thresh": 0.45
+}

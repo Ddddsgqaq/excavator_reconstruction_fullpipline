@@ -156,7 +156,7 @@ invoked through the VGGT service.
   <text x="620" y="343" text-anchor="middle" font-size="10" fill="#666">conda env: vggt</text>
   <line x1="525" y1="353" x2="715" y2="353" stroke="#059669" stroke-width="1" stroke-dasharray="2,2" opacity="0.5"/>
   <text x="620" y="370" text-anchor="middle" font-size="10" font-family="monospace">/reconstruct · /visualize</text>
-  <text x="620" y="384" text-anchor="middle" font-size="10" font-family="monospace">/edit_pointcloud · /fit_elevation</text>
+  <text x="620" y="384" text-anchor="middle" font-size="10" font-family="monospace">/edit_pointcloud</text>
   <text x="620" y="398" text-anchor="middle" font-size="10" font-family="monospace">/elevation_viewer_data · /viewer</text>
 
   <!-- Models / weights -->
@@ -252,8 +252,8 @@ invoked through the VGGT service.
   <tr>
     <td><span class="pill pill-elev">Elevation</span></td>
     <td><code>elevation_plane.py</code></td>
-    <td>NumPy + trimesh + scipy + matplotlib</td>
-    <td>Imported by VGGT service. Calls <code>gravity_alignment.estimate_gravity</code> to obtain <code>R_align</code>, rotates the scene so Y = up, selects ground candidates (semantic mask median-band or lowest-percentile fallback), interpolates a DEM grid (linear + nearest-fill), colors by elevation, and exports <code>elev_r{N}_{cmap}_aligned_only.glb</code> / <code>_merged.glb</code> / <code>_meta.json</code>.</td>
+    <td>NumPy + scipy</td>
+    <td>DEM helpers shared by <code>/elevation_viewer_data</code> and the streaming pipeline. After <code>gravity_alignment.estimate_gravity</code> yields <code>R_align</code> and the scene is rotated so Y = up, it selects ground candidates (semantic mask median-band or lowest-percentile fallback) and interpolates a 128×128 DEM grid (<code>build_elevation_view_grid</code>: linear + nearest-fill, 2 % padding, <code>has_data</code> mask).</td>
   </tr>
   <tr>
     <td><span class="pill pill-grav">Gravity</span></td>
@@ -427,10 +427,7 @@ workspaces/
     │   └── run_&lt;ts&gt;_promptfree/
     ├── predictions.npz                            ← VGGT outputs (depth, pose, pts)
     ├── glbscene_&lt;params&gt;.glb                      ← parameter-keyed reconstruction
-    ├── edited_&lt;op&gt;_ids&lt;...&gt;.glb
-    ├── elev_r&lt;N&gt;_&lt;cmap&gt;_aligned_only.glb         ← elevation-only DEM mesh (gravity-aligned)
-    ├── elev_r&lt;N&gt;_&lt;cmap&gt;_aligned_merged.glb       ← DEM merged with point-cloud GLB
-    └── elev_r&lt;N&gt;_&lt;cmap&gt;_aligned_meta.json        ← gravity_source, n_grav, R_align, scale_factor
+    └── edited_&lt;op&gt;_ids&lt;...&gt;.glb
 </pre>
 
 <!-- ───────────────────────────────────────────────────────────── -->
@@ -446,13 +443,12 @@ workspaces/
       class count per model and reloads only when arity actually differs, avoiding repeated CLIP-text-encoder
       rebuilds that previously caused OOM.</li>
   <li><b>Prediction reuse.</b> <code>predictions.npz</code> is written once per reconstruction and reused by
-      <code>/visualize</code>, <code>/edit_pointcloud</code>, <code>/fit_elevation</code>, and
+      <code>/visualize</code>, <code>/edit_pointcloud</code>, and
       <code>/elevation_viewer_data</code>, avoiding redundant VGGT forward passes during interactive
       parameter tweaking.</li>
   <li><b>Gravity alignment is stateless.</b> <code>gravity_alignment.estimate_gravity</code> is called
-      fresh on each <code>/fit_elevation</code> and <code>/elevation_viewer_data</code> request; the result
-      is persisted in <code>_meta.json</code> alongside the GLB outputs so callers can reuse the same
-      <code>R_align</code> without re-running the estimator.</li>
+      fresh on each <code>/elevation_viewer_data</code> request, so callers derive the same
+      <code>R_align</code> without persisting any intermediate state.</li>
 </ul>
 
 <!-- ───────────────────────────────────────────────────────────── -->
@@ -488,23 +484,25 @@ that maps this normal to <code>(0, 1, 0)</code>.
 </p>
 
 <h3 style="font-size:1em; margin-top:18px;">6b. DEM Construction (<code>elevation_plane.py</code>)</h3>
+<p>
+The DEM is built on demand inside <code>/elevation_viewer_data</code> — there is no offline GLB export.
+<code>elevation_plane.py</code> exposes the helpers this path shares with the streaming pipeline:
+</p>
 <ol style="padding-left:22px; font-size:0.93em;">
-  <li>Extract world points + per-pixel confidence from <code>predictions.npz</code>.</li>
+  <li><code>_extract_points_with_conf</code> — pull world points + per-pixel confidence and ground mask
+      from <code>predictions.npz</code>.</li>
   <li>Call <code>estimate_gravity</code> → <code>R_align</code>.</li>
   <li>Rotate all points: <code>pts_aligned = pts_world @ R_align.T * scale_factor</code>. Y is now elevation.</li>
-  <li>Select ground candidates in the aligned frame:
+  <li><code>_select_ground_aligned</code> — select ground candidates in the aligned frame:
     <ul>
       <li>If a semantic ground mask is present: keep masked points within ±5 % of the Y-range around
           the masked-points median Y.</li>
       <li>Fallback: lowest <code>ground_percentile</code> % by Y.</li>
     </ul>
   </li>
-  <li>Interpolate a <code>grid_resolution × grid_resolution</code> DEM over (X, Z) using
-      <code>scipy.interpolate.griddata</code> (linear, with nearest-fill for holes).</li>
-  <li>Color vertices by elevation using a matplotlib colormap; build a <code>trimesh.Trimesh</code>.</li>
-  <li>Export <code>elev_r{N}_{cmap}_aligned_only.glb</code>, <code>_merged.glb</code>, and
-      <code>_meta.json</code> (gravity source, <code>n_grav</code>, <code>R_align</code>,
-      <code>scale_factor</code>, warnings).</li>
+  <li><code>build_elevation_view_grid</code> — interpolate a <code>128 × 128</code> DEM over (X, Z) using
+      <code>scipy.interpolate.griddata</code> (linear, with nearest-fill for holes) and 2 % padding,
+      returning a <code>has_data</code> mask that flags nearest-filled cells as NODATA.</li>
 </ol>
 
 <h3 style="font-size:1em; margin-top:18px;">6c. Three.js Elevation Viewer (<code>elevation_viewer.html</code>)</h3>

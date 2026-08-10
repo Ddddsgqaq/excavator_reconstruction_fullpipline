@@ -570,10 +570,10 @@ with torch.no_grad():
 
   <p>以地面点集 <em>G</em> 在 (X, Z) 平面上构建规则网格，插值得到高程值：</p>
 
-  <p><strong>步骤 1</strong>：确定网格范围（含 5% 边界填充）：</p>
+  <p><strong>步骤 1</strong>：确定网格范围（含 2% 边界填充）：</p>
   <div class="formula-block">
     <span class="eq-label">(23)</span>
-    x<sub>min</sub>' = x<sub>min</sub> − 0.05·(x<sub>max</sub>−x<sub>min</sub>),  x<sub>max</sub>' = x<sub>max</sub> + 0.05·(x<sub>max</sub>−x<sub>min</sub>)
+    x<sub>min</sub>' = x<sub>min</sub> − 0.02·(x<sub>max</sub>−x<sub>min</sub>),  x<sub>max</sub>' = x<sub>max</sub> + 0.02·(x<sub>max</sub>−x<sub>min</sub>)
   </div>
 
   <p><strong>步骤 2</strong>：生成均匀网格（默认分辨率 128×128）：</p>
@@ -592,27 +592,7 @@ with torch.no_grad():
     elev(ξ, ζ) = elev<sub>linear</sub>(ξ, ζ)  if not NaN,  else  elev<sub>nearest</sub>(ξ, ζ)
   </div>
 
-  <h3 class="sub-title" id="s6c">6.3 网格化曲面重建</h3>
-
-  <p>将 DEM 网格转换为三角网格（Triangulated Irregular Network, TIN）：</p>
-
-  <p>对每个网格单元 <em>(i, j)</em>，以四顶点 <em>i<sub>00</sub>, i<sub>10</sub>, i<sub>01</sub>, i<sub>11</sub></em> 构建两个三角面片：</p>
-  <div class="formula-block">
-    <span class="eq-label">(27)</span>
-    F<sub>1</sub> = (i<sub>00</sub>, i<sub>10</sub>, i<sub>01</sub>),  F<sub>2</sub> = (i<sub>10</sub>, i<sub>11</sub>, i<sub>01</sub>)
-  </div>
-
-  <p>顶点坐标为 <em>(ξ<sub>i</sub>, elev(i,j), ζ<sub>j</sub>)</em>，颜色由高程值归一化后映射至 colormap（默认 terrain）：</p>
-  <div class="formula-block">
-    <span class="eq-label">(28)</span>
-    norm<sub>ij</sub> = clip((elev<sub>ij</sub> − elev<sub>lo</sub>) / (elev<sub>hi</sub> − elev<sub>lo</sub> + ε), 0, 1)
-  </div>
-  <div class="formula-block">
-    <span class="eq-label">(29)</span>
-    color<sub>ij</sub> = colormap(norm<sub>ij</sub>) × 255
-  </div>
-
-  <p>最终网格以 GLB 格式导出，可与原始点云 GLB 合并为统一场景文件。</p>
+  <p>插值结果附带 <em>has_data</em> 掩码，标记哪些格元来自线性插值的有效区域（最近邻补齐的格元视为 NODATA）。DEM 随每次 <code>/elevation_viewer_data</code> 请求即时构建，由 Three.js 查看器在客户端网格化并着色显示，不导出为文件。</p>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════ S7 -->
@@ -626,7 +606,7 @@ with torch.no_grad():
   <h4 class="sub2-title">方法一：DEM 差分积分（挖填方体积）</h4>
   <p>设参考基准面高程为 <em>h<sub>ref</sub></em>（通常取地面 DEM 的中位数），目标区域内各网格单元的高程为 <em>elev(i,j)</em>，则超出基准面的体积为：</p>
   <div class="formula-block">
-    <span class="eq-label">(30)</span>
+    <span class="eq-label">(27)</span>
     V = Σ<sub>(i,j) ∈ Ω</sub> max(elev(i,j) − h<sub>ref</sub>, 0) · ΔX · ΔZ
   </div>
 
@@ -635,14 +615,14 @@ with torch.no_grad():
   <h4 class="sub2-title">方法二：点云凸包体积</h4>
   <p>对于由语义分割提取的目标点云子集，可直接计算三维凸包（Convex Hull）体积作为目标体积的上界估计：</p>
   <div class="formula-block">
-    <span class="eq-label">(31)</span>
+    <span class="eq-label">(28)</span>
     V<sub>hull</sub> = ConvexHull({P<sub>i</sub> : semantic_id(P<sub>i</sub>) = k}).volume
   </div>
 
   <h4 class="sub2-title">方法三：三角网格封闭体积</h4>
   <p>若目标点云可构成封闭三角网格，则利用散度定理（高斯公式）计算精确体积：</p>
   <div class="formula-block">
-    <span class="eq-label">(32)</span>
+    <span class="eq-label">(29)</span>
     V = (1/6) |Σ<sub>f</sub> (v<sub>0</sub> + v<sub>1</sub> + v<sub>2</sub>) · (v<sub>1</sub> − v<sub>0</sub>) × (v<sub>2</sub> − v<sub>0</sub>)|
   </div>
 
@@ -650,11 +630,11 @@ with torch.no_grad():
 
   <p>VGGT 输出的点云坐标为相对尺度（无量纲），需通过尺度因子 <em>α</em> 转换为绝对物理单位（如米）：</p>
   <div class="formula-block">
-    <span class="eq-label">(33)</span>
+    <span class="eq-label">(30)</span>
     P<sub>metric</sub> = α · P<sub>aligned</sub>
   </div>
   <div class="formula-block">
-    <span class="eq-label">(34)</span>
+    <span class="eq-label">(31)</span>
     V<sub>metric</sub> = α<sup>3</sup> · V<sub>relative</sub>
   </div>
 
@@ -686,15 +666,15 @@ with torch.no_grad():
   <p>从 VGGT 世界系到显示系的变换矩阵 <em>T<sub>display</sub></em> 由以下步骤复合得到：</p>
 
   <div class="formula-block">
-    <span class="eq-label">(35)</span>
+    <span class="eq-label">(32)</span>
     T<sub>opengl</sub> = diag(1, −1, −1, 1)  （Y、Z 轴翻转）
   </div>
   <div class="formula-block">
-    <span class="eq-label">(36)</span>
+    <span class="eq-label">(33)</span>
     T<sub>rot180y</sub> = R<sub>y</sub>(180°)  （绕 Y 轴旋转 180°）
   </div>
   <div class="formula-block">
-    <span class="eq-label">(37)</span>
+    <span class="eq-label">(34)</span>
     T<sub>display</sub> = E<sub>0</sub><sup>−1</sup> · T<sub>opengl</sub> · T<sub>rot180y</sub>
   </div>
 
@@ -711,7 +691,7 @@ with torch.no_grad():
     <tr><th>参数</th><th>默认值</th><th>范围</th><th>说明</th></tr>
     <tr><td><code>conf_thres</code></td><td>50.0</td><td>0–100</td><td>点云置信度过滤阈值（%）</td></tr>
     <tr><td><code>ground_percentile</code></td><td>20.0</td><td>5–50</td><td>无掩码时地面点 Y 百分位阈值</td></tr>
-    <tr><td><code>grid_resolution</code></td><td>128</td><td>32–512</td><td>DEM 网格分辨率（N×N）</td></tr>
+    <tr><td><code>grid_resolution</code></td><td>128</td><td>固定</td><td>查看器 DEM 网格分辨率（N×N）</td></tr>
     <tr><td><code>scale_factor</code></td><td>1.0</td><td>&gt;0</td><td>相对尺度到物理单位的转换系数</td></tr>
     <tr><td><code>RANSAC_ITERS</code></td><td>400</td><td>—</td><td>RANSAC 最大迭代次数</td></tr>
     <tr><td><code>RANSAC_DIST</code></td><td>0.03</td><td>—</td><td>RANSAC 内点距离阈值（相对单位）</td></tr>
@@ -754,7 +734,7 @@ with torch.no_grad():
   <table>
     <tr><th>服务</th><th>端口</th><th>Conda 环境</th><th>PyTorch 版本</th><th>职责</th></tr>
     <tr><td>YOLOe Service</td><td>8001</td><td><code>yoloe</code></td><td>2.11.0+cu130</td><td>语义分割，生成逐帧掩码</td></tr>
-    <tr><td>VGGT Service</td><td>8002</td><td><code>vggt50</code></td><td>2.11.0+cu130</td><td>三维重建、高程拟合、点云导出</td></tr>
+    <tr><td>VGGT Service</td><td>8002</td><td><code>vggt50</code></td><td>2.11.0+cu130</td><td>三维重建、高程查看、点云导出</td></tr>
     <tr><td>Orchestrator</td><td>7860</td><td><code>vggt50</code></td><td>—</td><td>Gradio UI，协调两服务的调用顺序</td></tr>
   </table>
 
@@ -771,9 +751,9 @@ with torch.no_grad():
     <div class="pipe-arrow">→</div>
     <div class="pipe-box">重力对齐<div class="env">VGGT :8002</div></div>
     <div class="pipe-arrow">→</div>
-    <div class="pipe-box">DEM 拟合<div class="env">VGGT :8002</div></div>
+    <div class="pipe-box">DEM 构建<div class="env">VGGT :8002</div></div>
     <div class="pipe-arrow">→</div>
-    <div class="pipe-box">GLB 导出<div class="env">输出</div></div>
+    <div class="pipe-box">3D 查看器<div class="env">Three.js</div></div>
   </div>
   <div class="fig-caption">图 1 — 系统整体数据处理管线</div>
 
@@ -782,6 +762,6 @@ with torch.no_grad():
     <li><strong>帧提取阶段</strong>：输出 JPEG 图像序列，存储于 <code>working_dir/images/</code></li>
     <li><strong>语义分割阶段</strong>：输出 <code>semantic_masks.npz</code>，形状 <code>(S, H, W)</code>，像素值为语义类别 ID（0 = 背景，1–9 = 目标类别）</li>
     <li><strong>三维重建阶段</strong>：输出 <code>predictions.npz</code>，包含深度图、世界坐标点云、相机外参/内参等张量</li>
-    <li><strong>高程拟合阶段</strong>：输出 GLB 格式三维网格文件及 JSON 元数据（含重力旋转矩阵、尺度因子）</li>
+    <li><strong>高程查看阶段</strong>：<code>/elevation_viewer_data</code> 即时返回对齐点云、128×128 DEM 网格（含 <code>has_data</code> 掩码）、相机轨迹与重力对齐矩阵，供 Three.js 查看器交互展示</li>
   </ul>
 </div>

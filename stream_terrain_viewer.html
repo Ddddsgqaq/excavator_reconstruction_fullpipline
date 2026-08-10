@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VGGT → Unity 地形链路监视器</title>
+<style>
+:root{color-scheme:dark;--bg:#071018;--panel:#0c1722;--panel2:#101d29;--line:#203140;--muted:#8da0ae;--text:#e9f0f4;--cyan:#56d6c9;--amber:#f2ba62;--red:#ff7a76;--green:#72d6a0}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(circle at 12% 5%,#12364270,transparent 28rem),var(--bg);color:var(--text);font:14px/1.45 Inter,system-ui,"Microsoft YaHei",sans-serif}button,input{font:inherit}button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}.shell{max-width:1720px;margin:auto;padding:22px}header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:18px}.eyebrow{color:var(--cyan);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}h1{font-size:clamp(23px,2.5vw,34px);letter-spacing:-.035em;line-height:1.08;margin:5px 0 0}.subtitle{color:var(--muted);margin:8px 0 0;max-width:760px}.live-block,.toolbar{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}.pill{display:inline-flex;align-items:center;gap:8px;min-height:34px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:#0c1722d8;color:var(--muted);font-size:12px}.dot{width:8px;height:8px;border-radius:50%;background:#60717d;box-shadow:0 0 0 4px #60717d20}.pill.live{color:#b7f5d1;border-color:#72d6a066}.pill.live .dot{background:var(--green);box-shadow:0 0 0 4px #72d6a022;animation:pulse 1.8s infinite}.pill.error{color:#ffc1bd;border-color:#ff7a7670}.pill.error .dot{background:var(--red)}@keyframes pulse{50%{box-shadow:0 0 0 8px #72d6a000}}.tool{border:1px solid var(--line);border-radius:7px;background:#0a1620;color:var(--muted);padding:7px 10px;cursor:pointer;font-size:12px}.tool:hover{color:var(--text);border-color:#3b5668}.metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:0 0 12px}.metric{min-width:0;padding:12px 14px;background:#0c1722e8;border:1px solid var(--line);border-radius:11px}.metric dt{color:var(--muted);font-size:11px}.metric dd{margin:4px 0 0;font-size:20px;font-weight:720;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metric.ok dd{color:var(--green)}.metric.warn dd{color:var(--amber)}.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:12px;align-items:start}.card{background:#0c1722f2;border:1px solid var(--line);border-radius:14px;overflow:hidden}.terrain-card{min-height:670px}.terrain-views{display:grid;grid-template-columns:1fr 1fr;gap:12px}.terrain-views .terrain-card{min-height:540px}.terrain-views .stage{min-height:480px}.terrain-views #terrain,.terrain-views #fusion-terrain{display:block;width:100%;height:480px;cursor:grab}.terrain-views #terrain:active,.terrain-views #fusion-terrain:active{cursor:grabbing}.card-head{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 15px;border-bottom:1px solid var(--line)}.card-title{font-weight:760}.card-kicker{color:var(--muted);font-size:11px;margin-top:2px}.seg{display:flex;padding:3px;border:1px solid var(--line);border-radius:9px;background:#08131d}.seg button{border:0;border-radius:6px;background:transparent;color:var(--muted);padding:6px 10px;cursor:pointer;font-size:12px}.seg button.active{background:#1b3340;color:#d8fffa}.range{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:11px}.range input{width:90px;accent-color:var(--cyan)}.stage{position:relative;min-height:610px;background:#08111a}#terrain{display:block;width:100%;height:610px;cursor:grab}#terrain:active{cursor:grabbing}.overlay{position:absolute;padding:8px 10px;border:1px solid #48637599;border-radius:8px;background:#050d14c7;backdrop-filter:blur(8px);color:#b8c6cf;font-size:11px;pointer-events:none}.probe{top:14px;left:14px;max-width:55%}.axis{top:14px;right:14px}.help{left:14px;bottom:13px}.legend{right:14px;bottom:13px;display:flex;align-items:center;gap:7px}.gradient{width:130px;height:7px;border-radius:99px;background:linear-gradient(90deg,#214da6,#198ccc,#26ad40,#d1cc1f,#99612e,#ebe6e0)}#empty,#fusion-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--muted);padding:30px;background:radial-gradient(circle,#1a344147,transparent 45%)}#empty strong,#fusion-empty strong{display:block;color:var(--text);font-size:18px;margin-bottom:8px}.hidden{display:none!important}aside{display:grid;gap:12px}.panel{padding:14px}.frame{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border:1px solid var(--line);border-radius:9px;background:#071018}.source{margin-top:8px;color:var(--muted);font-size:11px;overflow-wrap:anywhere}.facts{display:grid;grid-template-columns:1fr 1fr;gap:8px}.fact{min-width:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:var(--panel2)}.fact span{display:block;color:var(--muted);font-size:10px}.fact strong{display:block;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tiles{display:grid;gap:7px;margin-top:11px;max-height:210px;overflow:auto}.tile{display:grid;grid-template-columns:64px 1fr auto;gap:8px;padding:8px 9px;border:1px solid #192c3a;border-radius:8px;background:#09141e;font-size:11px}.tile b{color:var(--cyan)}.tile span{color:var(--muted)}.note{margin:10px 0 0;color:var(--muted);font-size:11px}.diag{display:grid;gap:8px;margin:0;padding:0;list-style:none}.diag li{display:flex;justify-content:space-between;gap:12px;padding-bottom:8px;border-bottom:1px solid #182936}.diag li:last-child{border:0;padding:0}.diag span{color:var(--muted)}.diag strong{text-align:right;font-size:12px}.warning{margin:10px 0 0;padding:10px 12px;border:1px solid #f2ba6255;border-radius:9px;background:#73420c2e;color:#ffd5a0;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere}@media(max-width:1350px){.terrain-views{grid-template-columns:1fr}}@media(max-width:1120px){.metrics{grid-template-columns:repeat(3,1fr)}.layout{grid-template-columns:1fr}aside{grid-template-columns:repeat(2,1fr)}}@media(max-width:720px){.shell{padding:14px}header{display:block}.live-block{justify-content:flex-start;margin-top:14px}.metrics{grid-template-columns:repeat(2,1fr)}.card-head{align-items:flex-start;flex-direction:column}.toolbar{justify-content:flex-start}.range{width:100%}.range input{flex:1}aside{grid-template-columns:1fr}#terrain,.stage{height:500px;min-height:500px}}
+.kfstrip{display:flex;gap:6px;margin-top:8px;overflow-x:auto;padding-bottom:4px}.kfstrip:empty{display:none}.kfstrip img{height:58px;width:auto;border:1px solid var(--line);border-radius:6px;cursor:pointer;flex:0 0 auto;background:#071018}.kfstrip img:hover{border-color:var(--cyan)}.kfstrip img.kf-active{border-color:var(--cyan);box-shadow:0 0 0 2px #56d6c955}
+
+.control-card{margin-bottom:12px}.control-grid{display:grid;grid-template-columns:minmax(320px,2fr) minmax(260px,1.3fr) repeat(3,minmax(120px,.7fr));gap:10px;align-items:end}.control-field{display:grid;gap:5px;color:var(--muted);font-size:11px}.control-field input[type=text],.control-field input[type=number]{width:100%;min-height:38px;border:1px solid var(--line);border-radius:7px;background:#08131d;color:var(--text);padding:8px 10px}.control-checks{display:flex;align-items:center;gap:16px;min-height:38px;flex-wrap:wrap}.control-checks label{display:flex;align-items:center;gap:7px;color:var(--text);cursor:pointer}.control-checks input{accent-color:var(--cyan)}.control-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.control-actions .tool{min-height:38px}.tool.primary{background:#16413e;color:#d8fffa;border-color:#56d6c977}.tool.stop{background:#451d22;color:#ffd1d1;border-color:#ff7a7666}.control-msg{margin-top:9px;color:var(--muted);font-size:12px;white-space:pre-wrap}.control-msg.ok{color:var(--green)}.control-msg.error{color:var(--red)}input:disabled{opacity:.45;cursor:not-allowed}@media(max-width:1200px){.control-grid{grid-template-columns:1fr 1fr}}@media(max-width:720px){.control-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header><div><div class="eyebrow">Elevation viewer · live stream</div><h1>VGGT 视频流高程查看器</h1><p class="subtitle">实时页直接使用每轮重建的原始浮点 DEM，并复用原版 elevation_viewer 的孔洞填充、色带和贴面网格显示。</p></div><div class="live-block"><div id="pill" class="pill"><span class="dot"></span><span id="service">正在连接服务</span></div><div class="pill">最后载荷 <span id="time">—</span></div><button id="refresh" class="tool">立即刷新</button></div></header>
+
+<section class="card control-card">
+  <div class="card-head"><div><div class="card-title">离线视频流测试控制</div><div class="card-kicker">本地 MP4 按实时节奏循环回放，可手动选择 ORB 或固定时间间隔采样</div></div></div>
+  <div class="panel">
+    <div class="control-grid">
+      <label class="control-field">本地视频绝对路径<input id="ctl-video" type="text" value="/home/maomaoyu/WS/vggt_yoloe/dji_fly_20260511_161858_0_1778489356002_video.mp4"></label>
+      <label class="control-field">DEM 输出目录<input id="ctl-output" type="text" value="/mnt/d/tuanjie/exea1/excavator-app-unity-main/live_elevation"></label>
+      <label class="control-field">ORB 候选帧 FPS<input id="ctl-fps" type="number" min="0.1" step="0.5" value="3"></label>
+      <label class="control-field">关闭 ORB 后采样间隔（秒）<input id="ctl-sample" type="number" min="0.1" step="0.1" value="1"></label>
+      <label class="control-field">重建间隔（秒）<input id="ctl-interval" type="number" min="0.5" step="0.5" value="6"></label>
+      <label class="control-field">最少帧数<input id="ctl-min" type="number" min="1" step="1" value="4"></label>
+      <label class="control-field">滑窗容量<input id="ctl-capacity" type="number" min="1" step="1" value="12"></label>
+      <label class="control-field">物理尺度（1 unit = ? m）<input id="ctl-scale" type="number" min="0.01" step="1" value="28"></label>
+      <div class="control-field"><span>关键帧策略</span><div class="control-checks"><label><input id="ctl-orb" type="checkbox" checked>启用 ORB</label><label><input id="ctl-loop" type="checkbox" checked>循环视频</label><label><input id="ctl-fusion" type="checkbox" checked>启用跨轮融合</label></div></div>
+    </div>
+    <div class="control-actions"><button id="ctl-preview" class="tool">仅启动视频预览</button><button id="ctl-start" class="tool primary">启动离线 VGGT 流测试</button><button id="ctl-stop" class="tool stop">停止视频流</button></div>
+    <div id="ctl-msg" class="control-msg">请选择策略后启动；ORB 关闭时不会计算任何 ORB 特征。</div>
+  </div>
+</section>
+<dl class="metrics"><div class="metric"><dt>重建轮次 passes</dt><dd id="passes">—</dd></div><div class="metric"><dt>发布数 published</dt><dd id="published">—</dd></div><div id="anchor-card" class="metric"><dt>锚点 anchor_frozen</dt><dd id="anchor">—</dd></div><div class="metric"><dt>配准 RMSE</dt><dd id="rmse">—</dd></div><div class="metric"><dt>关键帧窗口</dt><dd id="window">—</dd></div><div class="metric"><dt>最近一轮耗时</dt><dd id="pass-time">—</dd></div><div class="metric"><dt>采样策略</dt><dd id="sample-mode">—</dd></div><div class="metric"><dt>ORB 最近 / 平均 / 累计</dt><dd id="orb-time">—</dd></div><div id="fusion-card" class="metric"><dt>DEM 模式</dt><dd id="fusion-mode">—</dd></div></dl>
+<div class="layout">
+<div class="terrain-views">
+<section class="card terrain-card"><div class="card-head"><div><div class="card-title">Elevation Viewer · DEM Mesh + RGB Point Cloud</div><div class="card-kicker">Fill Holes and Show DEM Mesh · 叠加同轮 VGGT 原始 RGB 点云</div></div><div class="toolbar"><div class="seg"><button id="v3" class="active">3D</button><button id="vt">俯视</button></div><button id="cloud" class="tool" aria-pressed="true">隐藏点云</button><button id="wire" class="tool" aria-pressed="true">隐藏网格线</button><button id="reset" class="tool">复位视角</button></div></div><div class="stage"><canvas id="terrain"></canvas><div id="empty"><div><strong>等待第一轮浮点 DEM</strong><span>首轮 VGGT 重建完成后会显示 DEM 与点云。</span></div></div><div id="probe" class="overlay probe">点击 DEM 读取坐标与高程</div><div class="overlay axis">+X →　+Z ↓　row 0 在上</div><div class="overlay help">左键旋转 · 右键平移 · 滚轮缩放</div><div class="overlay legend"><span id="lmin">低</span><span class="gradient"></span><span id="lmax">高</span></div></div></section>
+<section class="card terrain-card"><div class="card-head"><div><div class="card-title">Global DEM · 跨轮融合预览</div><div class="card-kicker">持久世界网格 · 历史权重衰减 · 与 Unity 发布源一致</div></div><div class="toolbar"><div class="seg"><button id="fv3" class="active">3D</button><button id="fvt">俯视</button></div><button id="freset" class="tool">复位视角</button></div></div><div class="stage"><canvas id="fusion-terrain"></canvas><div id="fusion-empty"><div><strong>等待融合 DEM</strong><span>请勾选“启用跨轮融合”后启动重建。</span></div></div><div id="fusion-probe" class="overlay probe">点击融合 DEM 读取坐标与高程</div><div class="overlay axis">融合世界坐标 · +X → · +Z ↓</div><div class="overlay help">左键旋转 · 右键平移 · 滚轮缩放</div><div class="overlay legend"><span id="flmin">低</span><span class="gradient"></span><span id="flmax">高</span></div></div></section>
+</div>
+<aside>
+<section class="card"><div class="card-head"><div><div class="card-title">视频输入</div><div class="card-kicker">上：最新源画面 · 下：本轮重建所用关键帧</div></div></div><div class="panel"><img id="frame" class="frame" alt="当前视频流预览"><div id="source" class="source">尚无活动视频源</div><div id="kfhead" class="source" style="margin-top:10px">本轮重建所用关键帧 <span id="kfn">0</span></div><div id="kfstrip" class="kfstrip"></div></div></section>
+<section class="card"><div class="card-head"><div><div class="card-title">载荷核对</div><div class="card-kicker">左侧核对本轮浮点 DEM；右侧融合视图与全局发布网格来自同一 GlobalDem</div></div></div><div class="panel"><div class="facts"><div class="fact"><span>tile 数</span><strong id="tiles-n">0</strong></div><div class="fact"><span>消息序号</span><strong id="seq">0</strong></div><div class="fact"><span>网格尺寸</span><strong id="grid">—</strong></div><div class="fact"><span>tile 边长</span><strong id="size">—</strong></div><div class="fact"><span>载荷相对高差</span><strong id="relief">—</strong></div><div class="fact"><span>NODATA</span><strong id="nodata">—</strong></div><div class="fact"><span>重建轮次 pass</span><strong id="pass-idx">—</strong></div><div class="fact"><span>点云 (显示/总)</span><strong id="pts-n">—</strong></div></div><div id="tiles" class="tiles"></div><p class="note">fusion 开启时，Unity tile 与右侧预览共同来源于持久 GlobalDem；左侧始终保留本轮结果用于对照。</p></div></section>
+<section class="card"><div class="card-head"><div><div class="card-title">链路诊断</div><div class="card-kicker">定位方向、尺度和注册差异</div></div></div><div class="panel"><ul class="diag"><li><span>注册应用</span><strong id="registered">—</strong></li><li><span>最近高程范围</span><strong id="range">—</strong></li><li><span>重力来源</span><strong id="gravity">—</strong></li><li><span>输出通道</span><strong id="channels">—</strong></li><li><span>Unity 输出目录</span><strong id="unity-output">—</strong></li><li><span>最近变化 tile</span><strong id="changed">—</strong></li><li><span>地图更新判定</span><strong id="change-decision">—</strong></li></ul><p id="error" class="warning hidden"></p></div></section>
+</aside></div></div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/"}}</script>
+<script type="module">
+const $=id=>document.getElementById(id),app={lastSeq:-1,lastPub:null,payload:null,ready:false,view:'3d',cloud:true,passIdx:-1,passData:null};
+const txt=(id,v)=>$(id).textContent=v,fmt=(v,d=2)=>Number.isFinite(Number(v))?Number(v).toFixed(d):'—';
+
+const ctlNum=(id,fallback)=>{const v=Number($(id).value);return Number.isFinite(v)?v:fallback};
+function syncStrategy(){const use=$('ctl-orb').checked;$('ctl-fps').disabled=!use;$('ctl-sample').disabled=use}
+function controlMessage(message,kind=''){$('ctl-msg').textContent=message;$('ctl-msg').className='control-msg'+(kind?' '+kind:'')}
+async function stopStream(showMessage=true){
+  try{const r=await fetch('/stream/stop',{method:'POST'});const p=await r.json();if(!r.ok)throw Error(p.detail||('HTTP '+r.status));if(showMessage)controlMessage('视频流已停止：'+(p.status||'stopped'),'ok');await refresh(true);return p}
+  catch(e){controlMessage('停止失败：'+String(e.message||e),'error');throw e}
+}
+async function startOfflineStream(runReconstruction){
+  const video=$('ctl-video').value.trim(),output=$('ctl-output').value.trim(),useOrb=$('ctl-orb').checked;
+  if(!video){controlMessage('请填写本地视频绝对路径。','error');return}
+  if(runReconstruction&&!output){controlMessage('启动重建时必须填写 DEM 输出目录。','error');return}
+  const minFrames=Math.max(1,Math.round(ctlNum('ctl-min',4))),capacity=Math.max(1,Math.round(ctlNum('ctl-capacity',12)));
+  if(capacity<minFrames){controlMessage('滑窗容量必须大于或等于最少帧数。','error');return}
+  controlMessage(runReconstruction?'正在启动离线 VGGT 流测试…':'正在启动视频预览…');
+  try{
+    await stopStream(false);
+    const payload={source_type:'video',video_path:video,loop_video:$('ctl-loop').checked,run_reconstruction:runReconstruction,use_orb:useOrb,target_fps:Math.max(.1,ctlNum('ctl-fps',3)),frame_sample_interval:Math.max(.1,ctlNum('ctl-sample',1)),interval:Math.max(.5,ctlNum('ctl-interval',6)),min_frames:minFrames,capacity:capacity,fusion:$('ctl-fusion').checked,scale_factor:Math.max(.01,ctlNum('ctl-scale',28))};
+    if(runReconstruction)payload.file_out=output;
+    const r=await fetch('/stream/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const p=await r.json();if(!r.ok)throw Error(p.detail||('HTTP '+r.status));
+    controlMessage((runReconstruction?'离线 VGGT 流测试':'视频预览')+'已启动 · '+(useOrb?'ORB 关键帧':'固定 '+payload.frame_sample_interval+' 秒采样')+' · '+(payload.fusion?'跨轮融合':'单轮覆盖'),'ok');
+    await refresh(true)
+  }catch(e){controlMessage('启动失败：'+String(e.message||e),'error')}
+}
+$('ctl-orb').onchange=syncStrategy;$('ctl-preview').onclick=()=>startOfflineStream(false);$('ctl-start').onclick=()=>startOfflineStream(true);$('ctl-stop').onclick=()=>stopStream(true);syncStrategy();
+
+function status(s){const run=!!s.running,err=!!s.last_error;$('pill').className=`pill${err?' error':run?' live':''}`;txt('service',err?'流发生错误':run?'实时流运行中':'服务在线 · 流未启动');txt('passes',s.passes??'—');txt('published',s.published??'—');txt('fusion-mode',s.fusion_enabled?'跨轮融合':'单轮覆盖');$('fusion-card').className=`metric${s.fusion_enabled?' ok':''}`;txt('anchor',s.anchor_frozen===true?'已冻结':s.anchor_frozen===false?'未冻结':'—');$('anchor-card').className=`metric${s.anchor_frozen===true?' ok':run?' warn':''}`;txt('rmse',s.last_reg_rmse==null?'—':`${fmt(s.last_reg_rmse,4)} m`);txt('window',s.window==null?'—':`${s.window} / kept ${s.kept??0}`);txt('pass-time',s.last_pass_seconds?`${fmt(s.last_pass_seconds)} s`:'—');txt('sample-mode',s.keyframe_mode==='orb'?`ORB · 候选间隔 ${fmt(s.frame_sample_interval)}s`:`定时采样 · ${fmt(s.frame_sample_interval)}s`);txt('orb-time',s.keyframe_mode==='orb'?`${fmt(s.orb_last_ms,1)} / ${fmt(s.orb_avg_ms,1)} ms / ${fmt(s.orb_total_seconds,2)} s`:'已关闭');txt('source',s.source||'尚无活动视频源');txt('registered',s.last_registered===true?`是 · yaw ${fmt(s.last_reg_yaw_deg)}°`:s.last_registered===false?'否':'—');txt('range',Array.isArray(s.last_elev_range_m)&&s.last_elev_range_m.length===2?`${fmt(s.last_elev_range_m[0])} – ${fmt(s.last_elev_range_m[1])} m`:'—');txt('gravity',s.last_gravity_source||'—');txt('channels',s.channels?.length?s.channels.join(' + '):'—');txt('unity-output',s.file_out||'—');txt('changed',s.last_changed_tiles?.length?s.last_changed_tiles.map(p=>`(${p[0]},${p[1]})`).join(' '):'—');const cr=s.last_change_report||{};txt('change-decision',cr.decision?(cr.decision+' · '+(cr.reason||'')+' · changed '+(cr.changed_cells??0)):'—');$('error').textContent=s.last_error||'';$('error').classList.toggle('hidden',!s.last_error);if(run){$('frame').src=`/stream/frame.jpg?t=${Date.now()}`;$('frame').classList.remove('hidden')}else if(!$('frame').src)$('frame').classList.add('hidden')}
+function stats(t){const m=t.metadata||{},nd=Number.isFinite(Number(m.nodata_value))?Number(m.nodata_value):-32768,vals=(t.data||[]).filter(v=>v!==nd&&Number.isFinite(v)),min=vals.length?Math.min(...vals):0,max=vals.length?Math.max(...vals):0,step=Number(m.height_resolution)||.01;return{min,max,step,nd,nodata:(t.data||[]).length-vals.length,relief:(max-min)*step}}
+function facts(p){const ts=p.tiles||[],ss=ts.map(stats);txt('tiles-n',p.tile_count??ts.length);txt('seq',p.sequence??0);txt('time',p.published_at?new Date(p.published_at*1000).toLocaleTimeString():'—');if(!ts.length){['grid','size','relief','nodata'].forEach(id=>txt(id,'—'));$('tiles').replaceChildren();return}const lo=Math.min(...ss.map(s=>s.min*s.step)),hi=Math.max(...ss.map(s=>s.max*s.step));txt('grid',[...new Set(ts.map(t=>`${t.metadata?.width}×${t.metadata?.height}`))].join(', '));txt('size',[...new Set(ts.map(t=>`${fmt(t.metadata?.tile_size_meters)} m`))].join(', '));txt('relief',`${fmt(hi-lo)} m`);txt('nodata',ss.reduce((n,s)=>n+s.nodata,0).toLocaleString());txt('lmin',`${fmt(lo)} m`);txt('lmax',`${fmt(hi)} m`);$('tiles').replaceChildren(...ts.map((t,i)=>{const m=t.metadata||{},d=document.createElement('div');d.className='tile';d.innerHTML=`<b>(${m.tile_x??0}, ${m.tile_y??0})</b><span>${m.width}×${m.height} · ${fmt(m.tile_size_meters)}m</span><em>Δ ${fmt(ss[i].relief)}m</em>`;return d}))}
+async function terrain(force=false){const r=await fetch('/stream/terrain',{cache:'no-store'});if(!r.ok)throw Error(`terrain HTTP ${r.status}`);const p=await r.json();facts(p);if(force||p.sequence!==app.lastSeq){app.lastSeq=p.sequence;app.payload=p}}
+function strip(p){const n=p&&p.available?(p.frame_count||0):0;txt('kfn',n);txt('pass-idx',p&&p.available?(p.pass_index??'—'):'—');txt('pts-n',p&&p.available?`${(p.n_points_shown||0).toLocaleString()} / ${(p.n_points||0).toLocaleString()} · 地面 ${(p.ground_count||0).toLocaleString()}`:'—');const box=$('kfstrip');if(!n){box.replaceChildren();return}const imgs=[];for(let i=0;i<n;i++){const im=document.createElement('img');im.src=`/stream/pass/frame/${i}.jpg?p=${p.pass_index}`;im.alt=`关键帧 ${i}`;im.loading='lazy';im.onclick=()=>{$('frame').src=im.src;box.querySelectorAll('img').forEach(x=>x.classList.remove('kf-active'));im.classList.add('kf-active')};imgs.push(im)}box.replaceChildren(...imgs)}
+async function passInfo(force=false){const r=await fetch('/stream/pass',{cache:'no-store'});if(!r.ok)throw Error(`pass HTTP ${r.status}`);const p=await r.json();if(force||p.pass_index!==app.passIdx){app.passIdx=p.available?p.pass_index:-1;app.passData=p.available?p:null;strip(p);if(app.ready&&app.passData?.dem)buildElevationDEM(app.passData.dem);if(app.fReady)buildFusionDEM(app.passData?.fusion_dem,app.passData?.fusion_enabled)}}
+let busy=false;async function refresh(force=false){if(busy)return;busy=true;try{const r=await fetch('/stream/status',{cache:'no-store'});if(!r.ok)throw Error(`status HTTP ${r.status}`);const s=await r.json();status(s);const n=s.published??null;if(force||n!==app.lastPub||app.lastSeq<0){app.lastPub=n;await terrain(force)}await passInfo(force)}catch(e){$('pill').className='pill error';txt('service','无法连接 8002 服务');$('error').textContent=String(e.message||e);$('error').classList.remove('hidden')}finally{busy=false}}
+$('refresh').onclick=()=>refresh(true);$('frame').onerror=e=>e.currentTarget.classList.add('hidden');setInterval(refresh,2000);refresh(true);
+let THREE,renderer,scene,camera,controls,group,demMesh,demGridLines,pointCloud,bounds;
+const CMAP_STOPS=[
+  [0.00,[0.13,0.30,0.65]],
+  [0.20,[0.10,0.55,0.80]],
+  [0.40,[0.15,0.68,0.25]],
+  [0.60,[0.82,0.80,0.12]],
+  [0.80,[0.60,0.38,0.18]],
+  [1.00,[0.92,0.90,0.88]],
+];
+function elevColor(t){
+  t=Math.max(0,Math.min(1,t));
+  for(let k=1;k<CMAP_STOPS.length;k++){
+    const [t0,c0]=CMAP_STOPS[k-1],[t1,c1]=CMAP_STOPS[k];
+    if(t<=t1){const f=(t-t0)/(t1-t0||1);return c0.map((v,i)=>v+f*(c1[i]-v))}
+  }
+  return CMAP_STOPS[CMAP_STOPS.length-1][1]
+}
+function percentileOf(vals,p){
+  if(!vals.length)return 0;
+  const s=vals.slice().sort((a,b)=>a-b),pos=Math.max(0,Math.min(s.length-1,Math.round((s.length-1)*p)));
+  return s[pos]
+}
+function disposeObject(obj){
+  if(!obj)return;
+  group.remove(obj);obj.geometry?.dispose?.();
+  if(Array.isArray(obj.material))obj.material.forEach(m=>m.dispose?.());else obj.material?.dispose?.()
+}
+function clearDEM(){disposeObject(demMesh);disposeObject(demGridLines);disposeObject(pointCloud);demMesh=null;demGridLines=null;pointCloud=null;bounds=null}
+function buildPointCloud(pass){
+  const pts=pass?.points,cols=pass?.colors;
+  if(!Array.isArray(pts)||!pts.length)return;
+  const positions=[],colors=[];
+  for(let i=0;i<pts.length;i++){
+    const p=pts[i];if(!Array.isArray(p)||p.length<3||!p.slice(0,3).every(Number.isFinite))continue;
+    positions.push(Number(p[0]),Number(p[1]),Number(p[2]));
+    const c=Array.isArray(cols?.[i])&&cols[i].length>=3?cols[i]:[190,205,215];
+    colors.push(Number(c[0])/255,Number(c[1])/255,Number(c[2])/255)
+  }
+  if(!positions.length)return;
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute("position",new THREE.BufferAttribute(new Float32Array(positions),3));
+  geo.setAttribute("color",new THREE.BufferAttribute(new Float32Array(colors),3));
+  geo.computeBoundingBox();
+  const span=Math.max(Number(pass.x_bounds?.[1])-Number(pass.x_bounds?.[0]),Number(pass.z_bounds?.[1])-Number(pass.z_bounds?.[0]));
+  const size=Math.max(.015,(Number.isFinite(span)?span:1)/450);
+  pointCloud=new THREE.Points(geo,new THREE.PointsMaterial({size,vertexColors:true,sizeAttenuation:true}));
+  pointCloud.visible=app.cloud;pointCloud.renderOrder=2;group.add(pointCloud)
+}
+function buildElevationDEM(dem){
+  clearDEM();
+  const gr=Number(dem?.grid_res),elev=dem?.elev,hasData=dem?.has_data;
+  if(!Number.isInteger(gr)||gr<2||!Array.isArray(elev)||elev.length!==gr||!Array.isArray(hasData)||hasData.length!==gr){
+    $("empty").classList.remove("hidden");return
+  }
+  const filled=elev.map(row=>row.map(Number));
+  const filledMask=hasData.map(row=>row.map(Boolean));
+  for(let pass=0;pass<20;pass++){
+    let changed=false;
+    for(let i=0;i<gr;i++)for(let j=0;j<gr;j++){
+      if(filledMask[i][j])continue;
+      let sum=0,cnt=0;
+      for(let di=-1;di<=1;di++)for(let dj=-1;dj<=1;dj++){
+        if(di===0&&dj===0)continue;
+        const ni=i+di,nj=j+dj;
+        if(ni>=0&&ni<gr&&nj>=0&&nj<gr&&filledMask[ni][nj]&&Number.isFinite(filled[ni][nj])){sum+=filled[ni][nj];cnt++}
+      }
+      if(cnt>0){filled[i][j]=sum/cnt;filledMask[i][j]=true;changed=true}
+    }
+    if(!changed)break
+  }
+  const validVals=[];
+  for(let i=0;i<gr;i++)for(let j=0;j<gr;j++)if(hasData[i][j]&&Number.isFinite(Number(elev[i][j])))validVals.push(Number(elev[i][j]));
+  if(!validVals.length){$("empty").classList.remove("hidden");return}
+  const elevLo=percentileOf(validVals,.02),elevHi=percentileOf(validVals,.98),elevRange=(elevHi-elevLo)||1;
+  const positions=[],colors=[],indices=[];
+  for(let i=0;i<gr;i++)for(let j=0;j<gr;j++){
+    const x=Number(dem.x_min)+j*(Number(dem.x_max)-Number(dem.x_min))/(gr-1);
+    const y=Number.isFinite(filled[i][j])?filled[i][j]:elevLo;
+    const z=Number(dem.z_min)+i*(Number(dem.z_max)-Number(dem.z_min))/(gr-1);
+    positions.push(x,y,z);
+    let c=elevColor((y-elevLo)/elevRange);
+    if(!hasData[i][j])c=c.map(v=>v*.7);
+    colors.push(c[0],c[1],c[2])
+  }
+  for(let i=0;i<gr-1;i++)for(let j=0;j<gr-1;j++){
+    const a=i*gr+j,b=a+1,c=(i+1)*gr+j,d=c+1;indices.push(a,b,c,b,d,c)
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute("position",new THREE.BufferAttribute(new Float32Array(positions),3));
+  geo.setAttribute("color",new THREE.BufferAttribute(new Float32Array(colors),3));
+  geo.setIndex(indices);geo.computeVertexNormals();
+  demMesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:.55,side:THREE.DoubleSide}));
+  group.add(demMesh);
+  const gridPts=[];
+  for(let i=0;i<gr;i++)for(let j=0;j<gr-1;j++){
+    const x0=Number(dem.x_min)+j*(Number(dem.x_max)-Number(dem.x_min))/(gr-1),x1=Number(dem.x_min)+(j+1)*(Number(dem.x_max)-Number(dem.x_min))/(gr-1);
+    const z=Number(dem.z_min)+i*(Number(dem.z_max)-Number(dem.z_min))/(gr-1);
+    gridPts.push(x0,filled[i][j],z,x1,filled[i][j+1],z)
+  }
+  for(let j=0;j<gr;j++)for(let i=0;i<gr-1;i++){
+    const x=Number(dem.x_min)+j*(Number(dem.x_max)-Number(dem.x_min))/(gr-1),z0=Number(dem.z_min)+i*(Number(dem.z_max)-Number(dem.z_min))/(gr-1),z1=Number(dem.z_min)+(i+1)*(Number(dem.z_max)-Number(dem.z_min))/(gr-1);
+    gridPts.push(x,filled[i][j],z0,x,filled[i+1][j],z1)
+  }
+  const gridGeo=new THREE.BufferGeometry();
+  gridGeo.setAttribute("position",new THREE.BufferAttribute(new Float32Array(gridPts),3));
+  demGridLines=new THREE.LineSegments(gridGeo,new THREE.LineBasicMaterial({color:0x000000,transparent:true,opacity:.25}));
+  demGridLines.visible=true;group.add(demGridLines);
+  txt("wire","隐藏网格线");$("wire").setAttribute("aria-pressed","true");
+  txt("lmin",fmt(elevLo)+" m");txt("lmax",fmt(elevHi)+" m");txt("grid",gr+"×"+gr);txt("relief",fmt(elevHi-elevLo)+" m");
+  buildPointCloud(app.passData);
+  bounds=new THREE.Box3().setFromObject(demMesh);
+  if(pointCloud)bounds.union(new THREE.Box3().setFromObject(pointCloud));
+  $("empty").classList.add("hidden");reset()
+}
+function draw(){if(app.ready&&app.passData?.dem)buildElevationDEM(app.passData.dem)}
+function reset(){
+  if(!demMesh||!bounds||bounds.isEmpty())return;
+  const c=new THREE.Vector3(),s=new THREE.Vector3();bounds.getCenter(c);bounds.getSize(s);const span=Math.max(s.x,s.z,Math.max(s.y*3,1));
+  if(app.view==="top"){camera.up.set(0,0,-1);camera.position.set(c.x,c.y+span*1.35,c.z+.001)}else{camera.up.set(0,1,0);camera.position.set(c.x+span*.9,c.y+span*.65,c.z+span*1.05)}
+  controls.target.copy(c);camera.near=Math.max(.001,span/1000);camera.far=Math.max(100,span*20);camera.updateProjectionMatrix();controls.update()
+}
+function view(v){app.view=v;$("v3").classList.toggle("active",v==="3d");$("vt").classList.toggle("active",v==="top");controls.enableRotate=v==="3d";reset()}
+let fRenderer,fScene,fCamera,fControls,fGroup,fMesh,fBounds,fView="3d";
+function clearFusion(){
+  if(fMesh){fGroup.remove(fMesh);fMesh.geometry?.dispose?.();fMesh.material?.dispose?.();fMesh=null}
+  fBounds=null
+}
+function buildFusionDEM(dem,enabled){
+  clearFusion();
+  const empty=$("fusion-empty");
+  if(!enabled||!dem){empty.classList.remove("hidden");empty.querySelector("strong").textContent=enabled?"等待融合 DEM":"当前为单轮覆盖模式";empty.querySelector("span").textContent=enabled?"第一轮融合完成后会自动显示。":"勾选“启用跨轮融合”并重新启动重建。";return}
+  const rows=Number(dem.rows),cols=Number(dem.cols),elev=dem.elev,hasData=dem.has_data,datum=Number(dem.vertical_datum_m)||0;
+  if(!Number.isInteger(rows)||!Number.isInteger(cols)||rows<2||cols<2||!Array.isArray(elev)||elev.length!==rows){empty.classList.remove("hidden");return}
+  const filled=elev.map(row=>row.map(Number)),mask=hasData.map(row=>row.map(Boolean));
+  for(let pass=0;pass<20;pass++){
+    let changed=false,next=filled.map(r=>r.slice()),nextMask=mask.map(r=>r.slice());
+    for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){
+      if(mask[i][j])continue;let sum=0,n=0;
+      for(let di=-1;di<=1;di++)for(let dj=-1;dj<=1;dj++){const a=i+di,b=j+dj;if((di||dj)&&a>=0&&a<rows&&b>=0&&b<cols&&mask[a][b]&&Number.isFinite(filled[a][b])){sum+=filled[a][b];n++}}
+      if(n){next[i][j]=sum/n;nextMask[i][j]=true;changed=true}
+    }
+    for(let i=0;i<rows;i++){filled[i]=next[i];mask[i]=nextMask[i]}if(!changed)break
+  }
+  const vals=[];for(let i=0;i<rows;i++)for(let j=0;j<cols;j++)if(hasData[i][j]&&Number.isFinite(Number(elev[i][j])))vals.push(Number(elev[i][j])-datum);
+  if(!vals.length){empty.classList.remove("hidden");return}
+  const lo=percentileOf(vals,.02),hi=percentileOf(vals,.98),range=(hi-lo)||1,pos=[],color=[],idx=[];
+  for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){
+    const x=Number(dem.x_min)+j*(Number(dem.x_max)-Number(dem.x_min))/Math.max(1,cols-1),y=filled[i][j]-datum,z=Number(dem.z_min)+i*(Number(dem.z_max)-Number(dem.z_min))/Math.max(1,rows-1);
+    pos.push(x,Number.isFinite(y)?y:lo,z);let c=elevColor((y-lo)/range);if(!hasData[i][j])c=c.map(v=>v*.72);color.push(...c)
+  }
+  for(let i=0;i<rows-1;i++)for(let j=0;j<cols-1;j++)if(mask[i][j]&&mask[i][j+1]&&mask[i+1][j]&&mask[i+1][j+1]){const a=i*cols+j,b=a+1,c=(i+1)*cols+j,d=c+1;idx.push(a,b,c,b,d,c)}
+  const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(new Float32Array(pos),3));geo.setAttribute("color",new THREE.BufferAttribute(new Float32Array(color),3));geo.setIndex(idx);geo.computeVertexNormals();
+  fMesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide}));fGroup.add(fMesh);fBounds=new THREE.Box3().setFromObject(fMesh);
+  txt("flmin",fmt(lo)+" m");txt("flmax",fmt(hi)+" m");empty.classList.add("hidden");resetFusion()
+}
+function resetFusion(){
+  if(!fMesh||!fBounds||fBounds.isEmpty())return;const c=new THREE.Vector3(),z=new THREE.Vector3();fBounds.getCenter(c);fBounds.getSize(z);const span=Math.max(z.x,z.z,Math.max(z.y*3,1));
+  if(fView==="top"){fCamera.up.set(0,0,-1);fCamera.position.set(c.x,c.y+span*1.35,c.z+.001)}else{fCamera.up.set(0,1,0);fCamera.position.set(c.x+span*.9,c.y+span*.65,c.z+span*1.05)}
+  fControls.target.copy(c);fCamera.near=Math.max(.001,span/1000);fCamera.far=Math.max(100,span*20);fCamera.updateProjectionMatrix();fControls.update()
+}
+function fusionView(v){fView=v;$("fv3").classList.toggle("active",v==="3d");$("fvt").classList.toggle("active",v==="top");fControls.enableRotate=v==="3d";resetFusion()}
+function initFusion(T,C){
+  const cv=$("fusion-terrain");fRenderer=new T.WebGLRenderer({canvas:cv,antialias:true});fRenderer.setPixelRatio(Math.min(devicePixelRatio,2));fRenderer.outputColorSpace=T.SRGBColorSpace;fRenderer.setClearColor(0x08111a);fScene=new T.Scene();fCamera=new T.PerspectiveCamera(47,1,.01,5000);fControls=new C.OrbitControls(fCamera,cv);fControls.enableDamping=true;fControls.screenSpacePanning=true;fGroup=new T.Group();fScene.add(fGroup);
+  function frame(){const r=cv.getBoundingClientRect(),w=Math.max(1,Math.round(r.width)),h=Math.max(1,Math.round(r.height));if(cv.width!==w||cv.height!==h){fRenderer.setSize(w,h,false);fCamera.aspect=w/h;fCamera.updateProjectionMatrix()}fControls.update();fRenderer.render(fScene,fCamera);requestAnimationFrame(frame)}frame();
+  const ray=new T.Raycaster(),ptr=new T.Vector2();cv.onclick=e=>{if(!fMesh)return;const r=cv.getBoundingClientRect();ptr.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ptr,fCamera);const hit=ray.intersectObject(fMesh,false)[0];if(hit)txt("fusion-probe","X "+fmt(hit.point.x)+" m　Z "+fmt(hit.point.z)+" m　融合高程 "+fmt(hit.point.y)+" m")};
+  app.fReady=true;if(app.passData)buildFusionDEM(app.passData.fusion_dem,app.passData.fusion_enabled)
+}
+$("fv3").onclick=()=>app.fReady&&fusionView("3d");$("fvt").onclick=()=>app.fReady&&fusionView("top");$("freset").onclick=()=>app.fReady&&resetFusion();
+function init(T,C){
+  THREE=T;const cv=$("terrain");renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.setClearColor(0x08111a);
+  scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(47,1,.01,5000);controls=new C.OrbitControls(camera,cv);controls.enableDamping=true;controls.screenSpacePanning=true;group=new THREE.Group();scene.add(group);
+  function frame(){const r=cv.getBoundingClientRect(),w=Math.max(1,Math.round(r.width)),h=Math.max(1,Math.round(r.height));if(cv.width!==w||cv.height!==h){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}controls.update();renderer.render(scene,camera);requestAnimationFrame(frame)}frame();
+  const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();cv.onclick=e=>{if(!demMesh)return;const r=cv.getBoundingClientRect();ptr.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ptr,camera);const hit=ray.intersectObject(demMesh,false)[0];if(hit)txt("probe","X "+fmt(hit.point.x)+" m　Z "+fmt(hit.point.z)+" m　高程 "+fmt(hit.point.y)+" m")};
+  app.ready=true;if(app.passData?.dem)buildElevationDEM(app.passData.dem)
+}
+$("v3").onclick=()=>app.ready&&view("3d");$("vt").onclick=()=>app.ready&&view("top");$("reset").onclick=()=>app.ready&&reset();
+$("cloud").onclick=()=>{app.cloud=!app.cloud;if(pointCloud)pointCloud.visible=app.cloud;$("cloud").setAttribute("aria-pressed",String(app.cloud));txt("cloud",app.cloud?"隐藏点云":"显示点云")};
+$("wire").onclick=()=>{if(!demGridLines)return;demGridLines.visible=!demGridLines.visible;$("wire").setAttribute("aria-pressed",String(demGridLines.visible));txt("wire",demGridLines.visible?"隐藏网格线":"显示网格线")};
+Promise.all([import('three'),import('three/addons/controls/OrbitControls.js')]).then(([T,C])=>{init(T,C);initFusion(T,C)}).catch(e=>{$('empty').innerHTML=`<div><strong>3D 组件加载失败</strong><span>状态面板仍可使用。请检查浏览器能否访问 jsDelivr。<br>${String(e.message||e)}</span></div>`});
+</script>
+</body>
+</html>

@@ -1,0 +1,3231 @@
+{
+  "experiment": {
+    "video": "/home/maomaoyu/WS/vggt_yoloe/scale_test3.mp4",
+    "workspace": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809",
+    "frames": 21,
+    "frame_interval_s": 0.5,
+    "pipeline": "repository offline YOLOE semantic masks + offline VGGT Depthmap and Camera Branch",
+    "point_source": "world_points_from_depth",
+    "primary_confidence_percentile": 50,
+    "dimension_method": "largest semantic component; per-frame robust tabletop; horizontal PCA P2-P98 footprint; object-specific top height percentile; robust temporal fusion"
+  },
+  "scale_calibration": {
+    "known_length_m": 0.15,
+    "method": "unclipped elongated semantic component; median 3D endpoints from 2% mask tails; temporal 3.5-MAD rejection",
+    "n_candidates": 13,
+    "n_accepted": 10,
+    "n_rejected": 3,
+    "scale_m_per_vggt_unit": 0.4085739886360525,
+    "accepted_scale_mean": 0.4094786131297652,
+    "accepted_scale_std": 0.0030260581044583533,
+    "accepted_scale_cv": 0.0073900272381243635,
+    "accepted_scale_min": 0.4057155029108202,
+    "accepted_scale_max": 0.41428997089484454,
+    "ruler_closure_mae_cm": 0.09020689435311322,
+    "ruler_closure_rmse_cm": 0.10956264265763642,
+    "anchors": [
+      {
+        "frame": 0,
+        "time_s": 0.5,
+        "mask_area_px_model": 6005,
+        "mask_aspect": 5.205607469844878,
+        "mask_long_px_model": 179.55116271972656,
+        "length_vggt_units": 0.3628337566754699,
+        "scale_m_per_unit": 0.4134124712496494,
+        "endpoint_world": [
+          [
+            0.11028664845435572,
+            0.13350489585326944,
+            0.9727358885094456
+          ],
+          [
+            -0.248800721517952,
+            0.18361928511261955,
+            0.9866335033683857
+          ]
+        ],
+        "length_after_global_scale_cm": 14.900453179728878,
+        "closure_error_cm": -0.17555648233003396,
+        "accepted_by_temporal_mad": true,
+        "length_after_robust_scale_cm": 14.824443517669966
+      },
+      {
+        "frame": 1,
+        "time_s": 1.0,
+        "mask_area_px_model": 6201,
+        "mask_aspect": 5.151984800349075,
+        "mask_long_px_model": 181.48121643066406,
+        "length_vggt_units": 0.3638501863309077,
+        "scale_m_per_unit": 0.4122575874224805,
+        "endpoint_world": [
+          [
+            0.10933901475040475,
+            0.13585001983008138,
+            0.9710515703307196
+          ],
+          [
+            -0.2506534093411872,
+            0.18585975954256545,
+            0.9881231438840061
+          ]
+        ],
+        "length_after_global_scale_cm": 14.942194782357337,
+        "closure_error_cm": -0.13402781048101353,
+        "accepted_by_temporal_mad": true,
+        "length_after_robust_scale_cm": 14.865972189518986
+      },
+      {
+        "frame": 2,
+        "time_s": 1.5,
+        "mask_area_px_model": 5986,
+        "mask_aspect": 5.32356598653012,
+        "mask_long_px_model": 179.73374938964844,
+        "length_vggt_units": 0.3652577733364669,
+        "scale_m_per_unit": 0.41066887811809416,
+        "endpoint_world": [
+          [
+            0.11047127843366711,
+            0.1319094753546603,
+            0.9723413493206123
+          ],
+          [
+            -0.2516301991131331,
+            0.17728438258878376,
+            0.9877322146189864
+          ]
+        ],
+        "length_after_global_scale_cm": 15.0,
+        "closure_error_cm": -0.07651746675965221,
+        "accepted_by_temporal_mad": true,
+        "length_after_robust_scale_cm": 14.923482533240348
+      },
+      {
+        "frame": 4,
+        "time_s": 2.5,
+        "mask_area_px_model": 5540,
+        "mask_aspect": 5.238270322091586,
+        "mask_long_px_model": 174.08843994140625,
+        "length_vggt_units": 0.3620652454511701,
+        "scale_m_per_unit": 0.41428997089484454,
+        "endpoint_world": [
+          [
+            0.10380775787501761,
+            0.13529647934527533,
+            0.9664626118681467
+          ],
+          [
+            -0.2548618399178477,
+            0.17835360805988487,
+            0.9908233435807572
+          ]
+        ],
+        "length_after_global_scale_cm": 14.868892815498441,
+        "closure_error_cm": -0.20695585195240618,
+        "accepted_by_temporal_mad": true,
+        "length_after_robust_scale_cm": 14.793044148047594
+      },
+      {
+        "frame": 7,
+        "time_s": 4.0,
+        "mask_area_px_model": 4929,
+        "mask_aspect": 4.660063944688561,
+        "mask_long_px_model": 155.32745361328125,
+        "length_vggt_units": 0.3691386284114852,
+        "scale_m_per_unit": 0.4063514042014384,
+        "endpoint_world": [
+          [
+            0.11171230970665391,
+            0.12499342775985234,
+            0.9732216346129932
+          ],
+          [
+            -0.2524677693397521,
+            0.1835044073228227,
+            0.9878045795092631
+          ]
+        ],
+        "length_after_global_scale_cm": 15.159374639979667,
+        "closure_error_cm": 0.08204417697221444,
+        "accepted_by_temporal_mad": true,
+        "length_after_robust_scale_cm": 15.082044176972214
+      },
+      {
+        "frame": 8,
+        "time_s": 4.5,
+        "mask_area_px_model": 4900,
+        "mask_aspect": 4.748454867183902,
+        "mask_long_px_model": 156.34970092773438,
+        "length_vggt_units": 0.3666410856364847,
+        "scale_m_per_unit": 0.4091194519010376,
+        "endpoint_world": [
+          [
+            0.10580562989650133,
+            0.11990598238160022,
+            0.9710467354949635
+          ],
+          [
+            -0.2544012922325558,
+            0.18570078033767468,
+            0.9896935445767021
+          ]
+        ],
+        "length_after_global_scale_cm": 15.056808331033524,
+        "closure_error_cm": -0.019998924364895032,
+        "accepted_by_temporal_mad": true,
+        "length_after_robust_scale_cm": 14.980001075635105
+      },
+      {
+        "frame": 9,
+        "time_s": 5.0,
+        "mask_area_px_model": 4754,
+        "mask_aspect": 4.9836312680192565,
+        "mask_long_px_model": 159.7625732421875,
+        "length_vggt_units": 0.3677118582560899,
+        "scale_m_per_unit": 0.40792810085426656,
+        "endpoint_world": [
+          [
+            0.10465140066991552,
+            0.11793773893331849,
+            0.9696985497117323
+          ],
+          [
+            -0.25488239030194926,
+            0.19278059700396577,
+            0.9882999057742118
+          ]
+        ],
+        "length_after_global_scale_cm": 15.100781630074808,
+        "closure_error_cm": 0.023750059646539867,
+        "accepted_by_temporal_mad": true,
+        "length_after_robust_scale_cm": 15.02375005964654
+      },
+      {
+        "frame": 18,
+        "time_s": 9.5,
+        "mask_area_px_model": 7851,
+        "mask_aspect": 5.213853266267143,
+        "mask_long_px_model": 206.39781188964844,
+        "length_vggt_units": 0.3676213565303742,
+        "scale_m_per_unit": 0.4080285253710674,
+        "endpoint_world": [
+          [
+            -0.24749922486139875,
+            0.18511411274057654,
+            0.9908557524250581
+          ],
+          [
+            0.11588101436382736,
+            0.13116969210782747,
+            0.9770621669431394
+          ]
+        ],
+        "length_after_global_scale_cm": 15.097065005858068,
+        "closure_error_cm": 0.02005239454113017,
+        "accepted_by_temporal_mad": true,
+        "length_after_robust_scale_cm": 15.02005239454113
+      },
+      {
+        "frame": 19,
+        "time_s": 10.0,
+        "mask_area_px_model": 7627,
+        "mask_aspect": 5.36365540072553,
+        "mask_long_px_model": 205.503173828125,
+        "length_vggt_units": 0.3697172006586381,
+        "scale_m_per_unit": 0.4057155029108202,
+        "endpoint_world": [
+          [
+            -0.2523339543087708,
+            0.17543441100464996,
+            0.9920463070597227
+          ],
+          [
+            0.11476503707392594,
+            0.1367995754125193,
+            0.9711540006423965
+          ]
+        ],
+        "length_after_global_scale_cm": 15.18313480154452,
+        "closure_error_cm": 0.10568313404555596,
+        "accepted_by_temporal_mad": true,
+        "length_after_robust_scale_cm": 15.105683134045556
+      },
+      {
+        "frame": 20,
+        "time_s": 10.5,
+        "mask_area_px_model": 6550,
+        "mask_aspect": 5.456539535348319,
+        "mask_long_px_model": 191.649169921875,
+        "length_vggt_units": 0.36853747573858703,
+        "scale_m_per_unit": 0.4070142383739525,
+        "endpoint_world": [
+          [
+            -0.25342211027803785,
+            0.17352878045260844,
+            0.9924268032244319
+          ],
+          [
+            0.11211960198859927,
+            0.13245250280997123,
+            0.9698023246233749
+          ]
+        ],
+        "length_after_global_scale_cm": 15.13468717060399,
+        "closure_error_cm": 0.057482642437690856,
+        "accepted_by_temporal_mad": true,
+        "length_after_robust_scale_cm": 15.05748264243769
+      }
+    ],
+    "rejected_anchors": [
+      {
+        "frame": 3,
+        "time_s": 2.0,
+        "mask_area_px_model": 3475,
+        "mask_aspect": 5.890221387033053,
+        "mask_long_px_model": 151.3208465576172,
+        "length_vggt_units": 0.30455887329342346,
+        "scale_m_per_unit": 0.4925156124263842,
+        "endpoint_world": [
+          [
+            0.050375900137048873,
+            0.1589119628717297,
+            0.9687031315237835
+          ],
+          [
+            -0.2528658401911217,
+            0.1778969589117434,
+            0.9896822675847048
+          ]
+        ],
+        "length_after_global_scale_cm": 12.5072850816321,
+        "closure_error_cm": -2.4927149183679003,
+        "accepted_by_temporal_mad": false
+      },
+      {
+        "frame": 5,
+        "time_s": 3.0,
+        "mask_area_px_model": 4563,
+        "mask_aspect": 3.7155819018145193,
+        "mask_long_px_model": 161.99205017089844,
+        "length_vggt_units": 0.31751273396191554,
+        "scale_m_per_unit": 0.4724219974685864,
+        "endpoint_world": [
+          [
+            0.0786512044805896,
+            0.10637874132216263,
+            0.9793422717037037
+          ],
+          [
+            -0.22447026773536094,
+            0.2008295706621861,
+            0.9826210133200308
+          ]
+        ],
+        "length_after_global_scale_cm": 13.039259824434875,
+        "closure_error_cm": -1.9607401755651246,
+        "accepted_by_temporal_mad": false
+      },
+      {
+        "frame": 10,
+        "time_s": 5.5,
+        "mask_area_px_model": 4799,
+        "mask_aspect": 5.032466247004829,
+        "mask_long_px_model": 160.0,
+        "length_vggt_units": 0.34914578027950843,
+        "scale_m_per_unit": 0.42961997100442567,
+        "endpoint_world": [
+          [
+            0.09021198825560761,
+            0.13796326761973277,
+            0.9561277998989082
+          ],
+          [
+            -0.25493870116736184,
+            0.18008248452402875,
+            0.9877466083078998
+          ]
+        ],
+        "length_after_global_scale_cm": 14.338330588705233,
+        "closure_error_cm": -0.661669411294767,
+        "accepted_by_temporal_mad": false
+      }
+    ],
+    "raw_calibration": {
+      "n_anchors": 13,
+      "scale_cv": 0.06565259211681011,
+      "scale_min": 0.4057155029108202,
+      "scale_max": 0.4925156124263842
+    }
+  },
+  "ground_alignment": {
+    "source": "trajectory",
+    "warnings": [],
+    "selection_reason": null,
+    "ground_debug": {
+      "ground_pts_total": 463974,
+      "ground_inliers": 463974,
+      "ground_inlier_ratio": 1.0
+    },
+    "local_plane_valid_frames": 21,
+    "local_plane_span_median_mm": 1.1274906552740414,
+    "local_plane_rmse_median_mm": 0.32424500092637476,
+    "local_normal_deviation_median_deg": 2.828181534382696,
+    "per_frame": [
+      {
+        "frame": 0,
+        "normal_vs_global_deg": 2.7560274941310334,
+        "table_p2_p98_span_mm": 0.7624848605182227,
+        "table_rmse_mm": 0.20954949404565448
+      },
+      {
+        "frame": 1,
+        "normal_vs_global_deg": 2.658169774215319,
+        "table_p2_p98_span_mm": 0.9294675665955446,
+        "table_rmse_mm": 0.2582159916772118
+      },
+      {
+        "frame": 2,
+        "normal_vs_global_deg": 2.3090105720664558,
+        "table_p2_p98_span_mm": 0.7440515200980024,
+        "table_rmse_mm": 0.19325849064747702
+      },
+      {
+        "frame": 3,
+        "normal_vs_global_deg": 2.436939310721286,
+        "table_p2_p98_span_mm": 0.9519974990956437,
+        "table_rmse_mm": 0.26317999145833343
+      },
+      {
+        "frame": 4,
+        "normal_vs_global_deg": 2.9809187095252887,
+        "table_p2_p98_span_mm": 1.3264250130546524,
+        "table_rmse_mm": 0.3627038512963453
+      },
+      {
+        "frame": 5,
+        "normal_vs_global_deg": 3.4291186976299723,
+        "table_p2_p98_span_mm": 1.211380432907161,
+        "table_rmse_mm": 0.3365846778029667
+      },
+      {
+        "frame": 6,
+        "normal_vs_global_deg": 3.1121767246046366,
+        "table_p2_p98_span_mm": 1.291677917646454,
+        "table_rmse_mm": 0.37630187220541944
+      },
+      {
+        "frame": 7,
+        "normal_vs_global_deg": 2.7555704830968475,
+        "table_p2_p98_span_mm": 1.3003837757501904,
+        "table_rmse_mm": 0.35569038447333173
+      },
+      {
+        "frame": 8,
+        "normal_vs_global_deg": 3.432997459061676,
+        "table_p2_p98_span_mm": 1.0238484400785022,
+        "table_rmse_mm": 0.263729014578903
+      },
+      {
+        "frame": 9,
+        "normal_vs_global_deg": 3.32991733786898,
+        "table_p2_p98_span_mm": 1.1274906552740414,
+        "table_rmse_mm": 0.32424500092637476
+      },
+      {
+        "frame": 10,
+        "normal_vs_global_deg": 2.828181534382696,
+        "table_p2_p98_span_mm": 1.213658670248295,
+        "table_rmse_mm": 0.32736202751202725
+      },
+      {
+        "frame": 11,
+        "normal_vs_global_deg": 3.4970496179851156,
+        "table_p2_p98_span_mm": 1.4673142440672873,
+        "table_rmse_mm": 0.39780540105435785
+      },
+      {
+        "frame": 12,
+        "normal_vs_global_deg": 2.635994386971236,
+        "table_p2_p98_span_mm": 1.6415083408008584,
+        "table_rmse_mm": 0.43225063505550937
+      },
+      {
+        "frame": 13,
+        "normal_vs_global_deg": 2.780148345033064,
+        "table_p2_p98_span_mm": 1.7860559648312913,
+        "table_rmse_mm": 0.5276125748953419
+      },
+      {
+        "frame": 14,
+        "normal_vs_global_deg": 2.7622187834543626,
+        "table_p2_p98_span_mm": 1.021142077529101,
+        "table_rmse_mm": 0.2731091725460039
+      },
+      {
+        "frame": 15,
+        "normal_vs_global_deg": 2.6920508344220013,
+        "table_p2_p98_span_mm": 1.184756685484176,
+        "table_rmse_mm": 0.33830918693912015
+      },
+      {
+        "frame": 16,
+        "normal_vs_global_deg": 2.59133767728749,
+        "table_p2_p98_span_mm": 1.575495110694657,
+        "table_rmse_mm": 0.4467175547126875
+      },
+      {
+        "frame": 17,
+        "normal_vs_global_deg": 3.0086601241483373,
+        "table_p2_p98_span_mm": 0.573822425120289,
+        "table_rmse_mm": 0.14433670407486276
+      },
+      {
+        "frame": 18,
+        "normal_vs_global_deg": 3.4560662113229563,
+        "table_p2_p98_span_mm": 0.8753249597917927,
+        "table_rmse_mm": 0.2114189837416177
+      },
+      {
+        "frame": 19,
+        "normal_vs_global_deg": 2.8463770038914187,
+        "table_p2_p98_span_mm": 0.5700869772088306,
+        "table_rmse_mm": 0.1497494012870354
+      },
+      {
+        "frame": 20,
+        "normal_vs_global_deg": 3.066253484792527,
+        "table_p2_p98_span_mm": 0.6512091768451367,
+        "table_rmse_mm": 0.18481363780631657
+      }
+    ]
+  },
+  "objects": {
+    "3": {
+      "name": "red rectangular box",
+      "height_percentile": 95.0,
+      "n_raw_frames": 14,
+      "n_selected_frames": 13,
+      "dimensions_cm": {
+        "length": {
+          "median": 10.804786384227285,
+          "q25": 10.72746541479345,
+          "q75": 10.852663646155118,
+          "min": 10.581278056176817,
+          "max": 10.901686062816525,
+          "cv": 0.008548961240808624
+        },
+        "width": {
+          "median": 7.997736328337907,
+          "q25": 7.819834897495445,
+          "q75": 8.220308245927868,
+          "min": 7.714292737324866,
+          "max": 8.468860041231698,
+          "cv": 0.03125068393858576
+        },
+        "height": {
+          "median": 4.683813615905287,
+          "q25": 4.65183128469083,
+          "q75": 4.695462847756555,
+          "min": 4.612409782451365,
+          "max": 4.831792368044216,
+          "cv": 0.011249976631025869
+        }
+      },
+      "selected_frames": [
+        {
+          "frame": 0,
+          "time_s": 0.5,
+          "semantic_pixels_model": 13288,
+          "bbox_model": [
+            90,
+            48,
+            110,
+            140
+          ],
+          "point_count": 10018,
+          "positive_height_fraction": 0.9994029256642452,
+          "table_rmse_mm": 0.20954949404565448,
+          "length_cm": 10.706256252742815,
+          "width_cm": 7.997736328337907,
+          "height_cm": 4.712266773783698,
+          "robust_dimension_score": 0.2948547213211228,
+          "selected": true
+        },
+        {
+          "frame": 1,
+          "time_s": 1.0,
+          "semantic_pixels_model": 13086,
+          "bbox_model": [
+            86,
+            54,
+            117,
+            147
+          ],
+          "point_count": 7458,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.2582159916772118,
+          "length_cm": 10.72746541479345,
+          "width_cm": 7.851975406910823,
+          "height_cm": 4.645988024044298,
+          "robust_dimension_score": 0.3527003234515913,
+          "selected": true
+        },
+        {
+          "frame": 2,
+          "time_s": 1.5,
+          "semantic_pixels_model": 12522,
+          "bbox_model": [
+            102,
+            54,
+            133,
+            147
+          ],
+          "point_count": 7735,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.19325849064747702,
+          "length_cm": 10.804786384227285,
+          "width_cm": 7.819834897495445,
+          "height_cm": 4.612409782451365,
+          "robust_dimension_score": 0.6428445969700025,
+          "selected": true
+        },
+        {
+          "frame": 3,
+          "time_s": 2.0,
+          "semantic_pixels_model": 12771,
+          "bbox_model": [
+            93,
+            74,
+            146,
+            144
+          ],
+          "point_count": 10099,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.26317999145833343,
+          "length_cm": 10.739077628470463,
+          "width_cm": 7.761737346571011,
+          "height_cm": 4.690459144059009,
+          "robust_dimension_score": 0.6190026327401537,
+          "selected": true
+        },
+        {
+          "frame": 4,
+          "time_s": 2.5,
+          "semantic_pixels_model": 14089,
+          "bbox_model": [
+            97,
+            61,
+            157,
+            135
+          ],
+          "point_count": 7205,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.3627038512963453,
+          "length_cm": 10.852663646155118,
+          "width_cm": 8.014485715133484,
+          "height_cm": 4.638503779805761,
+          "robust_dimension_score": 0.4171884700749384,
+          "selected": true
+        },
+        {
+          "frame": 5,
+          "time_s": 3.0,
+          "semantic_pixels_model": 15748,
+          "bbox_model": [
+            119,
+            90,
+            156,
+            122
+          ],
+          "point_count": 8713,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.3365846778029667,
+          "length_cm": 10.87612678135758,
+          "width_cm": 8.314715155601112,
+          "height_cm": 4.831792368044216,
+          "robust_dimension_score": 1.4232123773665406,
+          "selected": true
+        },
+        {
+          "frame": 6,
+          "time_s": 3.5,
+          "semantic_pixels_model": 16385,
+          "bbox_model": [
+            125,
+            87,
+            157,
+            134
+          ],
+          "point_count": 6745,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.37630187220541944,
+          "length_cm": 10.889157724387973,
+          "width_cm": 8.468860041231698,
+          "height_cm": 4.670556708919643,
+          "robust_dimension_score": 1.968303953324473,
+          "selected": true
+        },
+        {
+          "frame": 7,
+          "time_s": 4.0,
+          "semantic_pixels_model": 16248,
+          "bbox_model": [
+            132,
+            100,
+            161,
+            156
+          ],
+          "point_count": 9598,
+          "positive_height_fraction": 0.9993767528825179,
+          "table_rmse_mm": 0.35569038447333173,
+          "length_cm": 10.581278056176817,
+          "width_cm": 7.853610950844571,
+          "height_cm": 4.691594702268442,
+          "robust_dimension_score": 0.7645366702168666,
+          "selected": true
+        },
+        {
+          "frame": 8,
+          "time_s": 4.5,
+          "semantic_pixels_model": 15759,
+          "bbox_model": [
+            151,
+            123,
+            154,
+            162
+          ],
+          "point_count": 7558,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.263729014578903,
+          "length_cm": 10.715018035489196,
+          "width_cm": 8.313332594443853,
+          "height_cm": 4.683813615905287,
+          "robust_dimension_score": 1.4182777347275461,
+          "selected": true
+        },
+        {
+          "frame": 9,
+          "time_s": 5.0,
+          "semantic_pixels_model": 14601,
+          "bbox_model": [
+            206,
+            97,
+            135,
+            156
+          ],
+          "point_count": 7944,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.32424500092637476,
+          "length_cm": 10.826759819992402,
+          "width_cm": 8.220308245927868,
+          "height_cm": 4.695462847756555,
+          "robust_dimension_score": 1.0843554998323124,
+          "selected": true
+        },
+        {
+          "frame": 10,
+          "time_s": 5.5,
+          "semantic_pixels_model": 15757,
+          "bbox_model": [
+            271,
+            58,
+            121,
+            155
+          ],
+          "point_count": 12095,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.32736202751202725,
+          "length_cm": 10.850419439927226,
+          "width_cm": 7.732764274485827,
+          "height_cm": 4.65183128469083,
+          "robust_dimension_score": 0.7299788862130367,
+          "selected": true
+        },
+        {
+          "frame": 11,
+          "time_s": 6.0,
+          "semantic_pixels_model": 16148,
+          "bbox_model": [
+            303,
+            38,
+            123,
+            158
+          ],
+          "point_count": 12114,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.39780540105435785,
+          "length_cm": 10.766183351754323,
+          "width_cm": 7.714292737324866,
+          "height_cm": 4.709289386994906,
+          "robust_dimension_score": 0.8009481194821457,
+          "selected": true
+        },
+        {
+          "frame": 20,
+          "time_s": 10.5,
+          "semantic_pixels_model": 12691,
+          "bbox_model": [
+            203,
+            2,
+            147,
+            115
+          ],
+          "point_count": 6409,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.18481363780631657,
+          "length_cm": 10.901686062816525,
+          "width_cm": 8.010718557599015,
+          "height_cm": 4.680106183482807,
+          "robust_dimension_score": 0.4287130713690068,
+          "selected": true
+        }
+      ],
+      "rejected_frames": [
+        {
+          "frame": 18,
+          "time_s": 9.5,
+          "semantic_pixels_model": 7728,
+          "bbox_model": [
+            203,
+            2,
+            158,
+            61
+          ],
+          "point_count": 1891,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.2114189837416177,
+          "length_cm": 10.674647487930757,
+          "width_cm": 3.8687072754009533,
+          "height_cm": 4.751326832747544,
+          "robust_dimension_score": 21.28089752554286,
+          "selected": false
+        }
+      ]
+    },
+    "4": {
+      "name": "red bottle",
+      "height_percentile": 98.5,
+      "n_raw_frames": 13,
+      "n_selected_frames": 5,
+      "dimensions_cm": {
+        "length": {
+          "median": 8.102834945398698,
+          "q25": 7.999327526066646,
+          "q75": 8.220529372510537,
+          "min": 7.688393043901064,
+          "max": 8.36527128938261,
+          "cv": 0.031656817607167036
+        },
+        "width": {
+          "median": 7.616105202944827,
+          "q25": 6.9794904395834685,
+          "q75": 7.748130808390402,
+          "min": 6.598231205972933,
+          "max": 8.023174775085169,
+          "cv": 0.07932380875721393
+        },
+        "height": {
+          "median": 20.242982805760082,
+          "q25": 20.220332657008345,
+          "q75": 20.443009925437128,
+          "min": 19.227581184062082,
+          "max": 20.573134602692217,
+          "cv": 0.02637684393448236
+        }
+      },
+      "selected_frames": [
+        {
+          "frame": 9,
+          "time_s": 5.0,
+          "semantic_pixels_model": 19352,
+          "bbox_model": [
+            12,
+            2,
+            197,
+            160
+          ],
+          "point_count": 16670,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.32424500092637476,
+          "length_cm": 8.36527128938261,
+          "width_cm": 6.598231205972933,
+          "height_cm": 19.227581184062082,
+          "footprint_compactness": 0.7887647606058582,
+          "robust_dimension_score": 2.1158303315535676,
+          "selected": true
+        },
+        {
+          "frame": 16,
+          "time_s": 8.5,
+          "semantic_pixels_model": 27256,
+          "bbox_model": [
+            158,
+            2,
+            178,
+            209
+          ],
+          "point_count": 14745,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.4467175547126875,
+          "length_cm": 7.688393043901064,
+          "width_cm": 6.9794904395834685,
+          "height_cm": 20.242982805760082,
+          "footprint_compactness": 0.9077957382941103,
+          "robust_dimension_score": 1.800776889228503,
+          "selected": true
+        },
+        {
+          "frame": 17,
+          "time_s": 9.0,
+          "semantic_pixels_model": 38122,
+          "bbox_model": [
+            222,
+            5,
+            237,
+            219
+          ],
+          "point_count": 29177,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.14433670407486276,
+          "length_cm": 7.999327526066646,
+          "width_cm": 7.616105202944827,
+          "height_cm": 20.220332657008345,
+          "footprint_compactness": 0.9520931825990311,
+          "robust_dimension_score": 0.6051641650446328,
+          "selected": true
+        },
+        {
+          "frame": 19,
+          "time_s": 10.0,
+          "semantic_pixels_model": 32715,
+          "bbox_model": [
+            245,
+            97,
+            259,
+            180
+          ],
+          "point_count": 31682,
+          "positive_height_fraction": 0.9993710296245046,
+          "table_rmse_mm": 0.1497494012870354,
+          "length_cm": 8.102834945398698,
+          "width_cm": 7.748130808390402,
+          "height_cm": 20.573134602692217,
+          "footprint_compactness": 0.9562246868659569,
+          "robust_dimension_score": 0.6695057518145653,
+          "selected": true
+        },
+        {
+          "frame": 20,
+          "time_s": 10.5,
+          "semantic_pixels_model": 26817,
+          "bbox_model": [
+            264,
+            116,
+            250,
+            154
+          ],
+          "point_count": 26177,
+          "positive_height_fraction": 0.9998096035946842,
+          "table_rmse_mm": 0.18481363780631657,
+          "length_cm": 8.220529372510537,
+          "width_cm": 8.023174775085169,
+          "height_cm": 20.443009925437128,
+          "footprint_compactness": 0.9759924709854668,
+          "robust_dimension_score": 0.6049549206263014,
+          "selected": true
+        }
+      ],
+      "rejected_frames": [
+        {
+          "frame": 3,
+          "time_s": 2.0,
+          "semantic_pixels_model": 10148,
+          "bbox_model": [
+            193,
+            2,
+            139,
+            105
+          ],
+          "point_count": 10103,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.26317999145833343,
+          "length_cm": 8.304371608313065,
+          "width_cm": 3.4763496733628565,
+          "height_cm": 15.235114223139448,
+          "footprint_compactness": 0.41861682464725775,
+          "selected": false,
+          "rejection_reason": "incomplete bottle footprint (minor/major < 0.72)"
+        },
+        {
+          "frame": 4,
+          "time_s": 2.5,
+          "semantic_pixels_model": 4583,
+          "bbox_model": [
+            196,
+            2,
+            111,
+            62
+          ],
+          "point_count": 4568,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.3627038512963453,
+          "length_cm": 7.526649211767006,
+          "width_cm": 2.9393180907824514,
+          "height_cm": 9.462495322559047,
+          "footprint_compactness": 0.39052146686830885,
+          "selected": false,
+          "rejection_reason": "incomplete bottle footprint (minor/major < 0.72)"
+        },
+        {
+          "frame": 5,
+          "time_s": 3.0,
+          "semantic_pixels_model": 5164,
+          "bbox_model": [
+            180,
+            2,
+            110,
+            65
+          ],
+          "point_count": 5146,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.3365846778029667,
+          "length_cm": 6.933144205379167,
+          "width_cm": 3.2310162244253258,
+          "height_cm": 10.102346642628293,
+          "footprint_compactness": 0.46602466769961326,
+          "selected": false,
+          "rejection_reason": "incomplete bottle footprint (minor/major < 0.72)"
+        },
+        {
+          "frame": 7,
+          "time_s": 4.0,
+          "semantic_pixels_model": 9590,
+          "bbox_model": [
+            67,
+            2,
+            139,
+            111
+          ],
+          "point_count": 9553,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.35569038447333173,
+          "length_cm": 6.2538003434786935,
+          "width_cm": 1.476884979016568,
+          "height_cm": 15.099545418442442,
+          "footprint_compactness": 0.2361579996004552,
+          "selected": false,
+          "rejection_reason": "incomplete bottle footprint (minor/major < 0.72)"
+        },
+        {
+          "frame": 12,
+          "time_s": 6.5,
+          "semantic_pixels_model": 15912,
+          "bbox_model": [
+            60,
+            2,
+            185,
+            118
+          ],
+          "point_count": 12189,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.43225063505550937,
+          "length_cm": 8.33954214810244,
+          "width_cm": 5.140972451115918,
+          "height_cm": 15.66535091763906,
+          "footprint_compactness": 0.6164573977584228,
+          "selected": false,
+          "rejection_reason": "incomplete bottle footprint (minor/major < 0.72)"
+        },
+        {
+          "frame": 14,
+          "time_s": 7.5,
+          "semantic_pixels_model": 28100,
+          "bbox_model": [
+            70,
+            2,
+            198,
+            180
+          ],
+          "point_count": 18972,
+          "positive_height_fraction": 0.999947451392538,
+          "table_rmse_mm": 0.2731091725460039,
+          "length_cm": 8.320742843794056,
+          "width_cm": 5.743809037278455,
+          "height_cm": 20.321696016248858,
+          "footprint_compactness": 0.6903000303106853,
+          "selected": false,
+          "rejection_reason": "incomplete bottle footprint (minor/major < 0.72)"
+        },
+        {
+          "frame": 15,
+          "time_s": 8.0,
+          "semantic_pixels_model": 34433,
+          "bbox_model": [
+            128,
+            2,
+            301,
+            216
+          ],
+          "point_count": 14858,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.33830918693912015,
+          "length_cm": 17.925723437830964,
+          "width_cm": 8.504335296715094,
+          "height_cm": 20.201501384699746,
+          "footprint_compactness": 0.4744207577568278,
+          "selected": false,
+          "rejection_reason": "incomplete bottle footprint (minor/major < 0.72)"
+        },
+        {
+          "frame": 0,
+          "time_s": 0.5,
+          "semantic_pixels_model": 19850,
+          "bbox_model": [
+            209,
+            2,
+            149,
+            157
+          ],
+          "point_count": 18802,
+          "positive_height_fraction": 1.0,
+          "table_rmse_mm": 0.20954949404565448,
+          "length_cm": 8.448471219189745,
+          "width_cm": 8.103764917972452,
+          "height_cm": 18.304319005443027,
+          "footprint_compactness": 0.9591989731308628,
+          "robust_dimension_score": 4.00445568537851,
+          "selected": false
+        }
+      ]
+    }
+  },
+  "confidence_sensitivity": {
+    "global_thresholds": {
+      "50": 1.703656554222107,
+      "70": 6.120044708251953,
+      "78": 7.690077304840088,
+      "85": 8.650434494018555
+    },
+    "variants": {
+      "50": {
+        "3": {
+          "name": "red rectangular box",
+          "height_percentile": 95.0,
+          "n_raw_frames": 14,
+          "n_selected_frames": 13,
+          "dimensions_cm": {
+            "length": {
+              "median": 10.804786384227285,
+              "q25": 10.72746541479345,
+              "q75": 10.852663646155118,
+              "min": 10.581278056176817,
+              "max": 10.901686062816525,
+              "cv": 0.008548961240808624
+            },
+            "width": {
+              "median": 7.997736328337907,
+              "q25": 7.819834897495445,
+              "q75": 8.220308245927868,
+              "min": 7.714292737324866,
+              "max": 8.468860041231698,
+              "cv": 0.03125068393858576
+            },
+            "height": {
+              "median": 4.683813615905287,
+              "q25": 4.65183128469083,
+              "q75": 4.695462847756555,
+              "min": 4.612409782451365,
+              "max": 4.831792368044216,
+              "cv": 0.011249976631025869
+            }
+          },
+          "selected_frames": [
+            {
+              "frame": 0,
+              "time_s": 0.5,
+              "semantic_pixels_model": 13288,
+              "bbox_model": [
+                90,
+                48,
+                110,
+                140
+              ],
+              "point_count": 10018,
+              "positive_height_fraction": 0.9994029256642452,
+              "table_rmse_mm": 0.20954949404565448,
+              "length_cm": 10.706256252742815,
+              "width_cm": 7.997736328337907,
+              "height_cm": 4.712266773783698,
+              "robust_dimension_score": 0.2948547213211228,
+              "selected": true
+            },
+            {
+              "frame": 1,
+              "time_s": 1.0,
+              "semantic_pixels_model": 13086,
+              "bbox_model": [
+                86,
+                54,
+                117,
+                147
+              ],
+              "point_count": 7458,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.2582159916772118,
+              "length_cm": 10.72746541479345,
+              "width_cm": 7.851975406910823,
+              "height_cm": 4.645988024044298,
+              "robust_dimension_score": 0.3527003234515913,
+              "selected": true
+            },
+            {
+              "frame": 2,
+              "time_s": 1.5,
+              "semantic_pixels_model": 12522,
+              "bbox_model": [
+                102,
+                54,
+                133,
+                147
+              ],
+              "point_count": 7735,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.19325849064747702,
+              "length_cm": 10.804786384227285,
+              "width_cm": 7.819834897495445,
+              "height_cm": 4.612409782451365,
+              "robust_dimension_score": 0.6428445969700025,
+              "selected": true
+            },
+            {
+              "frame": 3,
+              "time_s": 2.0,
+              "semantic_pixels_model": 12771,
+              "bbox_model": [
+                93,
+                74,
+                146,
+                144
+              ],
+              "point_count": 10099,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.26317999145833343,
+              "length_cm": 10.739077628470463,
+              "width_cm": 7.761737346571011,
+              "height_cm": 4.690459144059009,
+              "robust_dimension_score": 0.6190026327401537,
+              "selected": true
+            },
+            {
+              "frame": 4,
+              "time_s": 2.5,
+              "semantic_pixels_model": 14089,
+              "bbox_model": [
+                97,
+                61,
+                157,
+                135
+              ],
+              "point_count": 7205,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.3627038512963453,
+              "length_cm": 10.852663646155118,
+              "width_cm": 8.014485715133484,
+              "height_cm": 4.638503779805761,
+              "robust_dimension_score": 0.4171884700749384,
+              "selected": true
+            },
+            {
+              "frame": 5,
+              "time_s": 3.0,
+              "semantic_pixels_model": 15748,
+              "bbox_model": [
+                119,
+                90,
+                156,
+                122
+              ],
+              "point_count": 8713,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.3365846778029667,
+              "length_cm": 10.87612678135758,
+              "width_cm": 8.314715155601112,
+              "height_cm": 4.831792368044216,
+              "robust_dimension_score": 1.4232123773665406,
+              "selected": true
+            },
+            {
+              "frame": 6,
+              "time_s": 3.5,
+              "semantic_pixels_model": 16385,
+              "bbox_model": [
+                125,
+                87,
+                157,
+                134
+              ],
+              "point_count": 6745,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.37630187220541944,
+              "length_cm": 10.889157724387973,
+              "width_cm": 8.468860041231698,
+              "height_cm": 4.670556708919643,
+              "robust_dimension_score": 1.968303953324473,
+              "selected": true
+            },
+            {
+              "frame": 7,
+              "time_s": 4.0,
+              "semantic_pixels_model": 16248,
+              "bbox_model": [
+                132,
+                100,
+                161,
+                156
+              ],
+              "point_count": 9598,
+              "positive_height_fraction": 0.9993767528825179,
+              "table_rmse_mm": 0.35569038447333173,
+              "length_cm": 10.581278056176817,
+              "width_cm": 7.853610950844571,
+              "height_cm": 4.691594702268442,
+              "robust_dimension_score": 0.7645366702168666,
+              "selected": true
+            },
+            {
+              "frame": 8,
+              "time_s": 4.5,
+              "semantic_pixels_model": 15759,
+              "bbox_model": [
+                151,
+                123,
+                154,
+                162
+              ],
+              "point_count": 7558,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.263729014578903,
+              "length_cm": 10.715018035489196,
+              "width_cm": 8.313332594443853,
+              "height_cm": 4.683813615905287,
+              "robust_dimension_score": 1.4182777347275461,
+              "selected": true
+            },
+            {
+              "frame": 9,
+              "time_s": 5.0,
+              "semantic_pixels_model": 14601,
+              "bbox_model": [
+                206,
+                97,
+                135,
+                156
+              ],
+              "point_count": 7944,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.32424500092637476,
+              "length_cm": 10.826759819992402,
+              "width_cm": 8.220308245927868,
+              "height_cm": 4.695462847756555,
+              "robust_dimension_score": 1.0843554998323124,
+              "selected": true
+            },
+            {
+              "frame": 10,
+              "time_s": 5.5,
+              "semantic_pixels_model": 15757,
+              "bbox_model": [
+                271,
+                58,
+                121,
+                155
+              ],
+              "point_count": 12095,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.32736202751202725,
+              "length_cm": 10.850419439927226,
+              "width_cm": 7.732764274485827,
+              "height_cm": 4.65183128469083,
+              "robust_dimension_score": 0.7299788862130367,
+              "selected": true
+            },
+            {
+              "frame": 11,
+              "time_s": 6.0,
+              "semantic_pixels_model": 16148,
+              "bbox_model": [
+                303,
+                38,
+                123,
+                158
+              ],
+              "point_count": 12114,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.39780540105435785,
+              "length_cm": 10.766183351754323,
+              "width_cm": 7.714292737324866,
+              "height_cm": 4.709289386994906,
+              "robust_dimension_score": 0.8009481194821457,
+              "selected": true
+            },
+            {
+              "frame": 20,
+              "time_s": 10.5,
+              "semantic_pixels_model": 12691,
+              "bbox_model": [
+                203,
+                2,
+                147,
+                115
+              ],
+              "point_count": 6409,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.18481363780631657,
+              "length_cm": 10.901686062816525,
+              "width_cm": 8.010718557599015,
+              "height_cm": 4.680106183482807,
+              "robust_dimension_score": 0.4287130713690068,
+              "selected": true
+            }
+          ],
+          "rejected_frames": [
+            {
+              "frame": 18,
+              "time_s": 9.5,
+              "semantic_pixels_model": 7728,
+              "bbox_model": [
+                203,
+                2,
+                158,
+                61
+              ],
+              "point_count": 1891,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.2114189837416177,
+              "length_cm": 10.674647487930757,
+              "width_cm": 3.8687072754009533,
+              "height_cm": 4.751326832747544,
+              "robust_dimension_score": 21.28089752554286,
+              "selected": false
+            }
+          ]
+        },
+        "4": {
+          "name": "red bottle",
+          "height_percentile": 98.5,
+          "n_raw_frames": 13,
+          "n_selected_frames": 5,
+          "dimensions_cm": {
+            "length": {
+              "median": 8.102834945398698,
+              "q25": 7.999327526066646,
+              "q75": 8.220529372510537,
+              "min": 7.688393043901064,
+              "max": 8.36527128938261,
+              "cv": 0.031656817607167036
+            },
+            "width": {
+              "median": 7.616105202944827,
+              "q25": 6.9794904395834685,
+              "q75": 7.748130808390402,
+              "min": 6.598231205972933,
+              "max": 8.023174775085169,
+              "cv": 0.07932380875721393
+            },
+            "height": {
+              "median": 20.242982805760082,
+              "q25": 20.220332657008345,
+              "q75": 20.443009925437128,
+              "min": 19.227581184062082,
+              "max": 20.573134602692217,
+              "cv": 0.02637684393448236
+            }
+          },
+          "selected_frames": [
+            {
+              "frame": 9,
+              "time_s": 5.0,
+              "semantic_pixels_model": 19352,
+              "bbox_model": [
+                12,
+                2,
+                197,
+                160
+              ],
+              "point_count": 16670,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.32424500092637476,
+              "length_cm": 8.36527128938261,
+              "width_cm": 6.598231205972933,
+              "height_cm": 19.227581184062082,
+              "footprint_compactness": 0.7887647606058582,
+              "robust_dimension_score": 2.1158303315535676,
+              "selected": true
+            },
+            {
+              "frame": 16,
+              "time_s": 8.5,
+              "semantic_pixels_model": 27256,
+              "bbox_model": [
+                158,
+                2,
+                178,
+                209
+              ],
+              "point_count": 14745,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.4467175547126875,
+              "length_cm": 7.688393043901064,
+              "width_cm": 6.9794904395834685,
+              "height_cm": 20.242982805760082,
+              "footprint_compactness": 0.9077957382941103,
+              "robust_dimension_score": 1.800776889228503,
+              "selected": true
+            },
+            {
+              "frame": 17,
+              "time_s": 9.0,
+              "semantic_pixels_model": 38122,
+              "bbox_model": [
+                222,
+                5,
+                237,
+                219
+              ],
+              "point_count": 29177,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.14433670407486276,
+              "length_cm": 7.999327526066646,
+              "width_cm": 7.616105202944827,
+              "height_cm": 20.220332657008345,
+              "footprint_compactness": 0.9520931825990311,
+              "robust_dimension_score": 0.6051641650446328,
+              "selected": true
+            },
+            {
+              "frame": 19,
+              "time_s": 10.0,
+              "semantic_pixels_model": 32715,
+              "bbox_model": [
+                245,
+                97,
+                259,
+                180
+              ],
+              "point_count": 31682,
+              "positive_height_fraction": 0.9993710296245046,
+              "table_rmse_mm": 0.1497494012870354,
+              "length_cm": 8.102834945398698,
+              "width_cm": 7.748130808390402,
+              "height_cm": 20.573134602692217,
+              "footprint_compactness": 0.9562246868659569,
+              "robust_dimension_score": 0.6695057518145653,
+              "selected": true
+            },
+            {
+              "frame": 20,
+              "time_s": 10.5,
+              "semantic_pixels_model": 26817,
+              "bbox_model": [
+                264,
+                116,
+                250,
+                154
+              ],
+              "point_count": 26177,
+              "positive_height_fraction": 0.9998096035946842,
+              "table_rmse_mm": 0.18481363780631657,
+              "length_cm": 8.220529372510537,
+              "width_cm": 8.023174775085169,
+              "height_cm": 20.443009925437128,
+              "footprint_compactness": 0.9759924709854668,
+              "robust_dimension_score": 0.6049549206263014,
+              "selected": true
+            }
+          ],
+          "rejected_frames": [
+            {
+              "frame": 3,
+              "time_s": 2.0,
+              "semantic_pixels_model": 10148,
+              "bbox_model": [
+                193,
+                2,
+                139,
+                105
+              ],
+              "point_count": 10103,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.26317999145833343,
+              "length_cm": 8.304371608313065,
+              "width_cm": 3.4763496733628565,
+              "height_cm": 15.235114223139448,
+              "footprint_compactness": 0.41861682464725775,
+              "selected": false,
+              "rejection_reason": "incomplete bottle footprint (minor/major < 0.72)"
+            },
+            {
+              "frame": 4,
+              "time_s": 2.5,
+              "semantic_pixels_model": 4583,
+              "bbox_model": [
+                196,
+                2,
+                111,
+                62
+              ],
+              "point_count": 4568,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.3627038512963453,
+              "length_cm": 7.526649211767006,
+              "width_cm": 2.9393180907824514,
+              "height_cm": 9.462495322559047,
+              "footprint_compactness": 0.39052146686830885,
+              "selected": false,
+              "rejection_reason": "incomplete bottle footprint (minor/major < 0.72)"
+            },
+            {
+              "frame": 5,
+              "time_s": 3.0,
+              "semantic_pixels_model": 5164,
+              "bbox_model": [
+                180,
+                2,
+                110,
+                65
+              ],
+              "point_count": 5146,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.3365846778029667,
+              "length_cm": 6.933144205379167,
+              "width_cm": 3.2310162244253258,
+              "height_cm": 10.102346642628293,
+              "footprint_compactness": 0.46602466769961326,
+              "selected": false,
+              "rejection_reason": "incomplete bottle footprint (minor/major < 0.72)"
+            },
+            {
+              "frame": 7,
+              "time_s": 4.0,
+              "semantic_pixels_model": 9590,
+              "bbox_model": [
+                67,
+                2,
+                139,
+                111
+              ],
+              "point_count": 9553,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.35569038447333173,
+              "length_cm": 6.2538003434786935,
+              "width_cm": 1.476884979016568,
+              "height_cm": 15.099545418442442,
+              "footprint_compactness": 0.2361579996004552,
+              "selected": false,
+              "rejection_reason": "incomplete bottle footprint (minor/major < 0.72)"
+            },
+            {
+              "frame": 12,
+              "time_s": 6.5,
+              "semantic_pixels_model": 15912,
+              "bbox_model": [
+                60,
+                2,
+                185,
+                118
+              ],
+              "point_count": 12189,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.43225063505550937,
+              "length_cm": 8.33954214810244,
+              "width_cm": 5.140972451115918,
+              "height_cm": 15.66535091763906,
+              "footprint_compactness": 0.6164573977584228,
+              "selected": false,
+              "rejection_reason": "incomplete bottle footprint (minor/major < 0.72)"
+            },
+            {
+              "frame": 14,
+              "time_s": 7.5,
+              "semantic_pixels_model": 28100,
+              "bbox_model": [
+                70,
+                2,
+                198,
+                180
+              ],
+              "point_count": 18972,
+              "positive_height_fraction": 0.999947451392538,
+              "table_rmse_mm": 0.2731091725460039,
+              "length_cm": 8.320742843794056,
+              "width_cm": 5.743809037278455,
+              "height_cm": 20.321696016248858,
+              "footprint_compactness": 0.6903000303106853,
+              "selected": false,
+              "rejection_reason": "incomplete bottle footprint (minor/major < 0.72)"
+            },
+            {
+              "frame": 15,
+              "time_s": 8.0,
+              "semantic_pixels_model": 34433,
+              "bbox_model": [
+                128,
+                2,
+                301,
+                216
+              ],
+              "point_count": 14858,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.33830918693912015,
+              "length_cm": 17.925723437830964,
+              "width_cm": 8.504335296715094,
+              "height_cm": 20.201501384699746,
+              "footprint_compactness": 0.4744207577568278,
+              "selected": false,
+              "rejection_reason": "incomplete bottle footprint (minor/major < 0.72)"
+            },
+            {
+              "frame": 0,
+              "time_s": 0.5,
+              "semantic_pixels_model": 19850,
+              "bbox_model": [
+                209,
+                2,
+                149,
+                157
+              ],
+              "point_count": 18802,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.20954949404565448,
+              "length_cm": 8.448471219189745,
+              "width_cm": 8.103764917972452,
+              "height_cm": 18.304319005443027,
+              "footprint_compactness": 0.9591989731308628,
+              "robust_dimension_score": 4.00445568537851,
+              "selected": false
+            }
+          ]
+        }
+      },
+      "70": {
+        "3": {
+          "name": "red rectangular box",
+          "height_percentile": 95.0,
+          "n_raw_frames": 13,
+          "n_selected_frames": 10,
+          "dimensions_cm": {
+            "length": {
+              "median": 10.891254249403893,
+              "q25": 10.748569100846623,
+              "q75": 11.033067656111136,
+              "min": 10.542260383021688,
+              "max": 11.311546222942798,
+              "cv": 0.020329302087536534
+            },
+            "width": {
+              "median": 8.221301121010711,
+              "q25": 8.052967167512689,
+              "q75": 8.466701049704763,
+              "min": 7.156330685336269,
+              "max": 9.838573351107058,
+              "cv": 0.08059957363074408
+            },
+            "height": {
+              "median": 4.648770431030011,
+              "q25": 4.620496550076657,
+              "q75": 4.660981889265268,
+              "min": 4.499878294170681,
+              "max": 4.684519604844327,
+              "cv": 0.012775072751764725
+            }
+          },
+          "selected_frames": [
+            {
+              "frame": 0,
+              "time_s": 0.5,
+              "semantic_pixels_model": 13288,
+              "bbox_model": [
+                90,
+                48,
+                110,
+                140
+              ],
+              "point_count": 6253,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.20954949404565448,
+              "length_cm": 10.739758272038245,
+              "width_cm": 9.838573351107058,
+              "height_cm": 4.659408408479513,
+              "robust_dimension_score": 3.4882527375454595,
+              "selected": true
+            },
+            {
+              "frame": 1,
+              "time_s": 1.0,
+              "semantic_pixels_model": 13086,
+              "bbox_model": [
+                86,
+                54,
+                117,
+                147
+              ],
+              "point_count": 4678,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.2582159916772118,
+              "length_cm": 10.542260383021688,
+              "width_cm": 8.031033445564194,
+              "height_cm": 4.616609168871651,
+              "robust_dimension_score": 1.3603887584726948,
+              "selected": true
+            },
+            {
+              "frame": 2,
+              "time_s": 1.5,
+              "semantic_pixels_model": 12522,
+              "bbox_model": [
+                102,
+                54,
+                133,
+                147
+              ],
+              "point_count": 5061,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.19325849064747702,
+              "length_cm": 10.952949508561517,
+              "width_cm": 8.21268946095286,
+              "height_cm": 4.551623751986748,
+              "robust_dimension_score": 0.7015584844408274,
+              "selected": true
+            },
+            {
+              "frame": 3,
+              "time_s": 2.0,
+              "semantic_pixels_model": 12771,
+              "bbox_model": [
+                93,
+                74,
+                146,
+                144
+              ],
+              "point_count": 7183,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.26317999145833343,
+              "length_cm": 11.059773705294344,
+              "width_cm": 8.229912781068565,
+              "height_cm": 4.684519604844327,
+              "robust_dimension_score": 0.5565135427168144,
+              "selected": true
+            },
+            {
+              "frame": 4,
+              "time_s": 2.5,
+              "semantic_pixels_model": 14089,
+              "bbox_model": [
+                97,
+                61,
+                157,
+                135
+              ],
+              "point_count": 2861,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.3627038512963453,
+              "length_cm": 10.875542182539828,
+              "width_cm": 8.628781058979195,
+              "height_cm": 4.499878294170681,
+              "robust_dimension_score": 1.1589059723708406,
+              "selected": true
+            },
+            {
+              "frame": 5,
+              "time_s": 3.0,
+              "semantic_pixels_model": 15748,
+              "bbox_model": [
+                119,
+                90,
+                156,
+                122
+              ],
+              "point_count": 3447,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.3365846778029667,
+              "length_cm": 11.061439797960283,
+              "width_cm": 8.309851417499383,
+              "height_cm": 4.680686526905857,
+              "robust_dimension_score": 0.5625388637738027,
+              "selected": true
+            },
+            {
+              "frame": 7,
+              "time_s": 4.0,
+              "semantic_pixels_model": 16248,
+              "bbox_model": [
+                132,
+                100,
+                161,
+                156
+              ],
+              "point_count": 5452,
+              "positive_height_fraction": 0.9989029072956664,
+              "table_rmse_mm": 0.35569038447333173,
+              "length_cm": 10.680102752933326,
+              "width_cm": 8.009650186394893,
+              "height_cm": 4.632158693691675,
+              "robust_dimension_score": 0.8407696851016944,
+              "selected": true
+            },
+            {
+              "frame": 10,
+              "time_s": 5.5,
+              "semantic_pixels_model": 15757,
+              "bbox_model": [
+                271,
+                58,
+                121,
+                155
+              ],
+              "point_count": 5024,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.32736202751202725,
+              "length_cm": 10.775001587271758,
+              "width_cm": 8.118768333358172,
+              "height_cm": 4.640744823366031,
+              "robust_dimension_score": 0.4869165349630933,
+              "selected": true
+            },
+            {
+              "frame": 11,
+              "time_s": 6.0,
+              "semantic_pixels_model": 16148,
+              "bbox_model": [
+                303,
+                38,
+                123,
+                158
+              ],
+              "point_count": 6123,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.39780540105435785,
+              "length_cm": 10.906966316267956,
+              "width_cm": 8.51898426043989,
+              "height_cm": 4.661506382860519,
+              "robust_dimension_score": 0.6744907594765952,
+              "selected": true
+            },
+            {
+              "frame": 20,
+              "time_s": 10.5,
+              "semantic_pixels_model": 12691,
+              "bbox_model": [
+                203,
+                2,
+                147,
+                115
+              ],
+              "point_count": 2815,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.18481363780631657,
+              "length_cm": 11.311546222942798,
+              "width_cm": 7.156330685336269,
+              "height_cm": 4.65679603869399,
+              "robust_dimension_score": 2.7310069133966133,
+              "selected": true
+            }
+          ],
+          "rejected_frames": [
+            {
+              "frame": 6,
+              "time_s": 3.5,
+              "semantic_pixels_model": 16385,
+              "bbox_model": [
+                125,
+                87,
+                157,
+                134
+              ],
+              "point_count": 594,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.37630187220541944,
+              "length_cm": 7.507956888604221,
+              "width_cm": 1.5405922373133536,
+              "height_cm": 4.417800226736302,
+              "robust_dimension_score": 32.73832114924271,
+              "selected": false
+            },
+            {
+              "frame": 8,
+              "time_s": 4.5,
+              "semantic_pixels_model": 15759,
+              "bbox_model": [
+                151,
+                123,
+                154,
+                162
+              ],
+              "point_count": 3604,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.263729014578903,
+              "length_cm": 11.608803032840576,
+              "width_cm": 10.505163130245322,
+              "height_cm": 4.622646308863034,
+              "robust_dimension_score": 4.769099779387358,
+              "selected": false
+            },
+            {
+              "frame": 9,
+              "time_s": 5.0,
+              "semantic_pixels_model": 14601,
+              "bbox_model": [
+                206,
+                97,
+                135,
+                156
+              ],
+              "point_count": 3395,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.32424500092637476,
+              "length_cm": 11.580682540253354,
+              "width_cm": 10.235105052831916,
+              "height_cm": 4.617181306804514,
+              "robust_dimension_score": 4.260259837859385,
+              "selected": false
+            }
+          ]
+        },
+        "4": {
+          "name": "red bottle",
+          "height_percentile": 98.5,
+          "n_raw_frames": 13,
+          "n_selected_frames": 7,
+          "dimensions_cm": {
+            "length": {
+              "median": 7.279974072338451,
+              "q25": 6.696584613488345,
+              "q75": 7.505122280170642,
+              "min": 6.109309916880979,
+              "max": 8.131875969309514,
+              "cv": 0.09723298612853154
+            },
+            "width": {
+              "median": 1.3947211384213671,
+              "q25": 1.3663025886179176,
+              "q75": 2.7131249400947124,
+              "min": 1.0904949507395145,
+              "max": 3.726332482199494,
+              "cv": 0.4975307139042577
+            },
+            "height": {
+              "median": 15.029698256262122,
+              "q25": 14.909999871888468,
+              "q75": 15.323484532357472,
+              "min": 14.544026725721398,
+              "max": 15.459113524743382,
+              "cv": 0.021448939433008667
+            }
+          },
+          "selected_frames": [
+            {
+              "frame": 3,
+              "time_s": 2.0,
+              "semantic_pixels_model": 10148,
+              "bbox_model": [
+                193,
+                2,
+                139,
+                105
+              ],
+              "point_count": 7969,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.26317999145833343,
+              "length_cm": 8.131875969309514,
+              "width_cm": 3.0905185636094763,
+              "height_cm": 15.029698256262122,
+              "robust_dimension_score": 0.6114299925798522,
+              "selected": true
+            },
+            {
+              "frame": 7,
+              "time_s": 4.0,
+              "semantic_pixels_model": 9590,
+              "bbox_model": [
+                67,
+                2,
+                139,
+                111
+              ],
+              "point_count": 5429,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.35569038447333173,
+              "length_cm": 6.109309916880979,
+              "width_cm": 1.3583739108994755,
+              "height_cm": 15.250527516727102,
+              "robust_dimension_score": 2.345079950412148,
+              "selected": true
+            },
+            {
+              "frame": 9,
+              "time_s": 5.0,
+              "semantic_pixels_model": 19352,
+              "bbox_model": [
+                12,
+                2,
+                197,
+                160
+              ],
+              "point_count": 8309,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.32424500092637476,
+              "length_cm": 7.657913134117554,
+              "width_cm": 3.726332482199494,
+              "height_cm": 14.969083306344382,
+              "robust_dimension_score": 1.2014003242988727,
+              "selected": true
+            },
+            {
+              "frame": 12,
+              "time_s": 6.5,
+              "semantic_pixels_model": 15912,
+              "bbox_model": [
+                60,
+                2,
+                185,
+                118
+              ],
+              "point_count": 5994,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.43225063505550937,
+              "length_cm": 7.3523314262237305,
+              "width_cm": 1.37423126633636,
+              "height_cm": 14.544026725721398,
+              "robust_dimension_score": 2.304291564421801,
+              "selected": true
+            },
+            {
+              "frame": 14,
+              "time_s": 7.5,
+              "semantic_pixels_model": 28100,
+              "bbox_model": [
+                70,
+                2,
+                198,
+                180
+              ],
+              "point_count": 4621,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.2731091725460039,
+              "length_cm": 7.279974072338451,
+              "width_cm": 1.3947211384213671,
+              "height_cm": 14.850916437432554,
+              "robust_dimension_score": 2.2522788576798285,
+              "selected": true
+            },
+            {
+              "frame": 16,
+              "time_s": 8.5,
+              "semantic_pixels_model": 27256,
+              "bbox_model": [
+                158,
+                2,
+                178,
+                209
+              ],
+              "point_count": 543,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.4467175547126875,
+              "length_cm": 6.458270633320957,
+              "width_cm": 2.3357313165799485,
+              "height_cm": 15.396441547987841,
+              "robust_dimension_score": 1.356384510070571,
+              "selected": true
+            },
+            {
+              "frame": 17,
+              "time_s": 9.0,
+              "semantic_pixels_model": 38122,
+              "bbox_model": [
+                222,
+                5,
+                237,
+                219
+              ],
+              "point_count": 9219,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.14433670407486276,
+              "length_cm": 6.934898593655733,
+              "width_cm": 1.0904949507395145,
+              "height_cm": 15.459113524743382,
+              "robust_dimension_score": 3.1170352266943806,
+              "selected": true
+            }
+          ],
+          "rejected_frames": [
+            {
+              "frame": 0,
+              "time_s": 0.5,
+              "semantic_pixels_model": 19850,
+              "bbox_model": [
+                209,
+                2,
+                149,
+                157
+              ],
+              "point_count": 11288,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.20954949404565448,
+              "length_cm": 8.301070319141136,
+              "width_cm": 2.64738153024134,
+              "height_cm": 18.61879536570767,
+              "robust_dimension_score": 4.397189004286264,
+              "selected": false
+            },
+            {
+              "frame": 4,
+              "time_s": 2.5,
+              "semantic_pixels_model": 4583,
+              "bbox_model": [
+                196,
+                2,
+                111,
+                62
+              ],
+              "point_count": 2978,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.3627038512963453,
+              "length_cm": 7.570003320384178,
+              "width_cm": 3.1342383294879554,
+              "height_cm": 7.255521406627052,
+              "robust_dimension_score": 14.954090591952646,
+              "selected": false
+            },
+            {
+              "frame": 5,
+              "time_s": 3.0,
+              "semantic_pixels_model": 5164,
+              "bbox_model": [
+                180,
+                2,
+                110,
+                65
+              ],
+              "point_count": 2718,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.3365846778029667,
+              "length_cm": 6.16887355672626,
+              "width_cm": 2.2243240581684387,
+              "height_cm": 8.348798404162304,
+              "robust_dimension_score": 12.072064960038684,
+              "selected": false
+            },
+            {
+              "frame": 15,
+              "time_s": 8.0,
+              "semantic_pixels_model": 34433,
+              "bbox_model": [
+                128,
+                2,
+                301,
+                216
+              ],
+              "point_count": 982,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.33830918693912015,
+              "length_cm": 10.374004518781257,
+              "width_cm": 3.9483813316853786,
+              "height_cm": 4.500491344723422,
+              "robust_dimension_score": 24.760567202979207,
+              "selected": false
+            },
+            {
+              "frame": 19,
+              "time_s": 10.0,
+              "semantic_pixels_model": 32715,
+              "bbox_model": [
+                245,
+                97,
+                259,
+                180
+              ],
+              "point_count": 16624,
+              "positive_height_fraction": 0.9988618665388762,
+              "table_rmse_mm": 0.1497494012870354,
+              "length_cm": 8.192147117522243,
+              "width_cm": 3.196223355696954,
+              "height_cm": 20.30841218304805,
+              "robust_dimension_score": 6.180833371347356,
+              "selected": false
+            },
+            {
+              "frame": 20,
+              "time_s": 10.5,
+              "semantic_pixels_model": 26817,
+              "bbox_model": [
+                264,
+                116,
+                250,
+                154
+              ],
+              "point_count": 15073,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.18481363780631657,
+              "length_cm": 8.188270916580679,
+              "width_cm": 3.2075088676467662,
+              "height_cm": 20.29046761401298,
+              "robust_dimension_score": 6.16268158584541,
+              "selected": false
+            }
+          ]
+        }
+      },
+      "78": {
+        "3": {
+          "name": "red rectangular box",
+          "height_percentile": 95.0,
+          "n_raw_frames": 12,
+          "n_selected_frames": 11,
+          "dimensions_cm": {
+            "length": {
+              "median": 10.716533212133681,
+              "q25": 9.997341910925773,
+              "q75": 11.045074783982447,
+              "min": 9.110008647655675,
+              "max": 11.692874478267857,
+              "cv": 0.07374181743407043
+            },
+            "width": {
+              "median": 8.537791285405238,
+              "q25": 7.808088260339374,
+              "q75": 8.945488975783658,
+              "min": 6.963189934996805,
+              "max": 10.615544204301376,
+              "cv": 0.13478527011424055
+            },
+            "height": {
+              "median": 4.61302345354689,
+              "q25": 4.595272370789384,
+              "q75": 4.638588457494784,
+              "min": 4.520834779733699,
+              "max": 4.65773356123539,
+              "cv": 0.009518821367504432
+            }
+          },
+          "selected_frames": [
+            {
+              "frame": 0,
+              "time_s": 0.5,
+              "semantic_pixels_model": 13288,
+              "bbox_model": [
+                90,
+                48,
+                110,
+                140
+              ],
+              "point_count": 4869,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.20954949404565448,
+              "length_cm": 9.110008647655675,
+              "width_cm": 9.008081278536482,
+              "height_cm": 4.62344421538337,
+              "robust_dimension_score": 2.663126527583997,
+              "selected": true
+            },
+            {
+              "frame": 1,
+              "time_s": 1.0,
+              "semantic_pixels_model": 13086,
+              "bbox_model": [
+                86,
+                54,
+                117,
+                147
+              ],
+              "point_count": 3579,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.2582159916772118,
+              "length_cm": 9.729312572347004,
+              "width_cm": 8.537791285405238,
+              "height_cm": 4.61302345354689,
+              "robust_dimension_score": 1.5672566566535036,
+              "selected": true
+            },
+            {
+              "frame": 2,
+              "time_s": 1.5,
+              "semantic_pixels_model": 12522,
+              "bbox_model": [
+                102,
+                54,
+                133,
+                147
+              ],
+              "point_count": 3715,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.19325849064747702,
+              "length_cm": 9.591073344729521,
+              "width_cm": 8.799412863643843,
+              "height_cm": 4.540982672019898,
+              "robust_dimension_score": 1.8057008815178264,
+              "selected": true
+            },
+            {
+              "frame": 3,
+              "time_s": 2.0,
+              "semantic_pixels_model": 12771,
+              "bbox_model": [
+                93,
+                74,
+                146,
+                144
+              ],
+              "point_count": 5793,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.26317999145833343,
+              "length_cm": 11.1310278972949,
+              "width_cm": 8.882896673030833,
+              "height_cm": 4.65773356123539,
+              "robust_dimension_score": 0.6753713873192838,
+              "selected": true
+            },
+            {
+              "frame": 5,
+              "time_s": 3.0,
+              "semantic_pixels_model": 15748,
+              "bbox_model": [
+                119,
+                90,
+                156,
+                122
+              ],
+              "point_count": 761,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.3365846778029667,
+              "length_cm": 10.265371249504541,
+              "width_cm": 7.641240706900529,
+              "height_cm": 4.609345130554035,
+              "robust_dimension_score": 0.846546199986638,
+              "selected": true
+            },
+            {
+              "frame": 7,
+              "time_s": 4.0,
+              "semantic_pixels_model": 16248,
+              "bbox_model": [
+                132,
+                100,
+                161,
+                156
+              ],
+              "point_count": 1906,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.35569038447333173,
+              "length_cm": 10.716533212133681,
+              "width_cm": 7.037595821135628,
+              "height_cm": 4.520834779733699,
+              "robust_dimension_score": 1.5090556090417246,
+              "selected": true
+            },
+            {
+              "frame": 8,
+              "time_s": 4.5,
+              "semantic_pixels_model": 15759,
+              "bbox_model": [
+                151,
+                123,
+                154,
+                162
+              ],
+              "point_count": 1756,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.263729014578903,
+              "length_cm": 11.692874478267857,
+              "width_cm": 10.615544204301376,
+              "height_cm": 4.59734235941113,
+              "robust_dimension_score": 1.8001574258803312,
+              "selected": true
+            },
+            {
+              "frame": 9,
+              "time_s": 5.0,
+              "semantic_pixels_model": 14601,
+              "bbox_model": [
+                206,
+                97,
+                135,
+                156
+              ],
+              "point_count": 1695,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.32424500092637476,
+              "length_cm": 10.876299517138017,
+              "width_cm": 10.182933227754349,
+              "height_cm": 4.593202382167638,
+              "robust_dimension_score": 1.4652029415297414,
+              "selected": true
+            },
+            {
+              "frame": 10,
+              "time_s": 5.5,
+              "semantic_pixels_model": 15757,
+              "bbox_model": [
+                271,
+                58,
+                121,
+                155
+              ],
+              "point_count": 2396,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.32736202751202725,
+              "length_cm": 10.661288873562272,
+              "width_cm": 7.9749358137782185,
+              "height_cm": 4.629289839130688,
+              "robust_dimension_score": 0.5024353189665525,
+              "selected": true
+            },
+            {
+              "frame": 11,
+              "time_s": 6.0,
+              "semantic_pixels_model": 16148,
+              "bbox_model": [
+                303,
+                38,
+                123,
+                158
+              ],
+              "point_count": 3548,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.39780540105435785,
+              "length_cm": 11.108415485669907,
+              "width_cm": 8.439512247555342,
+              "height_cm": 4.64788707585888,
+              "robust_dimension_score": 0.6414879848769701,
+              "selected": true
+            },
+            {
+              "frame": 20,
+              "time_s": 10.5,
+              "semantic_pixels_model": 12691,
+              "bbox_model": [
+                203,
+                2,
+                147,
+                115
+              ],
+              "point_count": 1824,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.18481363780631657,
+              "length_cm": 10.981734082294988,
+              "width_cm": 6.963189934996805,
+              "height_cm": 4.653093512022057,
+              "robust_dimension_score": 1.594624545400769,
+              "selected": true
+            }
+          ],
+          "rejected_frames": [
+            {
+              "frame": 4,
+              "time_s": 2.5,
+              "semantic_pixels_model": 14089,
+              "bbox_model": [
+                97,
+                61,
+                157,
+                135
+              ],
+              "point_count": 158,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.3627038512963453,
+              "length_cm": 6.882743313249167,
+              "width_cm": 0.7259834872434521,
+              "height_cm": 4.319406586480593,
+              "robust_dimension_score": 19.7959045855225,
+              "selected": false
+            }
+          ]
+        },
+        "4": {
+          "name": "red bottle",
+          "height_percentile": 98.5,
+          "n_raw_frames": 12,
+          "n_selected_frames": 11,
+          "dimensions_cm": {
+            "length": {
+              "median": 6.326537364384821,
+              "q25": 4.841104801885619,
+              "q75": 7.6654249805046355,
+              "min": 2.1089804759035697,
+              "max": 8.102108917538493,
+              "cv": 0.35158429996280716
+            },
+            "width": {
+              "median": 1.131622162870438,
+              "q25": 0.6074663367426073,
+              "q75": 2.124990384344704,
+              "min": 0.16953022898936826,
+              "max": 2.6429849449248533,
+              "cv": 0.6617954499408006
+            },
+            "height": {
+              "median": 14.674131485312817,
+              "q25": 10.836267264449729,
+              "q75": 16.902866214404284,
+              "min": 4.478943834609157,
+              "max": 19.8815587259961,
+              "cv": 0.38180663867041087
+            }
+          },
+          "selected_frames": [
+            {
+              "frame": 0,
+              "time_s": 0.5,
+              "semantic_pixels_model": 19850,
+              "bbox_model": [
+                209,
+                2,
+                149,
+                157
+              ],
+              "point_count": 10118,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.20954949404565448,
+              "length_cm": 8.102108917538493,
+              "width_cm": 2.2863503546159856,
+              "height_cm": 18.64990436417599,
+              "robust_dimension_score": 0.7404463914359871,
+              "selected": true
+            },
+            {
+              "frame": 3,
+              "time_s": 2.0,
+              "semantic_pixels_model": 10148,
+              "bbox_model": [
+                193,
+                2,
+                139,
+                105
+              ],
+              "point_count": 5758,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.26317999145833343,
+              "length_cm": 7.483577361643451,
+              "width_cm": 2.419913369598284,
+              "height_cm": 14.871060642761371,
+              "robust_dimension_score": 0.698289647934467,
+              "selected": true
+            },
+            {
+              "frame": 4,
+              "time_s": 2.5,
+              "semantic_pixels_model": 4583,
+              "bbox_model": [
+                196,
+                2,
+                111,
+                62
+              ],
+              "point_count": 159,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.3627038512963453,
+              "length_cm": 2.8263596067737433,
+              "width_cm": 0.31766615806845455,
+              "height_cm": 6.948487152899224,
+              "robust_dimension_score": 2.317788432671077,
+              "selected": true
+            },
+            {
+              "frame": 7,
+              "time_s": 4.0,
+              "semantic_pixels_model": 9590,
+              "bbox_model": [
+                67,
+                2,
+                139,
+                111
+              ],
+              "point_count": 643,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.35569038447333173,
+              "length_cm": 2.1089804759035697,
+              "width_cm": 0.16953022898936826,
+              "height_cm": 7.387742635105312,
+              "robust_dimension_score": 3.168016597056799,
+              "selected": true
+            },
+            {
+              "frame": 9,
+              "time_s": 5.0,
+              "semantic_pixels_model": 19352,
+              "bbox_model": [
+                12,
+                2,
+                197,
+                160
+              ],
+              "point_count": 4152,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.32424500092637476,
+              "length_cm": 6.230988132982118,
+              "width_cm": 1.9636304140734226,
+              "height_cm": 14.284791893794146,
+              "robust_dimension_score": 0.5231256390707493,
+              "selected": true
+            },
+            {
+              "frame": 12,
+              "time_s": 6.5,
+              "semantic_pixels_model": 15912,
+              "bbox_model": [
+                60,
+                2,
+                185,
+                118
+              ],
+              "point_count": 1303,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.43225063505550937,
+              "length_cm": 6.857663275333984,
+              "width_cm": 1.131622162870438,
+              "height_cm": 14.334837618184995,
+              "robust_dimension_score": 0.2561931169644529,
+              "selected": true
+            },
+            {
+              "frame": 14,
+              "time_s": 7.5,
+              "semantic_pixels_model": 28100,
+              "bbox_model": [
+                70,
+                2,
+                198,
+                180
+              ],
+              "point_count": 2220,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.2731091725460039,
+              "length_cm": 5.548150031870398,
+              "width_cm": 0.44587901709476213,
+              "height_cm": 14.674131485312817,
+              "robust_dimension_score": 0.7197439388332203,
+              "selected": true
+            },
+            {
+              "frame": 15,
+              "time_s": 8.0,
+              "semantic_pixels_model": 34433,
+              "bbox_model": [
+                128,
+                2,
+                301,
+                216
+              ],
+              "point_count": 423,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.33830918693912015,
+              "length_cm": 4.134059571900841,
+              "width_cm": 0.978203828757047,
+              "height_cm": 4.478943834609157,
+              "robust_dimension_score": 2.9050533716379476,
+              "selected": true
+            },
+            {
+              "frame": 17,
+              "time_s": 9.0,
+              "semantic_pixels_model": 38122,
+              "bbox_model": [
+                222,
+                5,
+                237,
+                219
+              ],
+              "point_count": 6309,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.14433670407486276,
+              "length_cm": 6.326537364384821,
+              "width_cm": 0.7690536563904525,
+              "height_cm": 15.155828064632582,
+              "robust_dimension_score": 0.26274342056546673,
+              "selected": true
+            },
+            {
+              "frame": 19,
+              "time_s": 10.0,
+              "semantic_pixels_model": 32715,
+              "bbox_model": [
+                245,
+                97,
+                259,
+                180
+              ],
+              "point_count": 14117,
+              "positive_height_fraction": 0.9992942836979535,
+              "table_rmse_mm": 0.1497494012870354,
+              "length_cm": 7.84727259936582,
+              "width_cm": 2.6429849449248533,
+              "height_cm": 19.8815587259961,
+              "robust_dimension_score": 0.7797967661501229,
+              "selected": true
+            },
+            {
+              "frame": 20,
+              "time_s": 10.5,
+              "semantic_pixels_model": 26817,
+              "bbox_model": [
+                264,
+                116,
+                250,
+                154
+              ],
+              "point_count": 12197,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.18481363780631657,
+              "length_cm": 7.99373198755193,
+              "width_cm": 1.9541140204136855,
+              "height_cm": 19.463838214529762,
+              "robust_dimension_score": 0.7272974536259794,
+              "selected": true
+            }
+          ],
+          "rejected_frames": [
+            {
+              "frame": 5,
+              "time_s": 3.0,
+              "semantic_pixels_model": 5164,
+              "bbox_model": [
+                180,
+                2,
+                110,
+                65
+              ],
+              "point_count": 214,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.3365846778029667,
+              "length_cm": 1.5602408543876873,
+              "width_cm": 0.08534548109488327,
+              "height_cm": 6.07820820674351,
+              "robust_dimension_score": 4.043159240565384,
+              "selected": false
+            }
+          ]
+        }
+      },
+      "85": {
+        "3": {
+          "name": "red rectangular box",
+          "height_percentile": 95.0,
+          "n_raw_frames": 10,
+          "n_selected_frames": 9,
+          "dimensions_cm": {
+            "length": {
+              "median": 9.17610497654578,
+              "q25": 8.65605597332851,
+              "q75": 10.46894871305341,
+              "min": 8.150826226172892,
+              "max": 11.813470144064226,
+              "cv": 0.12763885504792613
+            },
+            "width": {
+              "median": 7.073979813936663,
+              "q25": 6.537766440868498,
+              "q75": 7.995891736208725,
+              "min": 6.10035484403209,
+              "max": 10.184755665224484,
+              "cv": 0.16909032814983244
+            },
+            "height": {
+              "median": 4.61642071202024,
+              "q25": 4.5491134956784425,
+              "q75": 4.6278794787925035,
+              "min": 4.418770434558087,
+              "max": 4.651377249777189,
+              "cv": 0.016380703357777505
+            }
+          },
+          "selected_frames": [
+            {
+              "frame": 0,
+              "time_s": 0.5,
+              "semantic_pixels_model": 13288,
+              "bbox_model": [
+                90,
+                48,
+                110,
+                140
+              ],
+              "point_count": 3948,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.20954949404565448,
+              "length_cm": 8.628867308280178,
+              "width_cm": 8.085402467709022,
+              "height_cm": 4.61642071202024,
+              "robust_dimension_score": 0.8099453625267434,
+              "selected": true
+            },
+            {
+              "frame": 1,
+              "time_s": 1.0,
+              "semantic_pixels_model": 13086,
+              "bbox_model": [
+                86,
+                54,
+                117,
+                147
+              ],
+              "point_count": 2893,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.2582159916772118,
+              "length_cm": 9.17610497654578,
+              "width_cm": 7.073979813936663,
+              "height_cm": 4.607168107402872,
+              "robust_dimension_score": 0.10661009134331947,
+              "selected": true
+            },
+            {
+              "frame": 2,
+              "time_s": 1.5,
+              "semantic_pixels_model": 12522,
+              "bbox_model": [
+                102,
+                54,
+                133,
+                147
+              ],
+              "point_count": 2656,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.19325849064747702,
+              "length_cm": 8.65605597332851,
+              "width_cm": 7.239925317033544,
+              "height_cm": 4.531910719727045,
+              "robust_dimension_score": 0.6989151203985511,
+              "selected": true
+            },
+            {
+              "frame": 3,
+              "time_s": 2.0,
+              "semantic_pixels_model": 12771,
+              "bbox_model": [
+                93,
+                74,
+                146,
+                144
+              ],
+              "point_count": 4283,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.26317999145833343,
+              "length_cm": 8.150826226172892,
+              "width_cm": 7.995891736208725,
+              "height_cm": 4.651377249777189,
+              "robust_dimension_score": 0.7460276924336074,
+              "selected": true
+            },
+            {
+              "frame": 8,
+              "time_s": 4.5,
+              "semantic_pixels_model": 15759,
+              "bbox_model": [
+                151,
+                123,
+                154,
+                162
+              ],
+              "point_count": 416,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.263729014578903,
+              "length_cm": 11.813470144064226,
+              "width_cm": 6.10035484403209,
+              "height_cm": 4.418770434558087,
+              "robust_dimension_score": 1.7102018338653124,
+              "selected": true
+            },
+            {
+              "frame": 9,
+              "time_s": 5.0,
+              "semantic_pixels_model": 14601,
+              "bbox_model": [
+                206,
+                97,
+                135,
+                156
+              ],
+              "point_count": 416,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.32424500092637476,
+              "length_cm": 10.46894871305341,
+              "width_cm": 10.184755665224484,
+              "height_cm": 4.5491134956784425,
+              "robust_dimension_score": 2.135287366812778,
+              "selected": true
+            },
+            {
+              "frame": 10,
+              "time_s": 5.5,
+              "semantic_pixels_model": 15757,
+              "bbox_model": [
+                271,
+                58,
+                121,
+                155
+              ],
+              "point_count": 742,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.32736202751202725,
+              "length_cm": 8.86653740213572,
+              "width_cm": 6.537766440868498,
+              "height_cm": 4.625375133101558,
+              "robust_dimension_score": 0.4099402351422717,
+              "selected": true
+            },
+            {
+              "frame": 11,
+              "time_s": 6.0,
+              "semantic_pixels_model": 16148,
+              "bbox_model": [
+                303,
+                38,
+                123,
+                158
+              ],
+              "point_count": 940,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.39780540105435785,
+              "length_cm": 10.836604198989985,
+              "width_cm": 6.321641137945259,
+              "height_cm": 4.6278794787925035,
+              "robust_dimension_score": 1.139996540308034,
+              "selected": true
+            },
+            {
+              "frame": 20,
+              "time_s": 10.5,
+              "semantic_pixels_model": 12691,
+              "bbox_model": [
+                203,
+                2,
+                147,
+                115
+              ],
+              "point_count": 1130,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.18481363780631657,
+              "length_cm": 10.127375458311903,
+              "width_cm": 6.969647429319643,
+              "height_cm": 4.648845822913898,
+              "robust_dimension_score": 0.7194551632168547,
+              "selected": true
+            }
+          ],
+          "rejected_frames": [
+            {
+              "frame": 7,
+              "time_s": 4.0,
+              "semantic_pixels_model": 16248,
+              "bbox_model": [
+                132,
+                100,
+                161,
+                156
+              ],
+              "point_count": 335,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.35569038447333173,
+              "length_cm": 6.485303574994539,
+              "width_cm": 2.7035457254734068,
+              "height_cm": 4.424162796668347,
+              "robust_dimension_score": 5.479946703320514,
+              "selected": false
+            }
+          ]
+        },
+        "4": {
+          "name": "red bottle",
+          "height_percentile": 98.5,
+          "n_raw_frames": 8,
+          "n_selected_frames": 7,
+          "dimensions_cm": {
+            "length": {
+              "median": 6.2852508303076995,
+              "q25": 4.856539496918,
+              "q75": 7.51083666280834,
+              "min": 4.458905724677699,
+              "max": 7.694358050892049,
+              "cv": 0.2344508983641432
+            },
+            "width": {
+              "median": 1.2216715835559988,
+              "q25": 0.4123034396732538,
+              "q75": 1.534959608399911,
+              "min": 0.18562639696377947,
+              "max": 2.5490684232728484,
+              "cv": 0.7602147518085139
+            },
+            "height": {
+              "median": 14.611733664822605,
+              "q25": 14.609053645048174,
+              "q75": 16.809044719741628,
+              "min": 7.374172265141763,
+              "max": 19.620093578714286,
+              "cv": 0.2634368805729453
+            }
+          },
+          "selected_frames": [
+            {
+              "frame": 0,
+              "time_s": 0.5,
+              "semantic_pixels_model": 19850,
+              "bbox_model": [
+                209,
+                2,
+                149,
+                157
+              ],
+              "point_count": 9052,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.20954949404565448,
+              "length_cm": 7.694358050892049,
+              "width_cm": 1.508964546450698,
+              "height_cm": 18.575407571208615,
+              "robust_dimension_score": 1.2029701564625896,
+              "selected": true
+            },
+            {
+              "frame": 3,
+              "time_s": 2.0,
+              "semantic_pixels_model": 10148,
+              "bbox_model": [
+                193,
+                2,
+                139,
+                105
+              ],
+              "point_count": 2767,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.26317999145833343,
+              "length_cm": 6.2852508303076995,
+              "width_cm": 1.5609546703491242,
+              "height_cm": 14.611733664822605,
+              "robust_dimension_score": 0.6947151243028352,
+              "selected": true
+            },
+            {
+              "frame": 9,
+              "time_s": 5.0,
+              "semantic_pixels_model": 19352,
+              "bbox_model": [
+                12,
+                2,
+                197,
+                160
+              ],
+              "point_count": 670,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.32424500092637476,
+              "length_cm": 4.514355369495042,
+              "width_cm": 0.6230006891571575,
+              "height_cm": 7.374172265141763,
+              "robust_dimension_score": 3.426045327092258,
+              "selected": true
+            },
+            {
+              "frame": 14,
+              "time_s": 7.5,
+              "semantic_pixels_model": 28100,
+              "bbox_model": [
+                70,
+                2,
+                198,
+                180
+              ],
+              "point_count": 329,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.2731091725460039,
+              "length_cm": 4.458905724677699,
+              "width_cm": 0.18562639696377947,
+              "height_cm": 14.608538444992869,
+              "robust_dimension_score": 1.8478948794063503,
+              "selected": true
+            },
+            {
+              "frame": 17,
+              "time_s": 9.0,
+              "semantic_pixels_model": 38122,
+              "bbox_model": [
+                222,
+                5,
+                237,
+                219
+              ],
+              "point_count": 4532,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.14433670407486276,
+              "length_cm": 5.198723624340957,
+              "width_cm": 0.20160619018935008,
+              "height_cm": 15.04268186827464,
+              "robust_dimension_score": 1.749286136561306,
+              "selected": true
+            },
+            {
+              "frame": 19,
+              "time_s": 10.0,
+              "semantic_pixels_model": 32715,
+              "bbox_model": [
+                245,
+                97,
+                259,
+                180
+              ],
+              "point_count": 12192,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.1497494012870354,
+              "length_cm": 7.49429718230386,
+              "width_cm": 2.5490684232728484,
+              "height_cm": 19.620093578714286,
+              "robust_dimension_score": 1.4771255356903146,
+              "selected": true
+            },
+            {
+              "frame": 20,
+              "time_s": 10.5,
+              "semantic_pixels_model": 26817,
+              "bbox_model": [
+                264,
+                116,
+                250,
+                154
+              ],
+              "point_count": 10515,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.18481363780631657,
+              "length_cm": 7.52737614331282,
+              "width_cm": 1.2216715835559988,
+              "height_cm": 14.609568845103482,
+              "robust_dimension_score": 0.7150652345616054,
+              "selected": true
+            }
+          ],
+          "rejected_frames": [
+            {
+              "frame": 15,
+              "time_s": 8.0,
+              "semantic_pixels_model": 34433,
+              "bbox_model": [
+                128,
+                2,
+                301,
+                216
+              ],
+              "point_count": 183,
+              "positive_height_fraction": 1.0,
+              "table_rmse_mm": 0.33830918693912015,
+              "length_cm": 2.386457527996113,
+              "width_cm": 0.5349419368991503,
+              "height_cm": 4.456734746390696,
+              "robust_dimension_score": 5.949191352590145,
+              "selected": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  "limitations": [
+    "No independent ground-truth dimensions were provided, so these are estimates rather than absolute-error measurements.",
+    "Transparent ruler and transparent bottle regions can produce incomplete or biased monocular depth.",
+    "The bottle is reported as major footprint × minor footprint × height; it is not assumed perfectly cylindrical.",
+    "Frame IQR captures reconstruction and segmentation repeatability, not total systematic calibration uncertainty."
+  ]
+}

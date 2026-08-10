@@ -1,0 +1,246 @@
+{
+  "ground_truth_source": "user-supplied dimensions on 2026-08-08",
+  "dimension_interpretation": "length × width × height, centimetres",
+  "volume_reference": "axis-aligned outer-envelope product L×W×H; rounded corners, cavities, wall thickness, and usable internal capacity are not modelled",
+  "objects": {
+    "3": {
+      "semantic_id": 3,
+      "name": "upright red box",
+      "n_valid_frames": 7,
+      "dimension_order": [
+        "length",
+        "width",
+        "height"
+      ],
+      "dimensions_cm": {
+        "length": {
+          "estimated": 7.235993621850735,
+          "true": 3.9,
+          "signed_error": 3.335993621850735,
+          "absolute_error": 3.335993621850735,
+          "relative_error_percent": 85.5382979961727,
+          "absolute_relative_error_percent": 85.5382979961727,
+          "frame_iqr": [
+            6.47637284852318,
+            7.902685493388778
+          ],
+          "true_within_frame_iqr": false
+        },
+        "width": {
+          "estimated": 5.120776130262416,
+          "true": 2.7,
+          "signed_error": 2.420776130262416,
+          "absolute_error": 2.420776130262416,
+          "relative_error_percent": 89.6583751949043,
+          "absolute_relative_error_percent": 89.6583751949043,
+          "frame_iqr": [
+            3.9458227826629724,
+            5.2202753074383805
+          ],
+          "true_within_frame_iqr": false
+        },
+        "height": {
+          "estimated": 8.254842929769461,
+          "true": 8.5,
+          "signed_error": -0.24515707023053857,
+          "absolute_error": 0.24515707023053857,
+          "relative_error_percent": -2.88420082624163,
+          "absolute_relative_error_percent": 2.88420082624163,
+          "frame_iqr": [
+            2.3476049853899763,
+            9.490479880174634
+          ],
+          "true_within_frame_iqr": true
+        }
+      },
+      "dimension_mape_percent": 59.360291339106205,
+      "volume": {
+        "true_envelope_ml": 89.50500000000001,
+        "estimated_bbox_product_ml": 305.8741526463461,
+        "elevation_integrated": {
+          "estimated": 70.91837354298501,
+          "true": 89.50500000000001,
+          "signed_error": -18.586626457015,
+          "absolute_error": 18.586626457015,
+          "relative_error_percent": -20.766020286034298,
+          "absolute_relative_error_percent": 20.766020286034298
+        },
+        "bbox_product": {
+          "estimated": 305.8741526463461,
+          "true": 89.50500000000001,
+          "signed_error": 216.3691526463461,
+          "absolute_error": 216.3691526463461,
+          "relative_error_percent": 241.73973816696952,
+          "absolute_relative_error_percent": 241.73973816696952
+        },
+        "integrated_frame_iqr_ml": [
+          30.13523749296989,
+          152.32245246630796
+        ],
+        "true_envelope_within_integrated_frame_iqr": true
+      }
+    },
+    "4": {
+      "semantic_id": 4,
+      "name": "rounded red flat box",
+      "n_valid_frames": 7,
+      "dimension_order": [
+        "length",
+        "width",
+        "height"
+      ],
+      "dimensions_cm": {
+        "length": {
+          "estimated": 11.196916603118419,
+          "true": 11.0,
+          "signed_error": 0.19691660311841908,
+          "absolute_error": 0.19691660311841908,
+          "relative_error_percent": 1.7901509374401734,
+          "absolute_relative_error_percent": 1.7901509374401734,
+          "frame_iqr": [
+            11.021013921985961,
+            12.715544452003591
+          ],
+          "true_within_frame_iqr": false
+        },
+        "width": {
+          "estimated": 6.423096910433617,
+          "true": 7.5,
+          "signed_error": -1.0769030895663834,
+          "absolute_error": 1.0769030895663834,
+          "relative_error_percent": -14.358707860885112,
+          "absolute_relative_error_percent": 14.358707860885112,
+          "frame_iqr": [
+            5.938970031530376,
+            6.700064861786592
+          ],
+          "true_within_frame_iqr": false
+        },
+        "height": {
+          "estimated": 3.6414419539370786,
+          "true": 4.4,
+          "signed_error": -0.7585580460629218,
+          "absolute_error": 0.7585580460629218,
+          "relative_error_percent": -17.23995559233913,
+          "absolute_relative_error_percent": 17.23995559233913,
+          "frame_iqr": [
+            3.565225982559636,
+            3.7317388454445273
+          ],
+          "true_within_frame_iqr": false
+        }
+      },
+      "dimension_mape_percent": 11.129604796888138,
+      "volume": {
+        "true_envelope_ml": 363.00000000000006,
+        "estimated_bbox_product_ml": 261.88842851393747,
+        "elevation_integrated": {
+          "estimated": 154.8419017145208,
+          "true": 363.00000000000006,
+          "signed_error": -208.15809828547927,
+          "absolute_error": 208.15809828547927,
+          "relative_error_percent": -57.34382872878216,
+          "absolute_relative_error_percent": 57.34382872878216
+        },
+        "bbox_product": {
+          "estimated": 261.88842851393747,
+          "true": 363.00000000000006,
+          "signed_error": -101.11157148606259,
+          "absolute_error": 101.11157148606259,
+          "relative_error_percent": -27.85442740662881,
+          "absolute_relative_error_percent": 27.85442740662881
+        },
+        "integrated_frame_iqr_ml": [
+          122.0860041273042,
+          228.92110836000597
+        ],
+        "true_envelope_within_integrated_frame_iqr": false
+      }
+    },
+    "5": {
+      "semantic_id": 5,
+      "name": "blue box",
+      "n_valid_frames": 6,
+      "dimension_order": [
+        "length",
+        "width",
+        "height"
+      ],
+      "dimensions_cm": {
+        "length": {
+          "estimated": 15.315219565029109,
+          "true": 15.0,
+          "signed_error": 0.31521956502910875,
+          "absolute_error": 0.31521956502910875,
+          "relative_error_percent": 2.101463766860725,
+          "absolute_relative_error_percent": 2.101463766860725,
+          "frame_iqr": [
+            13.92685177833144,
+            17.950969434659935
+          ],
+          "true_within_frame_iqr": true
+        },
+        "width": {
+          "estimated": 9.349618069062524,
+          "true": 9.5,
+          "signed_error": -0.15038193093747587,
+          "absolute_error": 0.15038193093747587,
+          "relative_error_percent": -1.5829676940786936,
+          "absolute_relative_error_percent": 1.5829676940786936,
+          "frame_iqr": [
+            8.29197722667241,
+            9.972707472330226
+          ],
+          "true_within_frame_iqr": true
+        },
+        "height": {
+          "estimated": 7.769988077234583,
+          "true": 6.0,
+          "signed_error": 1.7699880772345828,
+          "absolute_error": 1.7699880772345828,
+          "relative_error_percent": 29.49980128724305,
+          "absolute_relative_error_percent": 29.49980128724305,
+          "frame_iqr": [
+            6.9161749015626635,
+            8.251821645784723
+          ],
+          "true_within_frame_iqr": false
+        }
+      },
+      "dimension_mape_percent": 11.061410916060822,
+      "volume": {
+        "true_envelope_ml": 855.0,
+        "estimated_bbox_product_ml": 1112.5958870540608,
+        "elevation_integrated": {
+          "estimated": 565.6281248213186,
+          "true": 855.0,
+          "signed_error": -289.3718751786814,
+          "absolute_error": 289.3718751786814,
+          "relative_error_percent": -33.84466376358847,
+          "absolute_relative_error_percent": 33.84466376358847
+        },
+        "bbox_product": {
+          "estimated": 1112.5958870540608,
+          "true": 855.0,
+          "signed_error": 257.59588705406077,
+          "absolute_error": 257.59588705406077,
+          "relative_error_percent": 30.128173924451552,
+          "absolute_relative_error_percent": 30.128173924451552
+        },
+        "integrated_frame_iqr_ml": [
+          420.3771469737625,
+          599.3369929577734
+        ],
+        "true_envelope_within_integrated_frame_iqr": false
+      }
+    }
+  },
+  "summary": {
+    "dimension_mape_all_9_values_percent": 27.183769017351725,
+    "integrated_volume_mape_percent": 37.318170926134975,
+    "true_total_envelope_ml": 1307.505,
+    "estimated_total_integrated_ml": 791.3884000788244,
+    "aggregate_integrated_volume_bias_percent": -39.4733939771684,
+    "objects_with_true_volume_inside_frame_iqr": 1
+  }
+}

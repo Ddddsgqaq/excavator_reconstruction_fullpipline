@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M4/M5 Real-GPU Smoke Test Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg: #f7f8fa;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --primary: #1e40af;
+            --primary-light: #dbeafe;
+            --accent: #059669;
+            --accent-light: #d1fae5;
+            --warn: #d97706;
+            --border: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            color: #fff;
+            padding: 3rem 1rem 2.5rem;
+            text-align: center;
+        }
+        header h1 { margin: 0 0 0.5rem; font-size: 2rem; letter-spacing: -0.02em; }
+        header p { margin: 0; opacity: 0.85; font-size: 1.05rem; }
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            margin: 0.25rem;
+        }
+        main { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 1.75rem;
+            margin-bottom: 1.75rem;
+            border: 1px solid var(--border);
+        }
+        h2 { margin-top: 0; color: var(--primary); font-size: 1.45rem; border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5rem; }
+        h3 { color: var(--text); margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.15rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; }
+        .metric {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        .metric .value { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
+        .metric .value.good { color: var(--accent); }
+        .metric .label { font-size: 0.9rem; color: var(--muted); margin-top: 0.25rem; }
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .pass { background: var(--accent-light); color: #065f46; }
+        .warn { background: #fef3c7; color: #92400e; }
+        .info { background: var(--primary-light); color: #1e3a8a; }
+        code, .cmd {
+            background: #f3f4f6;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.2rem 0.4rem;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+        }
+        .cmd {
+            display: block;
+            white-space: pre-wrap;
+            padding: 1rem;
+            background: #111827;
+            color: #e5e7eb;
+            border: none;
+            line-height: 1.5;
+        }
+        .chart-wrap { max-width: 700px; margin: 1.5rem auto; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-top: 1rem; }
+        figure { margin: 0; }
+        figure img { width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+        figcaption { text-align: center; font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem; }
+        .figure-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+        .takeaway { padding-left: 1.2rem; }
+        .takeaway li { margin-bottom: 0.5rem; }
+        footer { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 2rem 1rem; }
+        .highlight-box {
+            background: #eff6ff;
+            border-left: 4px solid var(--primary);
+            padding: 1rem 1.25rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+        }
+        .alert-box {
+            background: #fffbeb;
+            border-left: 4px solid var(--warn);
+            padding: 1rem 1.25rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+        }
+        table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; }
+        th, td { border: 1px solid var(--border); padding: 0.6rem 0.8rem; text-align: left; }
+        th { background: var(--bg); font-weight: 600; }
+        @media print {
+            body { background: #fff; }
+            .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+            header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>M4 / M5 真 GPU 冒烟验证报告</h1>
+        <p>Real-GPU Smoke Test for Coordinate Stability & Persistent Multi-Tile Fusion</p>
+        <div style="margin-top:1rem;">
+            <span class="badge">VGGT 多视重建</span>
+            <span class="badge">端到端真机验证</span>
+            <span class="badge">2026-07-20</span>
+        </div>
+    </header>
+
+    <main>
+        <section class="card">
+            <h2>摘要 / Abstract</h2>
+            <p>
+                本报告记录 M4（坐标稳定）与 M5（持久融合 + 多 tile）在真实 NVIDIA RTX 5070 Ti 上的端到端验证结果。
+                使用含真实相机运动的航拍视频作为输入，M4 通过冻结锚点与轮间配准将跨轮 DEM 漂移从 <strong>0.0077 m</strong> 降至 <strong>0.0056 m</strong>；
+                M5 通过全局融合累加器实现地形持续生长（<strong>11,770 → 25,666 cells</strong>），并成功发布 6 个独立 tile，变化检测收敛至每轮 4 个 tile。
+            </p>
+            <div style="margin-top:1rem;">
+                <span class="status pass">✅ M4 PASS</span>
+                <span class="status pass">✅ M5 PASS</span>
+                <span class="status warn">⚠️ 尺度任意，需真源米制标定</span>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>运行环境 / Environment</h2>
+            <div class="grid">
+                <div class="metric">
+                    <div class="value">RTX 5070 Ti</div>
+                    <div class="label">GPU · 16 GB VRAM</div>
+                </div>
+                <div class="metric">
+                    <div class="value">vggt50</div>
+                    <div class="label">conda 环境</div>
+                </div>
+                <div class="metric">
+                    <div class="value">~5 s</div>
+                    <div class="label">VGGT 稳态 / 轮</div>
+                </div>
+                <div class="metric">
+                    <div class="value">~20 s</div>
+                    <div class="label">VGGT 冷启动</div>
+                </div>
+            </div>
+            <table>
+                <tr><th>项目</th><th>值</th></tr>
+                <tr><td>日期</td><td>2026-07-20</td></tr>
+                <tr><td>工作目录</td><td><code>/home/maomaoyu/WS/vggt_yoloe</code></td></tr>
+                <tr><td>Python</td><td><code>~/miniconda3/envs/vggt50/bin/python</code></td></tr>
+                <tr><td>输入视频</td><td><code>dji_fly_20260511_161858_0_1778489356002_video.mp4</code></td></tr>
+                <tr><td>视频规格</td><td>720×1280, 1040 帧 @ 30 fps, ~35 s, 23 MB</td></tr>
+                <tr><td>取帧率</td><td><code>--target-fps 1.0</code></td></tr>
+            </table>
+            <div class="highlight-box">
+                <strong>为何选航拍视频：</strong>相机真实运动产生视差，是 VGGT 多视重建的必要条件。手持/近静止相机 ORB 相似度恒为 ~1.0，关键帧缓冲仅保留 1 帧，重建失败。
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>测试 1 — M4 坐标稳定 / Coordinate Stability</h2>
+            <p><span class="status pass">PASS</span></p>
+            <p>
+                同视频运行两遍 <code>tools/verify_m4.py</code>：配准 ON / OFF，对比静态地形在跨轮 DEM 中的漂移。
+            </p>
+            <div class="cmd">python tools/verify_m4.py dji_fly_20260511_161858_0_1778489356002_video.mp4 \
+    --seconds 40 --interval 6 --target-fps 1.0 --viz</div>
+
+            <h3>关键指标</h3>
+            <div class="grid">
+                <div class="metric">
+                    <div class="value">60.6°</div>
+                    <div class="label">配准收敛 yaw</div>
+                </div>
+                <div class="metric">
+                    <div class="value">0.0149 m</div>
+                    <div class="label">配准 RMSE</div>
+                </div>
+                <div class="metric">
+                    <div class="value">1/3 轮</div>
+                    <div class="label">配准触发轮次</div>
+                </div>
+            </div>
+
+            <h3>决定性对照：跨轮 DEM RMS 漂移</h3>
+            <div class="chart-wrap">
+                <canvas id="m4Chart"></canvas>
+            </div>
+            <div class="highlight-box">
+                <strong>结论：</strong>配准开启后跨轮 DEM RMS 从 <strong>0.0077 m</strong> 降至 <strong>0.0056 m</strong>，数值上证实冻结锚点 + 轮间配准有效减小漂移。
+                移动相机下每轮 footprint 不同，M4 的“静止不动”保证更适合用数值 RMS 而非可视化 footprint 图佐证。
+            </div>
+
+            <h3>过程可视化</h3>
+            <div class="gallery">
+                <figure>
+                    <img src="verify_m4_viz/m4_ON_registration.png" alt="M4 ON registration">
+                    <figcaption>配准开启：逐轮 DEM（pass 1–4，共享色标）</figcaption>
+                </figure>
+                <figure>
+                    <img src="verify_m4_viz/m4_OFF_footprint_only.png" alt="M4 OFF footprint only">
+                    <figcaption>仅冻结 footprint，不配准：逐轮 DEM</figcaption>
+                </figure>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>测试 2 — M5 持久融合 + 多 tile / Persistent Fusion</h2>
+            <p><span class="status pass">PASS</span></p>
+            <p>
+                使用 <code>tools/verify_m5.py</code> 验证全局融合累加器、多 tile 切分与变化检测在真实重建数据上的表现。
+            </p>
+            <div class="cmd">python tools/verify_m5.py dji_fly_20260511_161858_0_1778489356002_video.mp4 \
+    --seconds 50 --interval 6 --target-fps 1.0 --auto-scale --viz --viz-dir ./verify_m5_viz</div>
+
+            <div class="alert-box">
+                <strong>--auto-scale 必要性：</strong>VGGT 尺度任意，先探一次重建测实际地面 X/Z 跨度（≈1.2），据此确定 <code>tile_size_m=0.80</code>、<code>world_size_m=2.40</code>（3×3 tile）。
+                不加则默认 150 m 栅格过大，所有点挤进 1 格。
+            </div>
+
+            <h3>关键指标</h3>
+            <div class="grid">
+                <div class="metric">
+                    <div class="value good">6</div>
+                    <div class="label">发布的不同 tile 数</div>
+                </div>
+                <div class="metric">
+                    <div class="value good">21</div>
+                    <div class="label">累计 tile 更新次数</div>
+                </div>
+                <div class="metric">
+                    <div class="value good">25,666</div>
+                    <div class="label">最终 observed_cells</div>
+                </div>
+                <div class="metric">
+                    <div class="value">128×128</div>
+                    <div class="label">tile 分辨率</div>
+                </div>
+            </div>
+
+            <h3>地形持续生长</h3>
+            <div class="chart-wrap">
+                <canvas id="m5GrowthChart"></canvas>
+            </div>
+
+            <h3>变化检测收敛</h3>
+            <div class="chart-wrap">
+                <canvas id="m5ChangeChart"></canvas>
+            </div>
+
+            <h3>全局 DEM 逐轮演化</h3>
+            <div class="figure-row">
+                <figure><img src="verify_m5_viz/global_dem_pass1.png" alt="Pass 1"><figcaption>Pass 1 — 11,770 cells（稀疏）</figcaption></figure>
+                <figure><img src="verify_m5_viz/global_dem_pass2.png" alt="Pass 2"><figcaption>Pass 2 — 16,633 cells</figcaption></figure>
+                <figure><img src="verify_m5_viz/global_dem_pass3.png" alt="Pass 3"><figcaption>Pass 3 — 19,279 cells</figcaption></figure>
+                <figure><img src="verify_m5_viz/global_dem_pass4.png" alt="Pass 4"><figcaption>Pass 4 — 21,007 cells</figcaption></figure>
+                <figure><img src="verify_m5_viz/global_dem_pass5.png" alt="Pass 5"><figcaption>Pass 5 — 25,666 cells（填满）</figcaption></figure>
+            </div>
+
+            <h3>发布的 Tile JSON 样例</h3>
+            <div class="cmd">width=128 height=128 tile_x=-1 tile_y=-1
+tile_size_meters≈0.7997  min_elevation≈-0.351  max_elevation≈-0.329  nodata_count=13309</div>
+            <p style="color:var(--muted); font-size:0.9rem;">
+                尺度小（米制未标定）与大量 NODATA（单 tile 只被部分观测）均为预期行为，非缺陷。
+            </p>
+        </section>
+
+        <section class="card">
+            <h2>结论 / Conclusions</h2>
+            <ul class="takeaway">
+                <li><strong>M4 坐标稳定：</strong>冻结锚点 + 轮间配准在真机端到端跑通，数值上有效减小跨轮 DEM 漂移。</li>
+                <li><strong>M5 持久融合：</strong>全局融合累加器 + 多 tile 切分 + 变化检测在真重建数据上真正工作；地形随视频持续生长并填充，成功发布多个 tile，变化检测收敛。</li>
+                <li><strong>尺度局限：</strong>绝对尺度仍任意（VGGT 固有），<code>--auto-scale</code> 仅为演示适配；真源接入需按真实米制标定。</li>
+                <li><strong>未覆盖项：</strong>接真 Unity 目视多 tile 拼接验证；MQTT 通道验证（缺 broker）。</li>
+            </ul>
+        </section>
+
+        <section class="card">
+            <h2>复现要点 / Reproduction Notes</h2>
+            <ul class="takeaway">
+                <li>必用<strong>有相机运动的航拍视频</strong> + <code>--target-fps 1.0</code>。</li>
+                <li>M5 必加 <code>--auto-scale</code>，否则所有点挤进 1 格。</li>
+                <li>两脚本已支持从任意目录运行（自动把 repo root 加进 <code>sys.path</code>）。</li>
+                <li><code>--viz</code> 依赖 matplotlib（<code>vggt50</code> 内已装 3.10.8）。</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        Generated from <code>M4_M5_VERIFICATION_LOG.md</code> · /home/maomaoyu/WS/vggt_yoloe
+    </footer>
+
+    <script>
+        Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif";
+        Chart.defaults.color = '#374151';
+
+        new Chart(document.getElementById('m4Chart'), {
+            type: 'bar',
+            data: {
+                labels: ['Registration OFF', 'Registration ON'],
+                datasets: [{
+                    label: 'Cross-pass DEM RMS (m)',
+                    data: [0.0077, 0.0056],
+                    backgroundColor: ['#94a3b8', '#059669'],
+                    borderRadius: 6,
+                    barPercentage: 0.5
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: { display: true, text: 'M4: 跨轮 DEM RMS 漂移对比' },
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(4) + ' m' } }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'RMS (m)' },
+                        suggestedMax: 0.009
+                    }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('m5GrowthChart'), {
+            type: 'line',
+            data: {
+                labels: ['Pass 1', 'Pass 2', 'Pass 3', 'Pass 4', 'Pass 5'],
+                datasets: [{
+                    label: 'Observed cells',
+                    data: [11770, 16633, 19279, 21007, 25666],
+                    borderColor: '#1e40af',
+                    backgroundColor: 'rgba(30, 64, 175, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: { display: true, text: 'M5: 地形持续累积（observed_cells）' },
+                    tooltip: { callbacks: { label: ctx => ctx.parsed.y.toLocaleString() + ' cells' } }
+                },
+                scales: {
+                    y: { title: { display: true, text: 'Cells' }, beginAtZero: false }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('m5ChangeChart'), {
+            type: 'bar',
+            data: {
+                labels: ['1', '2', '3', '4', '5', '6', '7', '8'],
+                datasets: [{
+                    label: 'Changed tiles / pass',
+                    data: [6, 6, 3, 4, 4, 4, 4, 4],
+                    backgroundColor: '#0ea5e9',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: { display: true, text: 'M5: 变化检测收敛（changed-tiles / 轮）' },
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Tile count' }, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "figure": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/visualizations/reconstruction_3d_dem_grid.png",
+  "source": "world_points_from_depth (Depthmap and Camera Branch)",
+  "matches": "/elevation_viewer_data DEM: estimate_gravity + P50 keep + semantic ground filter + build_elevation_view_grid (128, 2% pad)",
+  "grid_resolution": 128,
+  "approx_cell_size_cm": 0.487,
+  "terrain_valid_cells": 8878,
+  "surface_top_filled_cells": 10715,
+  "surface_top_source": "terrain_analysis.rasterize_bev H_top P90 (export_elevation_json dem_source='htop')",
+  "x_span_m": 0.624,
+  "z_span_m": 0.751,
+  "scale_m_per_vggt_unit": 0.4561616547648549
+}

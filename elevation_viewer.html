@@ -147,8 +147,29 @@ tr:hover td { background: #1a2a4a; }
   <!-- Scale -->
   <div class="sidebar-section">
     <h3>Scale Calibration</h3>
-    <label for="scale-input">Scale factor (1 unit = ? meters)</label>
-    <input type="number" id="scale-input" value="28" step="0.01" min="0.001">
+    <label for="calibration-mode">Calibration method</label>
+    <select id="calibration-mode" style="width:100%;margin-bottom:8px">
+      <option value="manual">Manual isotropic scale</option>
+      <option value="local-plane">Known object + local plane (horizontal / vertical)</option>
+    </select>
+    <div id="manual-scale-controls">
+      <label for="scale-input">Scale factor (1 unit = ? meters)</label>
+      <input type="number" id="scale-input" value="28" step="0.01" min="0.001">
+    </div>
+    <div id="local-plane-controls" style="display:none">
+      <div style="font-size:11px;color:#aaa;margin:2px 0 7px;line-height:1.45">Use a fully visible, segmented rectangular reference object. Its footprint calibrates horizontal scale and its thickness calibrates elevation.</div>
+      <label for="cal-object-id">Reference semantic ID</label>
+      <input type="number" id="cal-object-id" value="2" min="0" step="1">
+      <div style="display:flex;gap:5px;margin-top:6px">
+        <div style="flex:1"><label for="cal-length">Length (m)</label><input type="number" id="cal-length" value="0.13" min="0.001" step="0.001"></div>
+        <div style="flex:1"><label for="cal-width">Width (m)</label><input type="number" id="cal-width" value="0.13" min="0.001" step="0.001"></div>
+        <div style="flex:1"><label for="cal-height">Height (m)</label><input type="number" id="cal-height" value="0.03" min="0.001" step="0.001"></div>
+      </div>
+      <label for="cal-ground-id" style="margin-top:6px">Ground semantic ID</label>
+      <input type="number" id="cal-ground-id" value="1" min="0" step="1">
+      <button id="run-local-plane-calibration" style="margin-top:8px">Run local-plane calibration</button>
+      <div id="local-plane-calibration-result" style="display:none;background:#0f3460;border-radius:4px;padding:7px 8px;margin-top:7px;font-size:11px;line-height:1.55"></div>
+    </div>
   </div>
 
   <!-- Camera Extrinsics -->
@@ -176,7 +197,7 @@ tr:hover td { background: #1a2a4a; }
   <div class="sidebar-section">
     <h3>DEM Hole Fill</h3>
     <div class="checkbox-row">
-      <input type="checkbox" id="use-ground-filter" checked>
+      <input type="checkbox" id="use-ground-filter">
       <span>Use ground filter for DEM</span>
     </div>
     <div class="checkbox-row">
@@ -190,6 +211,10 @@ tr:hover td { background: #1a2a4a; }
     <div class="checkbox-row" id="hide-pointcloud-row" style="display:none;margin-top:6px;padding-left:4px;border-left:2px solid #444;">
       <input type="checkbox" id="hide-pointcloud">
       <span>Hide original point cloud</span>
+    </div>
+    <div class="checkbox-row" id="show-excavator-row" style="display:none;margin-top:6px;padding-left:4px;border-left:2px solid #444;">
+      <input type="checkbox" id="show-excavator" checked>
+      <span>显示挖掘机 (RGB)</span>
     </div>
     <div id="compare-row" style="display:none;margin-top:6px;">
       <button id="compare-btn" style="font-size:12px;padding:5px 8px;">Showing: Filled &nbsp;&#8644;</button>
@@ -228,6 +253,59 @@ tr:hover td { background: #1a2a4a; }
         <div id="progress-result" style="display:none;background:#0a2a1a;border-radius:4px;padding:8px 10px;margin-top:8px;font-size:12px;line-height:1.8;"></div>
       </div>
     </div>
+  </div>
+
+  <!-- Semantic Terrain Understanding (语义×几何融合) -->
+  <div class="sidebar-section">
+    <h3>语义地形理解 (Semantic Terrain)</h3>
+    <div style="color:#888;font-size:11px;margin-bottom:8px;">
+      后端融合语义+高程：土堆/坑 + 材质确认（可挖料堆 vs 排除物体）
+    </div>
+    <div style="margin:0 0 6px;font-size:12px;color:#aaa;display:flex;align-items:center;gap:8px;">
+      <label for="terrain-tau-frac">起伏阈值 τ (占值域比例):</label>
+      <input type="number" id="terrain-tau-frac" value="0.10" min="0.01" max="1" step="0.01" style="width:60px;">
+    </div>
+    <button id="terrain-run-btn">运行地形分析</button>
+    <button id="terrain-worksite-btn" style="margin-top:6px">导出作业地图 (下铲点)</button>
+    <button id="terrain-bev-btn" style="margin-top:6px">导出 BEV 网格图</button>
+    <button id="terrain-export-btn" style="margin-top:6px">导出诊断图 (多层)</button>
+    <div style="margin:8px 0 4px;font-size:12px;color:#aaa;">叠加图层:</div>
+    <select id="terrain-layer-select" style="width:100%;font-size:12px;padding:4px;">
+      <option value="zone_map">作业分区 (挖掘/放料/料堆…)</option>
+      <option value="R">残差 R (土堆↑/坑↓)</option>
+      <option value="S_mode">语义分类</option>
+      <option value="slope">坡度</option>
+      <option value="roughness">粗糙度</option>
+    </select>
+    <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:#aaa;">
+      <input type="checkbox" id="terrain-show-overlay" checked> 显示叠加层
+    </label>
+    <label style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:12px;color:#aaa;">
+      <input type="checkbox" id="terrain-show-regions" checked> 显示区域标注
+    </label>
+    <div id="terrain-result" style="display:none;background:#0f3460;border-radius:4px;padding:8px 10px;margin-top:8px;font-size:12px;line-height:1.6;"></div>
+  </div>
+
+  <!-- Unity Terrain Export -->
+  <div class="sidebar-section">
+    <h3>导出 Unity 地形 (DEM → JSON)</h3>
+    <div style="margin-bottom:6px;">
+      <label for="export-dem-source" style="font-size:12px;color:#aaa;">高程来源:</label>
+      <select id="export-dem-source" style="width:100%;font-size:12px;padding:4px;">
+        <option value="elev">插值地面 (elev)</option>
+        <option value="htop">表面顶高 (H_top)</option>
+      </select>
+    </div>
+    <div style="margin-bottom:6px;">
+      <label for="export-grid-res" style="font-size:12px;color:#aaa;">网格分辨率 (需 = Terrain 分辨率−1):</label>
+      <input type="number" id="export-grid-res" value="128" min="8" max="4096" step="1" style="width:70px;">
+    </div>
+    <div style="margin-bottom:6px;">
+      <label for="export-height-res" style="font-size:12px;color:#aaa;">高度量化步长 (米):</label>
+      <input type="number" id="export-height-res" value="0.01" min="0.0001" step="0.001" style="width:70px;">
+    </div>
+    <button id="export-elevation-btn" style="margin-top:4px">导出地形 JSON</button>
+    <div id="export-elevation-result" style="display:none;background:#0f3460;border-radius:4px;padding:8px 10px;margin-top:8px;font-size:12px;line-height:1.6;word-break:break-all;"></div>
   </div>
 
   <!-- Volume Selection -->
@@ -331,6 +409,7 @@ let cameraGroup = null;
 let demMesh = null;
 let demMeshOrig = null;
 let demGridLines = null;
+let objectMesh = null;
 let regionHighlightMeshes = [];
 let pitBBoxLines = null;       // wireframe box for target excavation volume
 let detectedPitData = null;    // {comp, axMin, axMax, azMin, azMax, vol}
@@ -341,7 +420,23 @@ let sceneBSRadius = 1.0;
 let selectionHighlight = null;
 let raycaster, mouse;
 let data = null;          // raw API response
-let scaleFactor = 28.0;
+let scaleFactor = 28.0;              // horizontal metres per aligned unit
+let verticalScaleFactor = 28.0;      // vertical metres per aligned unit
+let manualScaleFactor = 28.0;        // restored when returning to manual mode
+let calibrationMode = "manual";      // "manual" | "local-plane"
+let localPlaneCalibration = null;
+
+function horizontalScale() { return scaleFactor; }
+function verticalScale() { return verticalScaleFactor; }
+
+function refreshScaleDependentViews() {
+  if (!data) return;
+  buildCameraTable();
+  if (demMesh) {
+    if (demColorMode === "classify") classifyTerrain();
+    else buildDEMMesh();
+  }
+}
 let selectMode = false;
 let selRect = null;       // {x0,y0,x1,y1} screen coords
 let selShape = 'rect';    // 'rect' | 'circle' | 'ellipse'
@@ -358,6 +453,10 @@ const POINT_SIZE = 0.0015;            // point size as a fraction of scene bound
 let basePointSize = 1.0;              // bs.radius * POINT_SIZE, set in buildScene; scaled by the slider
 let classifyThreshold = 1.4;          // |height vs ref plane| (scaled units) above which → 坡/坑
 let demStats = null;                  // cached {filled, gr, elevLo, elevHi, cellArea} from last buildDEMMesh
+let terrainData = null;               // last /terrain_analysis response
+let terrainOverlayMesh = null;        // BEV layer overlay mesh
+let terrainRegionGroup = null;        // region markers (labels + centroids)
+let terrainLayer = 'zone_map';        // active overlay layer key
 
 // ─── Coordinate transform (module-level, requires data to be set) ─────────────
 function alignedToDisplay(ax, ay, az) {
@@ -414,7 +513,7 @@ function pitColor(t) {     // t in [0,1] by magnitude below threshold
 const FLAT_COLOR = [0.55, 0.58, 0.52];
 const BASE_URL = `${location.protocol}//${location.host}`;
 const initialParams = new URLSearchParams(location.search);
-const initialGroundFilter = (initialParams.get('use_ground_filter') || 'true').toLowerCase();
+const initialGroundFilter = (initialParams.get('use_ground_filter') || 'false').toLowerCase();
 useGroundFilterForDEM = !['false', '0', 'off', 'no'].includes(initialGroundFilter);
 
 // ─── Init Three.js ────────────────────────────────────────────────────────────
@@ -530,6 +629,9 @@ async function loadData() {
     }
     data = await resp.json();
     document.getElementById('loading').style.display = 'none';
+    clearTerrain();
+    terrainData = null;
+    document.getElementById('terrain-result').style.display = 'none';
     buildScene();
     populateSidebar();
     if (heightColorMode) applyPointColors();   // honor active height-color toggle after reload
@@ -680,13 +782,17 @@ function populateSidebar() {
   document.getElementById('gravity-source-label').textContent = `Gravity: ${data.gravity_source || 'unknown'}`;
   document.getElementById('use-ground-filter').checked = data.use_ground_filter !== false;
 
-  const prevSF = scaleFactor;
-  scaleFactor = data.scale_factor || 1.0;
-  document.getElementById('scale-input').value = scaleFactor;
-  // Sync classify threshold proportionally when loaded scale factor differs
-  if (prevSF !== scaleFactor) {
-    classifyThreshold = parseFloat((classifyThreshold * (scaleFactor / prevSF)).toFixed(4));
-    document.getElementById('classify-thres').value = classifyThreshold;
+  const serverScale = data.scale_factor || 1.0;
+  if (calibrationMode === "manual") {
+    const prevSF = verticalScaleFactor;
+    scaleFactor = serverScale;
+    verticalScaleFactor = serverScale;
+    manualScaleFactor = serverScale;
+    document.getElementById("scale-input").value = scaleFactor;
+    if (prevSF !== verticalScaleFactor) {
+      classifyThreshold = parseFloat((classifyThreshold * (verticalScaleFactor / prevSF)).toFixed(4));
+      document.getElementById("classify-thres").value = classifyThreshold;
+    }
   }
 
   buildCameraTable();
@@ -694,13 +800,14 @@ function populateSidebar() {
 }
 
 function buildCameraTable() {
-  const tbody = document.getElementById('camera-tbody');
-  tbody.innerHTML = '';
-  const sf = scaleFactor;
+  const tbody = document.getElementById("camera-tbody");
+  tbody.innerHTML = "";
+  const hs = horizontalScale(), vs = verticalScale();
   for (const cam of data.cameras) {
     const c = cam.center_aligned;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${cam.frame}</td><td>${(c[0]*sf).toFixed(3)}</td><td>${(c[1]*sf).toFixed(3)}</td><td>${(c[2]*sf).toFixed(3)}</td>`;
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + cam.frame + "</td><td>" + (c[0] * hs).toFixed(3)
+      + "</td><td>" + (c[1] * vs).toFixed(3) + "</td><td>" + (c[2] * hs).toFixed(3) + "</td>";
     tbody.appendChild(tr);
   }
 }
@@ -828,7 +935,7 @@ function buildDEMMesh() {
   for (let i = 0; i < gr; i++)
     for (let j = 0; j < gr; j++)
       if (hasData[i][j]) {
-        const hM = (elev[i][j] - refYAligned) * scaleFactor;
+        const hM = (elev[i][j] - refYAligned) * verticalScale();
         if (hM > maxMound) maxMound = hM;
         if (-hM > maxPit) maxPit = -hM;
       }
@@ -837,7 +944,7 @@ function buildDEMMesh() {
   // Returns rgb in [0,1]; filled (hole) cells are dimmed to 70% in elevation mode.
   function cellColor(value, isHole) {
     if (demColorMode === 'classify') {
-      const hM = (value - refYAligned) * scaleFactor;
+      const hM = (value - refYAligned) * verticalScale();
       let c;
       if (hM > classifyThreshold)       c = moundColor((hM - classifyThreshold) / (maxMound - classifyThreshold || 1));
       else if (hM < -classifyThreshold) c = pitColor((-hM - classifyThreshold) / (maxPit - classifyThreshold || 1));
@@ -853,7 +960,7 @@ function buildDEMMesh() {
   const cellH0 = (dem.z_max - dem.z_min) / (gr - 1);
   demStats = {
     filled, gr, elevLo, elevHi, maxMound, maxPit,
-    cellArea: cellW0 * cellH0 * scaleFactor * scaleFactor,
+    cellArea: cellW0 * cellH0 * horizontalScale() * horizontalScale(),
   };
 
   // Build geometry
@@ -954,6 +1061,55 @@ function buildDEMMesh() {
   scene.add(demGridLines);
 
   updateLegend();
+  buildObjectMesh();
+}
+
+// Excavator overlay: a small RGB-colored DEM rasterized on the same grid as the
+// terrain, drawn opaque on top so the machine pops out in its real colors.
+function buildObjectMesh() {
+  if (objectMesh) { scene.remove(objectMesh); objectMesh.geometry.dispose(); objectMesh = null; }
+  const od = data.object_dem;
+  const row = document.getElementById('show-excavator-row');
+  if (!od || !od.present) { if (row) row.style.display = 'none'; return; }
+  if (row) row.style.display = '';
+
+  const dem = data.dem;
+  const gr = dem.grid_res;
+  const elev = od.elev, hasData = od.has_data, rgb = od.rgb;
+
+  const positions = [], colorsArr = [], indices = [];
+  for (let i = 0; i < gr; i++) {
+    for (let j = 0; j < gr; j++) {
+      const ax = dem.x_min + j*(dem.x_max - dem.x_min)/(gr-1);
+      const ay = elev[i][j];
+      const az = dem.z_min + i*(dem.z_max - dem.z_min)/(gr-1);
+      const [dx,dy,dz] = alignedToDisplay(ax, ay, az);
+      positions.push(dx, dy, dz);
+      const c = rgb[i][j];
+      colorsArr.push(c[0]/255, c[1]/255, c[2]/255);
+    }
+  }
+  // Faces only where all 4 corners carry object data → just the machine footprint.
+  for (let i = 0; i < gr-1; i++) {
+    for (let j = 0; j < gr-1; j++) {
+      if (hasData[i][j] && hasData[i][j+1] && hasData[i+1][j] && hasData[i+1][j+1]) {
+        const a = i*gr+j, b = i*gr+j+1, c = (i+1)*gr+j, d = (i+1)*gr+j+1;
+        indices.push(a,b,c, b,d,c);
+      }
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colorsArr), 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  const mat = new THREE.MeshBasicMaterial({
+    vertexColors: true, side: THREE.DoubleSide,
+    polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1,
+  });
+  objectMesh = new THREE.Mesh(geo, mat);
+  objectMesh.visible = document.getElementById('show-excavator')?.checked ?? true;
+  scene.add(objectMesh);
 }
 
 function clearRegionHighlights() {
@@ -977,6 +1133,9 @@ function clearDEMMeshes() {
   if (demMesh) { scene.remove(demMesh); demMesh.geometry.dispose(); demMesh = null; }
   if (demMeshOrig) { scene.remove(demMeshOrig); demMeshOrig.geometry.dispose(); demMeshOrig = null; }
   if (demGridLines) { scene.remove(demGridLines); demGridLines.geometry.dispose(); demGridLines = null; }
+  if (objectMesh) { scene.remove(objectMesh); objectMesh.geometry.dispose(); objectMesh = null; }
+  const exRow = document.getElementById('show-excavator-row');
+  if (exRow) exRow.style.display = 'none';
   clearRegionHighlights();
   demStats = null;
   updateLegend();
@@ -996,7 +1155,7 @@ function updateLegend() {
 
   if (demColorMode === 'classify') {
     const thr = classifyThreshold.toFixed(3);
-    const refTxt = (refYAligned * scaleFactor).toFixed(3);
+    const refTxt = (refYAligned * verticalScale()).toFixed(3);
     el.innerHTML = `
       <div class="legend-title">坑 / 坡 分类</div>
       <div class="cls-row"><span class="cls-sw" style="background:${rgbCss(moundColor(0.8))}"></span>坡 (mound) &gt; +${thr} m</div>
@@ -1007,8 +1166,8 @@ function updateLegend() {
   }
 
   // Elevation gradient: heights relative to reference plane (matches tooltip Y)
-  const loM = ((demStats.elevLo - refYAligned) * scaleFactor);
-  const hiM = ((demStats.elevHi - refYAligned) * scaleFactor);
+  const loM = ((demStats.elevLo - refYAligned) * verticalScale());
+  const hiM = ((demStats.elevHi - refYAligned) * verticalScale());
   const midM = (loM + hiM) / 2;
   // CSS gradient bottom(low)→top(high): list stops reversed for vertical bar
   const stops = CMAP_STOPS.map(([t, c]) => `${rgbCss(c)} ${(t*100).toFixed(0)}%`).join(', ');
@@ -1051,7 +1210,7 @@ function classifyTerrain() {
   for (let i = 0; i < gr; i++) {
     for (let j = 0; j < gr; j++) {
       if (!hasData[i][j]) continue;
-      const hM = (elev[i][j] - refYAligned) * scaleFactor;
+      const hM = (elev[i][j] - refYAligned) * verticalScale();
       if (hM > classifyThreshold)       { nMound++; volMound += hM * area; }
       else if (hM < -classifyThreshold) { nPit++;   volPit  += (-hM) * area; }
       else                              { nFlat++; }
@@ -1065,7 +1224,7 @@ function classifyTerrain() {
     <div style="color:${rgbCss(FLAT_COLOR)}">平坦 flat: ${nFlat} cells · ${(nFlat*area).toFixed(3)} m²</div>
     <div style="color:${rgbCss(pitColor(0.8))}">坑 pit: ${nPit} cells · ${(nPit*area).toFixed(3)} m² · 挖方 ${volPit.toFixed(4)} m³</div>
     <div style="color:#888;font-size:10.5px;margin-top:5px;font-family:monospace;">
-      阈值 ±${thr} m · 基准 Y=${(refYAligned*scaleFactor).toFixed(3)} m<br>
+      阈值 ±${thr} m · 基准 Y=${(refYAligned*verticalScale()).toFixed(3)} m<br>
       每格面积 ${area.toFixed(5)} m² · 网格 ${gr}×${gr}
     </div>`;
 }
@@ -1075,6 +1234,327 @@ function resetDEMColoring() {
   document.getElementById('classify-result').style.display = 'none';
   if (demMesh) buildDEMMesh();
   else updateLegend();
+}
+
+// ─── Semantic Terrain Understanding (server /terrain_analysis) ────────────────
+// Distinct palette for semantic ids 1..9 (mirrors yoloe_service palette family)
+const SEM_PALETTE = [
+  [0.90,0.30,0.30],[0.30,0.65,0.90],[0.35,0.80,0.40],[0.90,0.75,0.25],
+  [0.70,0.45,0.85],[0.35,0.80,0.80],[0.95,0.55,0.25],[0.60,0.60,0.60],[0.85,0.45,0.65],
+];
+
+async function runTerrainAnalysis() {
+  const params = new URLSearchParams(location.search);
+  const workingDir = params.get('session') || '';
+  const scene = currentScene || {};
+  const tauFrac = parseFloat(document.getElementById('terrain-tau-frac').value) || 0.1;
+  const box = document.getElementById('terrain-result');
+  box.style.display = 'block';
+  box.innerHTML = '<span style="color:#aaa">分析中…</span>';
+  try {
+    const resp = await fetch(`${BASE_URL}/terrain_analysis`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        working_dir: workingDir,
+        conf_thres: 50.0,
+        prediction_mode: 'Depthmap and Camera Branch',
+        ground_percentile: 20.0,
+        tau_frac: tauFrac,
+        semantic_filter_ids: scene.semantic_filter_ids || [],
+        semantic_filter_mode: scene.semantic_filter_mode || 'delete',
+        semantic_masks_path: scene.semantic_masks_path || '',
+      })
+    });
+    if (!resp.ok) throw new Error((await resp.text()) || `HTTP ${resp.status}`);
+    terrainData = await resp.json();
+    terrainLayer = document.getElementById('terrain-layer-select').value;
+    buildTerrainOverlay();
+    buildTerrainRegions();
+    renderTerrainInfo();
+  } catch (e) {
+    box.innerHTML = `<span style="color:#e94560">Error: ${e.message}</span>`;
+  }
+}
+
+function clearTerrain() {
+  if (terrainOverlayMesh) { scene.remove(terrainOverlayMesh); terrainOverlayMesh.geometry.dispose(); terrainOverlayMesh.material.dispose(); terrainOverlayMesh = null; }
+  if (terrainRegionGroup) {
+    terrainRegionGroup.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+    scene.remove(terrainRegionGroup); terrainRegionGroup = null;
+  }
+}
+
+// Map an aligned grid cell (i=row along z, j=col along x) to aligned X/Z.
+function terrainCellXZ(g, i, j) {
+  const ax = g.x_min + j * (g.x_max - g.x_min) / (g.res - 1);
+  const az = g.z_min + i * (g.z_max - g.z_min) / (g.res - 1);
+  return [ax, az];
+}
+
+function terrainLayerColor(key, val, norm) {
+  if (val === null || Number.isNaN(val)) return null;   // empty cell → skip
+  if (key === 'R')        return val >= 0 ? moundColor(norm) : pitColor(norm);
+  if (key === 'S_mode')   return val > 0 ? SEM_PALETTE[(val - 1) % SEM_PALETTE.length] : null;
+  if (key === 'zone_map') {
+    // 作业分区：用后端返回的 zone_colors（键是字符串化的 zone 编码）
+    if (val < 0) return null;                              // ZONE_EMPTY
+    const zc = terrainData?.worksite?.zone_colors || {};
+    return zc[val] || zc[String(val)] || null;
+  }
+  return elevColor(norm); // slope / roughness
+}
+
+function buildTerrainOverlay() {
+  if (terrainOverlayMesh) { scene.remove(terrainOverlayMesh); terrainOverlayMesh.geometry.dispose(); terrainOverlayMesh.material.dispose(); terrainOverlayMesh = null; }
+  if (!terrainData) return;
+  const g = terrainData.grid;
+  const gr = g.res;
+  const layer = terrainData.layers[terrainLayer];
+  const Htop = terrainData.layers.H_top;   // drape overlay on the surface
+
+  // Normalization for continuous layers (robust range over finite cells)
+  const flat = [];
+  for (let i = 0; i < gr; i++) for (let j = 0; j < gr; j++) {
+    const v = layer[i][j];
+    if (v !== null && !Number.isNaN(v)) flat.push(terrainLayer === 'R' ? Math.abs(v) : v);
+  }
+  const lo = percentileOf(flat, 0.02), hi = percentileOf(flat, 0.98);
+  const range = (hi - lo) || 1;
+
+  const positions = [], colorsArr = [], indices = [];
+  const cellIndex = new Int32Array(gr * gr).fill(-1);
+  let vcount = 0;
+  for (let i = 0; i < gr; i++) {
+    for (let j = 0; j < gr; j++) {
+      const v = layer[i][j];
+      const c = terrainLayerColor(terrainLayer, v, (Math.abs(v) - (terrainLayer==='R'?0:lo)) / range);
+      if (c === null) continue;
+      const [ax, az] = terrainCellXZ(g, i, j);
+      let ay = Htop[i][j];
+      if (ay === null || Number.isNaN(ay)) ay = refYAligned;
+      const [dx, dy, dz] = alignedToDisplay(ax, ay + 0.002, az); // tiny lift to avoid z-fight
+      cellIndex[i * gr + j] = vcount++;
+      positions.push(dx, dy, dz);
+      colorsArr.push(c[0], c[1], c[2]);
+    }
+  }
+  // Triangulate quads where all 4 corners are present
+  for (let i = 0; i < gr - 1; i++) {
+    for (let j = 0; j < gr - 1; j++) {
+      const a = cellIndex[i*gr+j], b = cellIndex[i*gr+j+1],
+            c = cellIndex[(i+1)*gr+j], d = cellIndex[(i+1)*gr+j+1];
+      if (a >= 0 && b >= 0 && c >= 0 && d >= 0) indices.push(a,b,c, b,d,c);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colorsArr), 3));
+  geo.setIndex(indices);
+  const mat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
+  terrainOverlayMesh = new THREE.Mesh(geo, mat);
+  terrainOverlayMesh.visible = document.getElementById('terrain-show-overlay')?.checked ?? true;
+  scene.add(terrainOverlayMesh);
+}
+
+function buildTerrainRegions() {
+  if (terrainRegionGroup) {
+    terrainRegionGroup.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+    scene.remove(terrainRegionGroup); terrainRegionGroup = null;
+  }
+  if (!terrainData) return;
+  terrainRegionGroup = new THREE.Group();
+  const g = terrainData.grid;
+  const Htop = terrainData.layers.H_top;
+  // grid resolution helper to sample surface height near centroid
+  for (const r of terrainData.regions) {
+    // color: kept mound=green, excluded=red, pit=blue
+    let color, hex;
+    if (r.kind === 'pit')      { color = 0x3b82f6; hex = '#3b82f6'; }
+    else if (r.keep)           { color = 0x22c55e; hex = '#22c55e'; }
+    else                       { color = 0xef4444; hex = '#ef4444'; }
+
+    const [cx, cz] = r.centroid;
+    // find nearest cell for a surface height at the centroid
+    const j = Math.round((cx - g.x_min) / (g.x_max - g.x_min) * (g.res - 1));
+    const i = Math.round((cz - g.z_min) / (g.z_max - g.z_min) * (g.res - 1));
+    let ay = (Htop[i] && Htop[i][j] != null && !Number.isNaN(Htop[i][j])) ? Htop[i][j] : refYAligned;
+    const [dx, dy, dz] = alignedToDisplay(cx, ay + 0.02, cz);
+
+    // centroid marker
+    const sph = new THREE.Mesh(
+      new THREE.SphereGeometry(sceneBSRadius * 0.012, 12, 12),
+      new THREE.MeshBasicMaterial({ color }));
+    sph.position.set(dx, dy, dz);
+    terrainRegionGroup.add(sph);
+
+    // text label
+    const tag = r.kind === 'pit' ? `坑#${r.id}` :
+                (r.keep ? `料堆#${r.id}` : `排除#${r.id}`);
+    const lbl = makeAxisLabel(`${tag} ${r.material}`, hex);
+    lbl.position.set(dx, dy + sceneBSRadius * 0.03, dz);
+    terrainRegionGroup.add(lbl);
+  }
+
+  // sample surface height (aligned Y) at an aligned (x,z)
+  const surfY = (ax, az) => {
+    const j = Math.round((ax - g.x_min) / (g.x_max - g.x_min) * (g.res - 1));
+    const i = Math.round((az - g.z_min) / (g.z_max - g.z_min) * (g.res - 1));
+    const v = (Htop[i] && Htop[i][j] != null && !Number.isNaN(Htop[i][j])) ? Htop[i][j] : refYAligned;
+    return v;
+  };
+
+  const ws = terrainData.worksite || {};
+
+  // 机械/障碍物：黄色立方体框 + 类名标签
+  for (const mc of (ws.machines || [])) {
+    const [mx, mz] = mc.centroid;
+    const ay = surfY(mx, mz);
+    const [dx, dy, dz] = alignedToDisplay(mx, ay + 0.03, mz);
+    const side = sceneBSRadius * 0.05;
+    const box = new THREE.Mesh(
+      new THREE.BoxGeometry(side, side, side),
+      new THREE.MeshBasicMaterial({ color: 0xffd400, wireframe: true }));
+    box.position.set(dx, dy, dz);
+    terrainRegionGroup.add(box);
+    const lbl = makeAxisLabel(mc.label, '#ffd400');
+    lbl.position.set(dx, dy + sceneBSRadius * 0.05, dz);
+    terrainRegionGroup.add(lbl);
+  }
+
+  // 下一铲点：白色星标（八面体）+ 朝向箭头 + 标签
+  const ns = ws.next_scoop;
+  if (ns) {
+    const [px, pz] = ns.xz;
+    const ay = surfY(px, pz);
+    const [dx, dy, dz] = alignedToDisplay(px, ay + 0.02, pz);
+    const star = new THREE.Mesh(
+      new THREE.OctahedronGeometry(sceneBSRadius * 0.03),
+      new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    star.position.set(dx, dy, dz);
+    terrainRegionGroup.add(star);
+    const lbl = makeAxisLabel('NEXT SCOOP', '#ffffff');
+    lbl.position.set(dx, dy + sceneBSRadius * 0.06, dz);
+    terrainRegionGroup.add(lbl);
+    if (ns.heading_deg != null) {
+      const L = (g.x_max - g.x_min) * 0.12;
+      const hx = px + L * Math.cos(ns.heading_deg * Math.PI / 180);
+      const hz = pz + L * Math.sin(ns.heading_deg * Math.PI / 180);
+      const [hdx, hdy, hdz] = alignedToDisplay(hx, surfY(hx, hz) + 0.02, hz);
+      const arrow = new THREE.ArrowHelper(
+        new THREE.Vector3(hdx - dx, hdy - dy, hdz - dz).normalize(),
+        new THREE.Vector3(dx, dy, dz),
+        new THREE.Vector3(hdx - dx, hdy - dy, hdz - dz).length(),
+        0xffffff, sceneBSRadius * 0.03, sceneBSRadius * 0.02);
+      terrainRegionGroup.add(arrow);
+    }
+  }
+
+  terrainRegionGroup.visible = document.getElementById('terrain-show-regions')?.checked ?? true;
+  scene.add(terrainRegionGroup);
+}
+
+async function exportTerrainFigure(mode = 'diagnostic') {
+  const params = new URLSearchParams(location.search);
+  const workingDir = params.get('session') || '';
+  const scene = currentScene || {};
+  const tauFrac = parseFloat(document.getElementById('terrain-tau-frac').value) || 0.1;
+  const fname = mode === 'worksite' ? 'worksite_map.png'
+              : mode === 'bev' ? 'worksite_bev.png'
+              : 'terrain_analysis.png';
+  const box = document.getElementById('terrain-result');
+  box.style.display = 'block';
+  box.innerHTML = '<span style="color:#aaa">生成 PNG 中…</span>';
+  try {
+    const resp = await fetch(`${BASE_URL}/terrain_analysis_figure`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        working_dir: workingDir, conf_thres: 50.0,
+        prediction_mode: 'Depthmap and Camera Branch', ground_percentile: 20.0,
+        tau_frac: tauFrac, scale_factor: verticalScale(), figure_mode: mode,
+        semantic_filter_ids: scene.semantic_filter_ids || [],
+        semantic_filter_mode: scene.semantic_filter_mode || 'delete',
+        semantic_masks_path: scene.semantic_masks_path || '',
+      })
+    });
+    if (!resp.ok) throw new Error((await resp.text()) || `HTTP ${resp.status}`);
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fname;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    box.innerHTML = `<span style="color:#22c55e">已导出 ${fname}（也保存在 session 目录）</span>`;
+  } catch (e) {
+    box.innerHTML = `<span style="color:#e94560">Error: ${e.message}</span>`;
+  }
+}
+
+// ─── Unity terrain export (server /export_elevation_json) ─────────────────────
+async function exportElevationJson() {
+  const params = new URLSearchParams(location.search);
+  const workingDir = params.get('session') || '';
+  const scene = currentScene || {};
+  const demSource = document.getElementById('export-dem-source').value;
+  const gridRes = parseInt(document.getElementById('export-grid-res').value) || 128;
+  const heightRes = parseFloat(document.getElementById('export-height-res').value) || 0.01;
+  const box = document.getElementById('export-elevation-result');
+  box.style.display = 'block';
+  box.innerHTML = '<span style="color:#aaa">导出中…</span>';
+  try {
+    const resp = await fetch(`${BASE_URL}/export_elevation_json`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        working_dir: workingDir, conf_thres: 50.0,
+        prediction_mode: 'Depthmap and Camera Branch', ground_percentile: 20.0,
+        use_ground_filter: useGroundFilterForDEM,
+        dem_source: demSource, grid_res: gridRes,
+        scale_factor: horizontalScale(), horizontal_scale: horizontalScale(), vertical_scale: verticalScale(), height_resolution: heightRes,
+        semantic_filter_ids: scene.semantic_filter_ids || [],
+        semantic_filter_mode: scene.semantic_filter_mode || 'delete',
+        semantic_masks_path: scene.semantic_masks_path || '',
+      })
+    });
+    if (!resp.ok) throw new Error((await resp.text()) || `HTTP ${resp.status}`);
+    const data = await resp.json();
+    const m = data.metadata || {};
+    box.innerHTML = `<span style="color:#22c55e">已导出 (${data.dem_source})</span><br>`
+      + `<span style="color:#ccc">${data.out_path}</span><br>`
+      + `${m.width}×${m.height} · 高度 ${Number(m.min_elevation).toFixed(3)}~${Number(m.max_elevation).toFixed(3)} m<br>`
+      + `tile ${Number(m.tile_size_meters).toFixed(2)} m · res ${Number(m.resolution).toFixed(4)} m/px · `
+      + `NODATA ${m.nodata_count}` + (m.overflow_clipped ? ` · <span style="color:#e94560">溢出裁剪 ${m.overflow_clipped}</span>` : '');
+  } catch (e) {
+    box.innerHTML = `<span style="color:#e94560">Error: ${e.message}</span>`;
+  }
+}
+
+function renderTerrainInfo() {
+  const box = document.getElementById('terrain-result');
+  if (!terrainData) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  const mounds = terrainData.regions.filter(r => r.kind === 'mound');
+  const pits = terrainData.regions.filter(r => r.kind === 'pit');
+  const kept = mounds.filter(r => r.keep);
+  const rows = terrainData.regions
+    .sort((a, b) => b.rel_volume - a.rel_volume)
+    .slice(0, 12)
+    .map(r => {
+      const col = r.kind === 'pit' ? '#3b82f6' : (r.keep ? '#22c55e' : '#ef4444');
+      const tag = r.kind === 'pit' ? '坑' : (r.keep ? '料堆' : '排除');
+      return `<div style="color:${col}">${tag}#${r.id} · ${r.material} · `
+           + `vol=${r.rel_volume.toFixed(3)} · area=${r.area.toFixed(3)} · peak=${r.peak.toFixed(3)}</div>`;
+    }).join('');
+  box.innerHTML = `
+    <div style="color:#ddd;margin-bottom:5px;">
+      土堆 ${mounds.length}（可挖 ${kept.length}） · 坑 ${pits.length} ·
+      τ=${terrainData.params.tau.toFixed(4)} · 点 ${terrainData.n_points}
+    </div>
+    ${rows}
+    <div style="color:#888;font-size:10.5px;margin-top:6px;font-family:monospace;">
+      重力源=${terrainData.gravity_source} · 语义映射 ${JSON.stringify(terrainData.sem_id_map)}
+    </div>`;
 }
 
 // ─── Top Region Detection (watershed expand to ground) ───────────────────────
@@ -1107,7 +1587,7 @@ function detectTopRegions() {
   for (let i = 0; i < gr; i++) {
     for (let j = 0; j < gr; j++) {
       if (!hasData[i][j]) continue;
-      const hM = (filled[i][j] - refYAligned) * scaleFactor;
+      const hM = (filled[i][j] - refYAligned) * verticalScale();
       if (hM >  classifyThreshold) moundSeeds.add(i * gr + j);
       else if (hM < -classifyThreshold) pitSeeds.add(i * gr + j);
     }
@@ -1142,7 +1622,7 @@ function detectTopRegions() {
   function peakHM(comp) {
     let peak = 0;
     for (const idx of comp) {
-      const hM = Math.abs((filled[Math.floor(idx/gr)][idx%gr] - refYAligned) * scaleFactor);
+      const hM = Math.abs((filled[Math.floor(idx/gr)][idx%gr] - refYAligned) * verticalScale());
       if (hM > peak) peak = hM;
     }
     return peak;
@@ -1178,7 +1658,7 @@ function detectTopRegions() {
         if (ni < 0 || ni >= gr || nj < 0 || nj >= gr) continue;
         const nidx = ni * gr + nj;
         if (expanded.has(nidx)) continue;
-        const hM = (filled[ni][nj] - refYAligned) * scaleFactor;
+        const hM = (filled[ni][nj] - refYAligned) * verticalScale();
         if (hM > 0) { expanded.add(nidx); q.push(nidx); }
       }
     }
@@ -1234,7 +1714,7 @@ function detectTopRegions() {
     if (mesh) { scene.add(mesh); regionHighlightMeshes.push(mesh); }
     let vol = 0;
     for (const idx of comp) {
-      const hM = (filled[Math.floor(idx/gr)][idx%gr] - refYAligned) * scaleFactor;
+      const hM = (filled[Math.floor(idx/gr)][idx%gr] - refYAligned) * verticalScale();
       vol += (-hM) * area;
     }
     const css = PIT_CSS_LIST[k % PIT_CSS_LIST.length];
@@ -1264,7 +1744,7 @@ function detectTopRegions() {
     if (mesh) { scene.add(mesh); regionHighlightMeshes.push(mesh); }
     let vol = 0;
     for (const idx of comp) {
-      const hM = (filled[Math.floor(idx/gr)][idx%gr] - refYAligned) * scaleFactor;
+      const hM = (filled[Math.floor(idx/gr)][idx%gr] - refYAligned) * verticalScale();
       vol += hM * area;
     }
     const css = MOUND_CSS[k % MOUND_CSS.length];
@@ -1294,8 +1774,8 @@ function calcProgress() {
   const pazMin = azMin - cellH * 0.5, pazMax = azMax + cellH * 0.5;
 
   // Bounding box dimensions in meters
-  const bboxW = (paxMax - paxMin) * scaleFactor;
-  const bboxL = (pazMax - pazMin) * scaleFactor;
+  const bboxW = (paxMax - paxMin) * horizontalScale();
+  const bboxL = (pazMax - pazMin) * horizontalScale();
   const targetVol = bboxW * bboxL * targetDepth;
   const progress = Math.min(100, (vol / targetVol) * 100);
 
@@ -1303,7 +1783,7 @@ function calcProgress() {
   if (pitBBoxLines) { scene.remove(pitBBoxLines); pitBBoxLines.geometry.dispose(); pitBBoxLines = null; }
 
   const refY = refYAligned;
-  const botY  = refY - targetDepth / scaleFactor;  // bottom of box in aligned space
+  const botY  = refY - targetDepth / verticalScale();  // bottom of box in aligned space
   // 8 corners: top face (y=refY) and bottom face (y=botY)
   const corners = [
     [paxMin, refY, pazMin], [paxMax, refY, pazMin],
@@ -1356,10 +1836,10 @@ function onMouseMove(e) {
   if (hits.length > 0) {
     const idx = hits[0].index;
     const ap = pointCloud.geometry.attributes.alignedPos;
-    const sf = scaleFactor;
-    const x = (ap.getX(idx)*sf).toFixed(3);
-    const y = ((ap.getY(idx) - refYAligned)*sf).toFixed(3);
-    const z = (ap.getZ(idx)*sf).toFixed(3);
+    const hs = horizontalScale(), vs = verticalScale();
+    const x = (ap.getX(idx)*hs).toFixed(3);
+    const y = ((ap.getY(idx) - refYAligned)*vs).toFixed(3);
+    const z = (ap.getZ(idx)*hs).toFixed(3);
     tooltip.innerHTML = `X: ${x}m<br>Y: ${y}m<br>Z: ${z}m`;
     tooltip.style.display = 'block';
     tooltip.style.left = (e.clientX + 14) + 'px';
@@ -1556,7 +2036,7 @@ function computeSelection() {
   const hasData = dem.has_data;
   const cellW = (dem.x_max - dem.x_min) / (gr - 1);
   const cellH = (dem.z_max - dem.z_min) / (gr - 1);
-  const cellArea = cellW * cellH * scaleFactor * scaleFactor;
+  const cellArea = cellW * cellH * horizontalScale() * horizontalScale();
 
   let elevInRegion = [];
   let cellsInRegion = [];
@@ -1584,7 +2064,7 @@ function computeSelection() {
   if (elevInRegion.length > 0) {
     const minElev = Math.min(...elevInRegion);
     for (const e of elevInRegion) {
-      volume += (e - minElev) * cellArea * scaleFactor;
+      volume += (e - minElev) * cellArea * verticalScale();
     }
   }
 
@@ -2102,23 +2582,103 @@ function setupEvents() {
       document.getElementById('ground-modal').classList.remove('open');
   });
 
+function setCalibrationMode(mode) {
+  const previousMode = calibrationMode;
+  calibrationMode = mode;
+  const usePlane = mode === "local-plane";
+  document.getElementById("manual-scale-controls").style.display = usePlane ? "none" : "";
+  document.getElementById("local-plane-controls").style.display = usePlane ? "" : "none";
+  if (!usePlane) {
+    const previousVertical = verticalScaleFactor;
+    localPlaneCalibration = null;
+    scaleFactor = manualScaleFactor;
+    verticalScaleFactor = manualScaleFactor;
+    document.getElementById("scale-input").value = manualScaleFactor;
+    if (previousVertical > 0) {
+      classifyThreshold = parseFloat((classifyThreshold * verticalScaleFactor / previousVertical).toFixed(4));
+      document.getElementById("classify-thres").value = classifyThreshold;
+    }
+  } else {
+    if (previousMode === "manual") manualScaleFactor = scaleFactor;
+    const previousVertical = verticalScaleFactor;
+    const base = data ? (data.scale_factor || 1.0) : 1.0;
+    scaleFactor = base;
+    verticalScaleFactor = base;
+    localPlaneCalibration = null;
+    if (previousVertical > 0) {
+      classifyThreshold = parseFloat((classifyThreshold * verticalScaleFactor / previousVertical).toFixed(4));
+      document.getElementById("classify-thres").value = classifyThreshold;
+    }
+  }
+  refreshScaleDependentViews();
+}
+
+function localPlaneResultHtml(result) {
+  return "<b style=\"color:#22c55e\">Local-plane calibration active</b><br>"
+    + "Horizontal: " + result.horizontal_m_per_vggt_unit.toFixed(6) + " m/u · vertical: "
+    + result.vertical_m_per_vggt_unit.toFixed(6) + " m/u<br>V/H ratio: "
+    + result.vertical_to_horizontal_ratio.toFixed(3) + " · accepted frames: "
+    + result.selected_frames.join(", ") + "<br><span style=\"color:#aaa\">Scale rMAD: H "
+    + result.horizontal_scale_rmad_percent.toFixed(1) + "% · V "
+    + result.vertical_scale_rmad_percent.toFixed(1) + "%</span>";
+}
+
+async function runLocalPlaneCalibration() {
+  if (!data) return;
+  const objectId = parseInt(document.getElementById("cal-object-id").value);
+  const length = parseFloat(document.getElementById("cal-length").value);
+  const width = parseFloat(document.getElementById("cal-width").value);
+  const height = parseFloat(document.getElementById("cal-height").value);
+  const groundId = parseInt(document.getElementById("cal-ground-id").value);
+  const resultBox = document.getElementById("local-plane-calibration-result");
+  if (![objectId, groundId, length, width, height].every(Number.isFinite) || !(length > 0 && width > 0 && height > 0)) {
+    resultBox.style.display = "block";
+    resultBox.innerHTML = "<span style=\"color:#e94560\">Enter valid semantic IDs and positive dimensions.</span>";
+    return;
+  }
+  resultBox.style.display = "block";
+  resultBox.innerHTML = "<span style=\"color:#aaa\">Fitting local ground planes and estimating dual scales…</span>";
+  const params = new URLSearchParams(location.search);
+  try {
+    const response = await fetch(BASE_URL + "/calibrate_local_plane", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ working_dir: params.get("session") || "", object_semantic_id: objectId,
+        object_length_m: length, object_width_m: width, object_height_m: height,
+        ground_semantic_id: groundId, confidence_percentile: 50.0,
+        semantic_masks_path: (currentScene || {}).semantic_masks_path || "",
+        prediction_mode: "Depthmap and Camera Branch" }),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.detail || "Calibration failed");
+    const previousVertical = verticalScaleFactor;
+    scaleFactor = result.horizontal_m_per_vggt_unit;
+    verticalScaleFactor = result.vertical_m_per_vggt_unit;
+    calibrationMode = "local-plane";
+    localPlaneCalibration = result;
+    classifyThreshold = parseFloat((classifyThreshold * verticalScaleFactor / Math.max(previousVertical, 1e-12)).toFixed(4));
+    document.getElementById("classify-thres").value = classifyThreshold;
+    resultBox.innerHTML = localPlaneResultHtml(result);
+    refreshScaleDependentViews();
+  } catch (error) {
+    resultBox.innerHTML = "<span style=\"color:#e94560\">Calibration failed: " + error.message + "</span>";
+  }
+}
+
   // Scale input
-  document.getElementById('scale-input').addEventListener('input', e => {
-    const v = parseFloat(e.target.value);
-    if (v > 0) {
-      const ratio = v / scaleFactor;
-      scaleFactor = v;
-      // Sync classify threshold proportionally so real-world cutoff stays the same
+  document.getElementById("scale-input").addEventListener("input", e => {
+    const value = parseFloat(e.target.value);
+    if (value > 0 && calibrationMode === "manual") {
+      const ratio = value / Math.max(verticalScaleFactor, 1e-12);
+      scaleFactor = value;
+      verticalScaleFactor = value;
+      manualScaleFactor = value;
       classifyThreshold = parseFloat((classifyThreshold * ratio).toFixed(4));
-      const thresInput = document.getElementById('classify-thres');
-      thresInput.value = classifyThreshold;
-      if (data) buildCameraTable();
-      if (demMesh) {
-        if (demColorMode === 'classify') classifyTerrain();
-        else { buildDEMMesh(); }
-      }
+      document.getElementById("classify-thres").value = classifyThreshold;
+      refreshScaleDependentViews();
     }
   });
+  document.getElementById("calibration-mode").addEventListener("change", e => setCalibrationMode(e.target.value));
+  document.getElementById("run-local-plane-calibration").addEventListener("click", runLocalPlaneCalibration);
 
   // Camera collapsible
   document.getElementById('cam-header').addEventListener('click', () => {
@@ -2175,6 +2735,11 @@ function setupEvents() {
     if (demGridLines) demGridLines.visible = e.target.checked;
   });
 
+  // Excavator RGB overlay toggle
+  document.getElementById('show-excavator').addEventListener('change', e => {
+    if (objectMesh) objectMesh.visible = e.target.checked;
+  });
+
   document.getElementById('use-ground-filter').addEventListener('change', e => {
     useGroundFilterForDEM = e.target.checked;
     if (!data) return;
@@ -2224,6 +2789,25 @@ function setupEvents() {
     if (data) classifyTerrain();
   });
   document.getElementById('classify-reset-btn').addEventListener('click', resetDEMColoring);
+
+  // Semantic Terrain Understanding
+  document.getElementById('terrain-run-btn').addEventListener('click', () => {
+    if (data) runTerrainAnalysis();
+  });
+  document.getElementById('terrain-layer-select').addEventListener('change', e => {
+    terrainLayer = e.target.value;
+    if (terrainData) buildTerrainOverlay();
+  });
+  document.getElementById('terrain-show-overlay').addEventListener('change', e => {
+    if (terrainOverlayMesh) terrainOverlayMesh.visible = e.target.checked;
+  });
+  document.getElementById('terrain-show-regions').addEventListener('change', e => {
+    if (terrainRegionGroup) terrainRegionGroup.visible = e.target.checked;
+  });
+  document.getElementById('terrain-export-btn').addEventListener('click', () => exportTerrainFigure('diagnostic'));
+  document.getElementById('terrain-worksite-btn').addEventListener('click', () => exportTerrainFigure('worksite'));
+  document.getElementById('terrain-bev-btn').addEventListener('click', () => exportTerrainFigure('bev'));
+  document.getElementById('export-elevation-btn').addEventListener('click', () => exportElevationJson());
 
   // Shape selector buttons
   ['rect', 'circle', 'ellipse'].forEach(s => {

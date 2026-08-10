@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "operation": "scale_test3_dimension_analysis",
+  "status": "ok",
+  "started_at_utc": "2026-08-09T08:01:20.478248+00:00",
+  "completed_at_utc": "2026-08-09T08:01:24.494752+00:00",
+  "working_dir": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809",
+  "profile_path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/resource_profiles/scale_test3_dimension_analysis_20260809T080120_478248Z_pid14222.json",
+  "pid": 14222,
+  "metadata": {
+    "known_ruler_m": 0.15,
+    "primary_confidence_percentile": 50,
+    "scale_m_per_unit": 0.4085739886360525,
+    "ruler_anchors": 10,
+    "red_box_frames": 13,
+    "bottle_frames": 9
+  },
+  "measurement_notes": {
+    "wall_time": "CUDA is synchronized at stage boundaries when available.",
+    "rss_mb": "Current Linux process resident memory at the boundary.",
+    "rss_peak_mb": "Lifetime process RSS high-water mark, not a per-stage-only peak.",
+    "cuda_allocated_mb": "Live tensors owned by the current PyTorch process.",
+    "cuda_reserved_mb": "Memory held by the current PyTorch caching allocator.",
+    "cuda_peak_extra_allocated_mb": "Stage peak allocated minus stage-start allocated.",
+    "cuda_device_used_mb": "Whole-device usage (all processes), derived from mem_get_info."
+  },
+  "baseline": {
+    "rss_mb": 110.641,
+    "rss_peak_mb": 110.641,
+    "cuda_available": false
+  },
+  "stages": [
+    {
+      "name": "load_offline_vggt_predictions",
+      "status": "ok",
+      "wall_time_s": 0.177308,
+      "cpu_time_s": 0.890853,
+      "metadata": {},
+      "start": {
+        "rss_mb": 110.645,
+        "rss_peak_mb": 110.645,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 305.953,
+        "rss_peak_mb": 379.066,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 195.308,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "robust_15cm_ruler_scale_calibration",
+      "status": "ok",
+      "wall_time_s": 0.029566,
+      "cpu_time_s": 0.125911,
+      "metadata": {},
+      "start": {
+        "rss_mb": 305.961,
+        "rss_peak_mb": 379.066,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 309.762,
+        "rss_peak_mb": 379.066,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 3.801,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "semantic_ground_and_local_plane_fits",
+      "status": "ok",
+      "wall_time_s": 1.951101,
+      "cpu_time_s": 36.869582,
+      "metadata": {},
+      "start": {
+        "rss_mb": 309.777,
+        "rss_peak_mb": 379.066,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 336.711,
+        "rss_peak_mb": 483.004,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 26.934,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "multiframe_object_outer_dimensions",
+      "status": "ok",
+      "wall_time_s": 1.31858,
+      "cpu_time_s": 2.365983,
+      "metadata": {},
+      "start": {
+        "rss_mb": 336.723,
+        "rss_peak_mb": 483.004,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 337.004,
+        "rss_peak_mb": 483.004,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 0.281,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "write_results_and_csv",
+      "status": "ok",
+      "wall_time_s": 0.002161,
+      "cpu_time_s": 0.002369,
+      "metadata": {},
+      "start": {
+        "rss_mb": 337.016,
+        "rss_peak_mb": 483.004,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 337.363,
+        "rss_peak_mb": 483.004,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 0.347,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "render_numeric_figures",
+      "status": "ok",
+      "wall_time_s": 0.535121,
+      "cpu_time_s": 0.573656,
+      "metadata": {},
+      "start": {
+        "rss_mb": 337.363,
+        "rss_peak_mb": 483.004,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 343.941,
+        "rss_peak_mb": 483.004,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 6.578,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    }
+  ],
+  "total": {
+    "wall_time_s": 4.016528,
+    "cpu_time_s": 40.830846,
+    "end": {
+      "rss_mb": 343.945,
+      "rss_peak_mb": 483.004,
+      "cuda_available": false
+    },
+    "stage_count": 6
+  }
+}

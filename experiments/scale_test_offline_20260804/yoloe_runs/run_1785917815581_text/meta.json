@@ -1,0 +1,49 @@
+{
+  "mode": "text",
+  "prompts": [
+    "transparent ruler",
+    "upright red box",
+    "red plastic storage box",
+    "blue tissue box",
+    "white tabletop"
+  ],
+  "model_id": "yoloe-v8l",
+  "image_size": 640,
+  "conf_threshold": 0.1,
+  "iou_threshold": 0.7,
+  "semantic_id_map": {
+    "transparent ruler": 2,
+    "upright red box": 3,
+    "red plastic storage box": 4,
+    "blue tissue box": 5,
+    "white tabletop": 1
+  },
+  "total_detections": 95,
+  "num_frames": 20,
+  "keyframe_mode": "all",
+  "num_keyframes": 20,
+  "keyframe_indices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "timestamp": 1785917815.9926507,
+  "resource_profile_path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/resource_profiles/yoloe_segment_text_20260805T081646_248399Z_pid7964.json"
+}

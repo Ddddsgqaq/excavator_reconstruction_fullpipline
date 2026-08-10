@@ -1,0 +1,72 @@
+{
+  "input": {
+    "video": "scale_test2.mp4",
+    "sampled_frames": 16,
+    "black_box_cm": [
+      13,
+      13,
+      3
+    ]
+  },
+  "method": "Existing VGGT local-plane/elevation-grid measurement; per-frame anisotropic calibration with the black box. The two 13 cm sides independently correct in-plane stretch, and the 3 cm side corrects elevation.",
+  "gravity_source": "trajectory",
+  "calibration_frames": {
+    "planar": [
+      0,
+      1,
+      2
+    ],
+    "vertical": [
+      1,
+      2
+    ]
+  },
+  "red_bottle": {
+    "outer_major_axis_cm": {
+      "median": 6.810610596061208,
+      "q25": 6.636199981040679,
+      "q75": 6.967695816598432,
+      "rmad_percent": 4.612955573412822
+    },
+    "outer_minor_axis_cm": {
+      "median": 6.090006339188368,
+      "q25": 6.017997114593758,
+      "q75": 6.173022977231295,
+      "rmad_percent": 2.3648325004603015
+    },
+    "equivalent_diameter_cm": {
+      "median": 6.450308467624788,
+      "q25": 6.404611479135987,
+      "q75": 6.492846465596096,
+      "rmad_percent": 1.3189446112480727
+    },
+    "overall_height_cm": {
+      "median": 12.786871460349337,
+      "q25": 12.756578273800308,
+      "q75": 12.817164646898366,
+      "rmad_percent": 0.4738170183842828
+    }
+  },
+  "per_frame_cm": {
+    "major": {
+      "0": 6.810610596061208,
+      "1": 7.124781037135658,
+      "2": 6.46178936602015
+    },
+    "minor": {
+      "0": 6.090006339188368,
+      "1": 5.945987889999149,
+      "2": 6.256039615274222
+    },
+    "diameter": {
+      "0": 6.450308467624788,
+      "1": 6.535384463567404,
+      "2": 6.3589144906471855
+    },
+    "height": {
+      "1": 12.847457833447395,
+      "2": 12.726285087251279
+    }
+  },
+  "limitations": "The bottle rests on a deformable quilt rather than a rigid plane. Values are external-envelope estimates; report one-decimal precision only."
+}

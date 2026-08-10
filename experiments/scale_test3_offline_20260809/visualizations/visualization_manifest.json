@@ -1,0 +1,13 @@
+{
+  "shared_point_contract": "RGB, semantic, and elevation reconstructions use identical point indices",
+  "shared_points": 120000,
+  "candidate_points": 703590,
+  "confidence_threshold": 7.690077304840088,
+  "figures": [
+    "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/visualizations/pipeline_stage_montage.png",
+    "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/visualizations/reconstruction_3d_rgb.png",
+    "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/visualizations/reconstruction_3d_semantic.png",
+    "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/visualizations/reconstruction_3d_elevation.png",
+    "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/visualizations/representative_dimension_overlays.png"
+  ]
+}

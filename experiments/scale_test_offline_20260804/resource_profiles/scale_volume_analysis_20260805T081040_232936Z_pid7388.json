@@ -1,0 +1,211 @@
+{
+  "schema_version": 1,
+  "operation": "scale_volume_analysis",
+  "status": "ok",
+  "started_at_utc": "2026-08-05T08:10:40.232936+00:00",
+  "completed_at_utc": "2026-08-05T08:10:45.409431+00:00",
+  "working_dir": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804",
+  "profile_path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/resource_profiles/scale_volume_analysis_20260805T081040_232936Z_pid7388.json",
+  "pid": 7388,
+  "metadata": {
+    "known_ruler_m": 0.15,
+    "volume_grid_res": 64,
+    "frames": 20,
+    "objects": 3,
+    "scale_m_per_vggt_unit": 0.4561616547648549
+  },
+  "measurement_notes": {
+    "wall_time": "CUDA is synchronized at stage boundaries when available.",
+    "rss_mb": "Current Linux process resident memory at the boundary.",
+    "rss_peak_mb": "Lifetime process RSS high-water mark, not a per-stage-only peak.",
+    "cuda_allocated_mb": "Live tensors owned by the current PyTorch process.",
+    "cuda_reserved_mb": "Memory held by the current PyTorch caching allocator.",
+    "cuda_peak_extra_allocated_mb": "Stage peak allocated minus stage-start allocated.",
+    "cuda_device_used_mb": "Whole-device usage (all processes), derived from mem_get_info."
+  },
+  "baseline": {
+    "rss_mb": 110.762,
+    "rss_peak_mb": 110.762,
+    "cuda_available": false
+  },
+  "stages": [
+    {
+      "name": "load_reconstruction_artifacts",
+      "status": "ok",
+      "wall_time_s": 0.812981,
+      "cpu_time_s": 0.430419,
+      "metadata": {},
+      "start": {
+        "rss_mb": 110.77,
+        "rss_peak_mb": 110.77,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 438.418,
+        "rss_peak_mb": 560.816,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 327.648,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "combine_yoloe_semantic_masks",
+      "status": "ok",
+      "wall_time_s": 0.072365,
+      "cpu_time_s": 0.056053,
+      "metadata": {},
+      "start": {
+        "rss_mb": 438.426,
+        "rss_peak_mb": 560.816,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 444.938,
+        "rss_peak_mb": 560.816,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 6.512,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "calibrate_scale_from_15cm_ruler",
+      "status": "ok",
+      "wall_time_s": 0.048277,
+      "cpu_time_s": 0.142143,
+      "metadata": {},
+      "start": {
+        "rss_mb": 444.938,
+        "rss_peak_mb": 560.816,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 447.523,
+        "rss_peak_mb": 560.816,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 2.585,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "gravity_alignment_and_ground_precision",
+      "status": "ok",
+      "wall_time_s": 1.027714,
+      "cpu_time_s": 13.524846,
+      "metadata": {},
+      "start": {
+        "rss_mb": 447.527,
+        "rss_peak_mb": 560.816,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 478.879,
+        "rss_peak_mb": 764.684,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 31.352,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "object_height_grids_and_volume_integration",
+      "status": "ok",
+      "wall_time_s": 1.968109,
+      "cpu_time_s": 2.464832,
+      "metadata": {},
+      "start": {
+        "rss_mb": 478.895,
+        "rss_peak_mb": 764.684,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 479.246,
+        "rss_peak_mb": 764.684,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 0.351,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "multiview_registration_diagnostics",
+      "status": "ok",
+      "wall_time_s": 0.046151,
+      "cpu_time_s": 0.159936,
+      "metadata": {},
+      "start": {
+        "rss_mb": 479.262,
+        "rss_peak_mb": 764.684,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 479.262,
+        "rss_peak_mb": 764.684,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 0.0,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "write_numeric_results",
+      "status": "ok",
+      "wall_time_s": 0.000658,
+      "cpu_time_s": 0.000718,
+      "metadata": {},
+      "start": {
+        "rss_mb": 479.266,
+        "rss_peak_mb": 764.684,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 479.277,
+        "rss_peak_mb": 764.684,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 0.011,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "render_analysis_figures",
+      "status": "ok",
+      "wall_time_s": 1.197262,
+      "cpu_time_s": 3.635169,
+      "metadata": {},
+      "start": {
+        "rss_mb": 479.281,
+        "rss_peak_mb": 764.684,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 509.504,
+        "rss_peak_mb": 809.316,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 30.223,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    }
+  ],
+  "total": {
+    "wall_time_s": 5.176518,
+    "cpu_time_s": 20.417373,
+    "end": {
+      "rss_mb": 509.504,
+      "rss_peak_mb": 809.316,
+      "cuda_available": false
+    },
+    "stage_count": 8
+  }
+}

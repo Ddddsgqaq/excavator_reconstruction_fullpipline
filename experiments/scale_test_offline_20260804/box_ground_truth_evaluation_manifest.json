@@ -1,0 +1,6 @@
+{
+  "json": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/box_ground_truth_evaluation.json",
+  "csv": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/box_ground_truth_evaluation.csv",
+  "figure": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/visualizations/box_ground_truth_error.png",
+  "resource_profile": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/resource_profiles/box_ground_truth_evaluation_20260808T151056_228136Z_pid9490.json"
+}

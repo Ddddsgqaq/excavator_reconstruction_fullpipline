@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "operation": "confidence_error_sweep",
+  "status": "error",
+  "started_at_utc": "2026-08-07T09:27:49.940707+00:00",
+  "completed_at_utc": null,
+  "working_dir": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804",
+  "profile_path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/resource_profiles/confidence_error_sweep_20260807T092749_940707Z_pid3586.json",
+  "pid": 3586,
+  "metadata": {},
+  "measurement_notes": {
+    "wall_time": "CUDA is synchronized at stage boundaries when available.",
+    "rss_mb": "Current Linux process resident memory at the boundary.",
+    "rss_peak_mb": "Lifetime process RSS high-water mark, not a per-stage-only peak.",
+    "cuda_allocated_mb": "Live tensors owned by the current PyTorch process.",
+    "cuda_reserved_mb": "Memory held by the current PyTorch caching allocator.",
+    "cuda_peak_extra_allocated_mb": "Stage peak allocated minus stage-start allocated.",
+    "cuda_device_used_mb": "Whole-device usage (all processes), derived from mem_get_info."
+  },
+  "baseline": {
+    "rss_mb": 110.395,
+    "rss_peak_mb": 110.395,
+    "cuda_available": false
+  },
+  "stages": [
+    {
+      "name": "load_frozen_offline_artifacts",
+      "status": "ok",
+      "wall_time_s": 0.725114,
+      "cpu_time_s": 1.122334,
+      "metadata": {},
+      "start": {
+        "rss_mb": 110.41,
+        "rss_peak_mb": 110.41,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 428.789,
+        "rss_peak_mb": 428.789,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 318.379,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "estimate_fixed_semantic_ground_normal",
+      "status": "ok",
+      "wall_time_s": 0.31916,
+      "cpu_time_s": 1.698021,
+      "metadata": {},
+      "start": {
+        "rss_mb": 428.793,
+        "rss_peak_mb": 428.793,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 455.383,
+        "rss_peak_mb": 731.074,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 26.59,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "sweep_confidence_levels",
+      "status": "ok",
+      "wall_time_s": 2.060582,
+      "cpu_time_s": 8.243786,
+      "metadata": {},
+      "start": {
+        "rss_mb": 455.383,
+        "rss_peak_mb": 731.074,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 474.41,
+        "rss_peak_mb": 731.074,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 19.027,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "write_json_and_csv",
+      "status": "error",
+      "wall_time_s": 0.004865,
+      "cpu_time_s": 0.005309,
+      "metadata": {},
+      "start": {
+        "rss_mb": 474.418,
+        "rss_peak_mb": 731.074,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 474.438,
+        "rss_peak_mb": 731.074,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 0.02,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": "TypeError: Object of type ndarray is not JSON serializable"
+    }
+  ],
+  "total": null
+}

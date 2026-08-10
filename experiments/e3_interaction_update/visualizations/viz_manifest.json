@@ -1,0 +1,8 @@
+{
+  "figures": [
+    "/home/maomaoyu/WS/vggt_yoloe/experiments/e3_interaction_update/visualizations/interaction_timeline.png",
+    "/home/maomaoyu/WS/vggt_yoloe/experiments/e3_interaction_update/visualizations/dem_evolution.png",
+    "/home/maomaoyu/WS/vggt_yoloe/experiments/e3_interaction_update/visualizations/roi_localization.png",
+    "/home/maomaoyu/WS/vggt_yoloe/experiments/e3_interaction_update/visualizations/cost_accuracy_tradeoff.png"
+  ]
+}

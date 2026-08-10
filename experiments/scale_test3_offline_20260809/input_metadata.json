@@ -1,0 +1,143 @@
+{
+  "video": "/home/maomaoyu/WS/vggt_yoloe/scale_test3.mp4",
+  "fps": 30.12288520662724,
+  "source_frames": 323,
+  "duration_s": 10.722744444444444,
+  "source_resolution": [
+    1920,
+    1080
+  ],
+  "frame_interval_s": 0.5,
+  "interval_frames_floor": 15,
+  "output_frames": 21,
+  "frames": [
+    {
+      "output_index": 0,
+      "source_frame_count_1based": 15,
+      "time_s": 0.49796026831785345,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000000.png"
+    },
+    {
+      "output_index": 1,
+      "source_frame_count_1based": 30,
+      "time_s": 0.9959205366357069,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000001.png"
+    },
+    {
+      "output_index": 2,
+      "source_frame_count_1based": 45,
+      "time_s": 1.4938808049535603,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000002.png"
+    },
+    {
+      "output_index": 3,
+      "source_frame_count_1based": 60,
+      "time_s": 1.9918410732714138,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000003.png"
+    },
+    {
+      "output_index": 4,
+      "source_frame_count_1based": 75,
+      "time_s": 2.4898013415892675,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000004.png"
+    },
+    {
+      "output_index": 5,
+      "source_frame_count_1based": 90,
+      "time_s": 2.9877616099071207,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000005.png"
+    },
+    {
+      "output_index": 6,
+      "source_frame_count_1based": 105,
+      "time_s": 3.4857218782249744,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000006.png"
+    },
+    {
+      "output_index": 7,
+      "source_frame_count_1based": 120,
+      "time_s": 3.9836821465428276,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000007.png"
+    },
+    {
+      "output_index": 8,
+      "source_frame_count_1based": 135,
+      "time_s": 4.481642414860681,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000008.png"
+    },
+    {
+      "output_index": 9,
+      "source_frame_count_1based": 150,
+      "time_s": 4.979602683178535,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000009.png"
+    },
+    {
+      "output_index": 10,
+      "source_frame_count_1based": 165,
+      "time_s": 5.477562951496388,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000010.png"
+    },
+    {
+      "output_index": 11,
+      "source_frame_count_1based": 180,
+      "time_s": 5.975523219814241,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000011.png"
+    },
+    {
+      "output_index": 12,
+      "source_frame_count_1based": 195,
+      "time_s": 6.473483488132095,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000012.png"
+    },
+    {
+      "output_index": 13,
+      "source_frame_count_1based": 210,
+      "time_s": 6.971443756449949,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000013.png"
+    },
+    {
+      "output_index": 14,
+      "source_frame_count_1based": 225,
+      "time_s": 7.469404024767802,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000014.png"
+    },
+    {
+      "output_index": 15,
+      "source_frame_count_1based": 240,
+      "time_s": 7.967364293085655,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000015.png"
+    },
+    {
+      "output_index": 16,
+      "source_frame_count_1based": 255,
+      "time_s": 8.46532456140351,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000016.png"
+    },
+    {
+      "output_index": 17,
+      "source_frame_count_1based": 270,
+      "time_s": 8.963284829721362,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000017.png"
+    },
+    {
+      "output_index": 18,
+      "source_frame_count_1based": 285,
+      "time_s": 9.461245098039216,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000018.png"
+    },
+    {
+      "output_index": 19,
+      "source_frame_count_1based": 300,
+      "time_s": 9.95920536635707,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000019.png"
+    },
+    {
+      "output_index": 20,
+      "source_frame_count_1based": 315,
+      "time_s": 10.457165634674922,
+      "path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000020.png"
+    }
+  ],
+  "contact_sheet": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/contact_sheet.png",
+  "resource_profile": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/resource_profiles/offline_input_preparation_20260809T074916_261150Z_pid13110.json"
+}

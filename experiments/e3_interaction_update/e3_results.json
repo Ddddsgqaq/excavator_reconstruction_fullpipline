@@ -1,0 +1,382 @@
+{
+  "experiment": "E3 — Interaction-Triggered Incremental Update",
+  "setup": "REAL VGGT base DEM + REAL interaction cue; only the digging is injected (no excavation video available, SCENE_GRAPH_PLAN §7). Cost in real VGGT points.",
+  "grid": {
+    "cells_per_edge": 96,
+    "cell_m": 0.0184,
+    "worksite_m": 1.76
+  },
+  "real_base": {
+    "source": "workspaces/session_20260629_100116_092814/predictions.npz (world_points_from_depth)",
+    "rasterizer": "terrain_analysis.rasterize_bev (H_top P70)",
+    "total_real_points": 1144710,
+    "valid_cells": 6587
+  },
+  "interaction_cue": {
+    "source": "experiments/arm_motion_state/motion_state.json",
+    "bucket_anchor_source": "workspaces/session_20260629_100116_092814/predictions.npz (world_points)",
+    "fps": 2.3333333333333335,
+    "n_frames": 14,
+    "bucket_state": [
+      "up",
+      "up",
+      "up",
+      "static",
+      "down",
+      "down",
+      "static",
+      "static",
+      "static",
+      "static",
+      "static",
+      "static",
+      "down",
+      "down"
+    ],
+    "bucket_H": [
+      0.11677815146966515,
+      0.12376808621118876,
+      0.15510023965926895,
+      0.1877074224646727,
+      0.14521480788492996,
+      0.1190206638628562,
+      0.11780924246575082,
+      0.11981688198705827,
+      0.11447357586227304,
+      0.12724913595287593,
+      0.11931066356938257,
+      0.09937294566505452,
+      0.12421984368720698,
+      0.1377263339384662
+    ],
+    "detected_event_frames": [
+      3,
+      5,
+      9,
+      12
+    ],
+    "anchor_cells": [
+      [
+        85,
+        41
+      ],
+      [
+        87,
+        49
+      ],
+      [
+        88,
+        59
+      ],
+      [
+        86,
+        67
+      ]
+    ]
+  },
+  "noise_model": {
+    "source": "vertical_fidelity_results.json",
+    "compression_median": 2.3155373683542697,
+    "observation_gain": 0.43186519624631825,
+    "rel_height_sigma": 0.09989553740194623,
+    "n_samples": 18
+  },
+  "dig_events": [
+    {
+      "frame": 3,
+      "time_s": 1.286,
+      "anchor_cell": [
+        85,
+        41
+      ],
+      "cut_volume_m3": 0.00227,
+      "true_changed_cells": 318
+    },
+    {
+      "frame": 5,
+      "time_s": 2.143,
+      "anchor_cell": [
+        87,
+        49
+      ],
+      "cut_volume_m3": 0.00224,
+      "true_changed_cells": 310
+    },
+    {
+      "frame": 9,
+      "time_s": 3.857,
+      "anchor_cell": [
+        88,
+        59
+      ],
+      "cut_volume_m3": 0.0022,
+      "true_changed_cells": 310
+    },
+    {
+      "frame": 12,
+      "time_s": 5.143,
+      "anchor_cell": [
+        86,
+        67
+      ],
+      "cut_volume_m3": 0.00226,
+      "true_changed_cells": 318
+    }
+  ],
+  "n_events": 4,
+  "total_true_cut_volume_m3": 0.00897,
+  "strategies": {
+    "full": {
+      "strategy": "full",
+      "description": "periodic full reconstruction (observe entire DEM each pass)",
+      "processed_cells_total": 46080,
+      "processed_points_total": 5723550,
+      "processed_points_per_event_mean": 1144710.0,
+      "final_dem_mae_m": 0.00558,
+      "final_dem_rmse_m": 0.01348,
+      "true_cut_volume_m3": 0.00897,
+      "est_cut_volume_m3": 0.00486,
+      "cut_volume_error_frac": 0.4576,
+      "change_recall_mean": 0.1496,
+      "map_consistency_mean": 0.9623,
+      "per_event": [
+        {
+          "event": 1,
+          "frame": 3,
+          "time_s": 1.286,
+          "anchor_cell": [
+            85,
+            41
+          ],
+          "observed_cells": 9216,
+          "observed_points": 1144710,
+          "updated_cells": 37,
+          "true_changed_cells": 318,
+          "change_recall": 0.1164,
+          "map_consistency": 1.0,
+          "dem_mae_m": 0.00302,
+          "dem_rmse_m": 0.00545
+        },
+        {
+          "event": 2,
+          "frame": 5,
+          "time_s": 2.143,
+          "anchor_cell": [
+            87,
+            49
+          ],
+          "observed_cells": 9216,
+          "observed_points": 1144710,
+          "updated_cells": 35,
+          "true_changed_cells": 310,
+          "change_recall": 0.1129,
+          "map_consistency": 1.0,
+          "dem_mae_m": 0.00389,
+          "dem_rmse_m": 0.00857
+        },
+        {
+          "event": 3,
+          "frame": 9,
+          "time_s": 3.857,
+          "anchor_cell": [
+            88,
+            59
+          ],
+          "observed_cells": 9216,
+          "observed_points": 1144710,
+          "updated_cells": 58,
+          "true_changed_cells": 310,
+          "change_recall": 0.1645,
+          "map_consistency": 0.8793,
+          "dem_mae_m": 0.00472,
+          "dem_rmse_m": 0.01101
+        },
+        {
+          "event": 4,
+          "frame": 12,
+          "time_s": 5.143,
+          "anchor_cell": [
+            86,
+            67
+          ],
+          "observed_cells": 9216,
+          "observed_points": 1144710,
+          "updated_cells": 67,
+          "true_changed_cells": 318,
+          "change_recall": 0.2044,
+          "map_consistency": 0.9701,
+          "dem_mae_m": 0.00558,
+          "dem_rmse_m": 0.01348
+        }
+      ]
+    },
+    "change": {
+      "strategy": "change",
+      "description": "geometry-only change detection (observe whole DEM, keep |Δh|>τ)",
+      "processed_cells_total": 46080,
+      "processed_points_total": 5723550,
+      "processed_points_per_event_mean": 1144710.0,
+      "final_dem_mae_m": 0.00642,
+      "final_dem_rmse_m": 0.01443,
+      "true_cut_volume_m3": 0.00897,
+      "est_cut_volume_m3": 0.00535,
+      "cut_volume_error_frac": 0.4036,
+      "change_recall_mean": 0.2472,
+      "map_consistency_mean": 0.8855,
+      "per_event": [
+        {
+          "event": 1,
+          "frame": 3,
+          "time_s": 1.286,
+          "anchor_cell": [
+            85,
+            41
+          ],
+          "observed_cells": 9216,
+          "observed_points": 1144710,
+          "updated_cells": 34,
+          "true_changed_cells": 318,
+          "change_recall": 0.1069,
+          "map_consistency": 1.0,
+          "dem_mae_m": 0.00355,
+          "dem_rmse_m": 0.00632
+        },
+        {
+          "event": 2,
+          "frame": 5,
+          "time_s": 2.143,
+          "anchor_cell": [
+            87,
+            49
+          ],
+          "observed_cells": 9216,
+          "observed_points": 1144710,
+          "updated_cells": 90,
+          "true_changed_cells": 310,
+          "change_recall": 0.2742,
+          "map_consistency": 0.9444,
+          "dem_mae_m": 0.00458,
+          "dem_rmse_m": 0.00944
+        },
+        {
+          "event": 3,
+          "frame": 9,
+          "time_s": 3.857,
+          "anchor_cell": [
+            88,
+            59
+          ],
+          "observed_cells": 9216,
+          "observed_points": 1144710,
+          "updated_cells": 111,
+          "true_changed_cells": 310,
+          "change_recall": 0.2839,
+          "map_consistency": 0.7928,
+          "dem_mae_m": 0.00551,
+          "dem_rmse_m": 0.01195
+        },
+        {
+          "event": 4,
+          "frame": 12,
+          "time_s": 5.143,
+          "anchor_cell": [
+            86,
+            67
+          ],
+          "observed_cells": 9216,
+          "observed_points": 1144710,
+          "updated_cells": 128,
+          "true_changed_cells": 318,
+          "change_recall": 0.3239,
+          "map_consistency": 0.8047,
+          "dem_mae_m": 0.00642,
+          "dem_rmse_m": 0.01443
+        }
+      ]
+    },
+    "roi": {
+      "strategy": "roi",
+      "description": "OURS: interaction-triggered ROI update (observe only bucket ROI)",
+      "processed_cells_total": 11229,
+      "processed_points_total": 1622819,
+      "processed_points_per_event_mean": 119527.2,
+      "final_dem_mae_m": 0.00636,
+      "final_dem_rmse_m": 0.01417,
+      "true_cut_volume_m3": 0.00897,
+      "est_cut_volume_m3": 0.00533,
+      "cut_volume_error_frac": 0.406,
+      "change_recall_mean": 0.1744,
+      "map_consistency_mean": 0.9756,
+      "per_event": [
+        {
+          "event": 1,
+          "frame": 3,
+          "time_s": 1.286,
+          "anchor_cell": [
+            85,
+            41
+          ],
+          "observed_cells": 506,
+          "observed_points": 123417,
+          "updated_cells": 36,
+          "true_changed_cells": 318,
+          "change_recall": 0.1132,
+          "map_consistency": 1.0,
+          "dem_mae_m": 0.00338,
+          "dem_rmse_m": 0.00572
+        },
+        {
+          "event": 2,
+          "frame": 5,
+          "time_s": 2.143,
+          "anchor_cell": [
+            87,
+            49
+          ],
+          "observed_cells": 505,
+          "observed_points": 116948,
+          "updated_cells": 50,
+          "true_changed_cells": 310,
+          "change_recall": 0.1548,
+          "map_consistency": 0.96,
+          "dem_mae_m": 0.00437,
+          "dem_rmse_m": 0.00878
+        },
+        {
+          "event": 3,
+          "frame": 9,
+          "time_s": 3.857,
+          "anchor_cell": [
+            88,
+            59
+          ],
+          "observed_cells": 496,
+          "observed_points": 116970,
+          "updated_cells": 67,
+          "true_changed_cells": 310,
+          "change_recall": 0.2097,
+          "map_consistency": 0.9701,
+          "dem_mae_m": 0.00535,
+          "dem_rmse_m": 0.01145
+        },
+        {
+          "event": 4,
+          "frame": 12,
+          "time_s": 5.143,
+          "anchor_cell": [
+            86,
+            67
+          ],
+          "observed_cells": 506,
+          "observed_points": 120774,
+          "updated_cells": 72,
+          "true_changed_cells": 318,
+          "change_recall": 0.2201,
+          "map_consistency": 0.9722,
+          "dem_mae_m": 0.00636,
+          "dem_rmse_m": 0.01417
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "working_dir": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809",
+  "text_prompts": [
+    "wooden tabletop",
+    "transparent ruler",
+    "red rectangular plastic box",
+    "red plastic bottle"
+  ],
+  "semantic_id_map": {
+    "wooden tabletop": 1,
+    "transparent ruler": 2,
+    "red rectangular plastic box": 3,
+    "red plastic bottle": 4
+  },
+  "model_id": "yoloe-v8l",
+  "image_size": 640,
+  "conf_threshold": 0.2,
+  "iou_threshold": 0.7,
+  "keyframe_mode": "all",
+  "keyframe_stride": 3,
+  "keyframe_sim_thresh": 0.45
+}

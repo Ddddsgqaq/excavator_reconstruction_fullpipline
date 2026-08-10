@@ -1,0 +1,13 @@
+{
+  "working_dir": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809",
+  "semantic_masks_path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/semantic_masks_combined.npz",
+  "conf_thres": 50.0,
+  "frame_filter": "All",
+  "mask_black_bg": false,
+  "mask_white_bg": false,
+  "show_cam": true,
+  "mask_sky": false,
+  "prediction_mode": "Depthmap and Camera Branch",
+  "enable_semantic": true,
+  "fuse_3d": false
+}

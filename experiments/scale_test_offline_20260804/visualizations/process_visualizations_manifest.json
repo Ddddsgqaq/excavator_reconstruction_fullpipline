@@ -1,0 +1,29 @@
+{
+  "pipeline": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/visualizations/pipeline_stage_montage.png",
+  "rgb": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/visualizations/reconstruction_3d_rgb.png",
+  "semantic": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/visualizations/reconstruction_3d_semantic.png",
+  "semantic_topview": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/visualizations/semantic_pointcloud_topview.png",
+  "elevation": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/visualizations/elevation_3d_views.png",
+  "objects": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/visualizations/object_height_3d_views.png",
+  "dashboard": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/visualizations/quicklook_dashboard.png",
+  "reconstruction_sample": {
+    "selection": "finite metric point and depth_conf >= percentile 78",
+    "candidate_count": 1190108,
+    "sample_count": 120000,
+    "confidence_threshold": 1.0000005960464478,
+    "semantic_histogram": {
+      "0": 16808,
+      "1": 54410,
+      "2": 1150,
+      "3": 4821,
+      "4": 12249,
+      "5": 30562
+    },
+    "consumers": [
+      "reconstruction_3d_rgb.png",
+      "reconstruction_3d_semantic.png",
+      "semantic_pointcloud_topview.png"
+    ]
+  },
+  "resource_profile": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/resource_profiles/process_visualizations_20260806T031757_379785Z_pid6295.json"
+}

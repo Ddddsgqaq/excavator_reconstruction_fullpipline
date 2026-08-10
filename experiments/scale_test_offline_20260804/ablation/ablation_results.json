@@ -1,0 +1,1946 @@
+{
+  "protocol": {
+    "dataset": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804",
+    "n_frames": 20,
+    "fixed_scale_m_per_vggt_unit": 0.460789397118975,
+    "fixed_instance_masks": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/semantic_masks_combined.npz",
+    "trajectory_gravity": [
+      -0.15393954515457153,
+      -0.38851118087768555,
+      -0.908494234085083
+    ],
+    "semantic_gravity": [
+      0.2541992962360382,
+      -0.4195825457572937,
+      -0.8713972568511963
+    ],
+    "semantic_gravity_source": "ground_mask",
+    "ground_vs_trajectory_deg": 23.717395485868483
+  },
+  "ruler_leave_one_out": {
+    "n_anchors": 3,
+    "rows": [
+      {
+        "frame": 13,
+        "train_scale_m_per_unit": 0.4397179059664168,
+        "heldout_length_cm": 11.869081569931486,
+        "absolute_error_cm": 3.1309184300685136
+      },
+      {
+        "frame": 14,
+        "train_scale_m_per_unit": 0.4871782609186361,
+        "heldout_length_cm": 15.859032259574136,
+        "absolute_error_cm": 0.8590322595741355
+      },
+      {
+        "frame": 15,
+        "train_scale_m_per_unit": 0.5082497520711943,
+        "heldout_length_cm": 18.21046594763659,
+        "absolute_error_cm": 3.210465947636589
+      }
+    ],
+    "mae_cm": 2.4001388790930793,
+    "rmse_cm": 2.636138478890783
+  },
+  "configs": [
+    {
+      "name": "M0 初始 VGGT",
+      "objects": {
+        "3": [
+          {
+            "length_units": 0.10415302146757788,
+            "width_units": 0.10204099675401854,
+            "height_units": 0.12265526652336123,
+            "volume_units3": 0.0013035652240603087,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 0,
+            "length_cm": 4.799260797016487,
+            "width_cm": 4.701940937570349,
+            "height_cm": 5.651824631476682,
+            "volume_ml": 127.53817492880357
+          },
+          {
+            "length_units": 0.1078391603238541,
+            "width_units": 0.10439859876770322,
+            "height_units": 0.1577346467971802,
+            "volume_units3": 0.001775817227741003,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 1,
+            "length_cm": 4.969114167144522,
+            "width_cm": 4.810576738623573,
+            "height_cm": 7.268245280244711,
+            "volume_ml": 173.74235216843812
+          },
+          {
+            "length_units": 0.13929063628012073,
+            "width_units": 0.10962082397894526,
+            "height_units": 0.18408947229385375,
+            "volume_units3": 0.0028108905614327843,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 2,
+            "length_cm": 6.418364831583526,
+            "width_cm": 5.051211339294347,
+            "height_cm": 8.482647695423513,
+            "volume_ml": 275.0118256554164
+          },
+          {
+            "length_units": 0.12753176182625947,
+            "width_units": 0.09899239667394155,
+            "height_units": 0.18090094566345216,
+            "volume_units3": 0.0022838156019149287,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 3,
+            "length_cm": 5.876528364544281,
+            "width_cm": 4.561464678274795,
+            "height_cm": 8.335723769051457,
+            "volume_ml": 223.4438817222401
+          },
+          {
+            "length_units": 0.10647820183944601,
+            "width_units": 0.08540337328674191,
+            "height_units": 0.1065019464492798,
+            "volume_units3": 0.0009684858466069303,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 4,
+            "length_cm": 4.906402643191086,
+            "width_cm": 3.9352968888724584,
+            "height_cm": 4.907496769636099,
+            "volume_ml": 94.75468894137252
+          },
+          {
+            "length_units": 0.1244238364819199,
+            "width_units": 0.1104600560209843,
+            "height_units": 0.1795519530773162,
+            "volume_units3": 0.0024677376147172105,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 5,
+            "length_cm": 5.73331845997338,
+            "width_cm": 5.089882261963756,
+            "height_cm": 8.273563621003102,
+            "volume_ml": 241.43843804292163
+          },
+          {
+            "length_units": 0.1633431300940017,
+            "width_units": 0.13425672466870042,
+            "height_units": 0.25457560062408446,
+            "volume_units3": 0.00558282093744209,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 6,
+            "length_cm": 7.526678243954134,
+            "width_cm": 6.186407521925869,
+            "height_cm": 11.730573753277284,
+            "volume_ml": 546.2118658688114
+          },
+          {
+            "length_units": 0.14997617322499762,
+            "width_units": 0.10605063349008725,
+            "height_units": 0.024093663692474343,
+            "volume_units3": 0.0003832113637090162,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 16,
+            "length_cm": 6.910743044255761,
+            "width_cm": 4.886700746998268,
+            "height_cm": 1.1102104767242589,
+            "volume_ml": 37.49262180161133
+          },
+          {
+            "length_units": 0.13923496164900648,
+            "width_units": 0.12055400405430983,
+            "height_units": 0.03424393892288213,
+            "volume_units3": 0.0005747958882989122,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 17,
+            "length_cm": 6.41579940361293,
+            "width_cm": 5.555000684846389,
+            "height_cm": 1.577924397125386,
+            "volume_ml": 56.23686271860236
+          },
+          {
+            "length_units": 0.1379394125263884,
+            "width_units": 0.13500003291005758,
+            "height_units": 0.03274407386779776,
+            "volume_units3": 0.0006097544209058346,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 18,
+            "length_cm": 6.356101873698009,
+            "width_cm": 6.220658377566721,
+            "height_cm": 1.5088122056761715,
+            "volume_ml": 59.65713457349935
+          },
+          {
+            "length_units": 0.21227087760202437,
+            "width_units": 0.1683665805895035,
+            "height_units": 0.14291729450225832,
+            "volume_units3": 0.005107767181943657,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 19,
+            "length_cm": 9.781216971615255,
+            "width_cm": 7.7581535164820625,
+            "height_cm": 6.585477397157061,
+            "volume_ml": 499.73357091965045
+          }
+        ],
+        "4": [
+          {
+            "length_units": 0.2633817664001439,
+            "width_units": 0.16405738968492622,
+            "height_units": 0.04407984018325806,
+            "volume_units3": 0.0019046777761627684,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 0,
+            "length_cm": 12.1363525351653,
+            "width_cm": 7.55959056858299,
+            "height_cm": 2.031152298314425,
+            "volume_ml": 186.34980660393347
+          },
+          {
+            "length_units": 0.2663819487744795,
+            "width_units": 0.1596943186624521,
+            "height_units": 0.042595063447952275,
+            "volume_units3": 0.001811980531092573,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 1,
+            "length_cm": 12.27459775791701,
+            "width_cm": 7.358544881979677,
+            "height_cm": 1.9627353606426416,
+            "volume_ml": 177.2804963469779
+          },
+          {
+            "length_units": 0.2696064561930893,
+            "width_units": 0.16257867883480992,
+            "height_units": 0.04834791421890261,
+            "volume_units3": 0.0021191984167601885,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 2,
+            "length_cm": 12.423179640859697,
+            "width_cm": 7.491453140469153,
+            "height_cm": 2.2278206244888055,
+            "volume_ml": 207.338070544524
+          },
+          {
+            "length_units": 0.26077929570662395,
+            "width_units": 0.17291525387889328,
+            "height_units": 0.059593621492385784,
+            "volume_units3": 0.002687238375912908,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 3,
+            "length_cm": 12.016433444976615,
+            "width_cm": 7.9677515587529735,
+            "height_cm": 2.7460108919612836,
+            "volume_ml": 262.9139468718433
+          },
+          {
+            "length_units": 0.24075745422291814,
+            "width_units": 0.19254569885883988,
+            "height_units": 0.0965114057064056,
+            "volume_units3": 0.00447396111709755,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 4,
+            "length_cm": 11.093848218327766,
+            "width_cm": 8.872301649501653,
+            "height_cm": 4.447143245055943,
+            "volume_ml": 437.7232723344377
+          },
+          {
+            "length_units": 0.2174693245770561,
+            "width_units": 0.2043581848088485,
+            "height_units": 0.10528455972671502,
+            "volume_units3": 0.004679018124243278,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 5,
+            "length_cm": 10.020755896373236,
+            "width_cm": 9.416608477439736,
+            "height_cm": 4.8514008802409725,
+            "volume_ml": 457.785633591874
+          },
+          {
+            "length_units": 0.2062084982348178,
+            "width_units": 0.169416854785833,
+            "height_units": 0.10459057807922367,
+            "volume_units3": 0.0036538922613886353,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 6,
+            "length_cm": 9.501868958243092,
+            "width_cm": 7.8065490378556905,
+            "height_cm": 4.819422941745056,
+            "volume_ml": 357.48940045552007
+          },
+          {
+            "length_units": 0.20681746748975338,
+            "width_units": 0.11498175232114341,
+            "height_units": 0.11394320726394658,
+            "volume_units3": 0.0027095962251760287,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 7,
+            "length_cm": 9.529929615827667,
+            "width_cm": 5.298237233174297,
+            "height_cm": 5.250382178095635,
+            "volume_ml": 265.10139345120973
+          },
+          {
+            "length_units": 0.21251104477758176,
+            "width_units": 0.15764216660835384,
+            "height_units": 0.1184125375747681,
+            "volume_units3": 0.003966903078340216,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 8,
+            "length_cm": 9.792283620418539,
+            "width_cm": 7.263983891199237,
+            "height_cm": 5.456324180040537,
+            "volume_ml": 388.1137432886575
+          },
+          {
+            "length_units": 0.21120323830870963,
+            "width_units": 0.1998255252465473,
+            "height_units": 0.0777457308769226,
+            "volume_units3": 0.003281165123531828,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 9,
+            "length_cm": 9.732021284984551,
+            "width_cm": 9.207748330733905,
+            "height_cm": 3.5824408459351247,
+            "volume_ml": 321.0225340254484
+          },
+          {
+            "length_units": 0.24735148487800207,
+            "width_units": 0.16426882998110603,
+            "height_units": 0.09316256046295168,
+            "volume_units3": 0.0037853941077238694,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 10,
+            "length_cm": 11.397694159341782,
+            "width_cm": 7.5693335132433255,
+            "height_cm": 4.292832006978356,
+            "volume_ml": 370.35527411631347
+          },
+          {
+            "length_units": 0.27601602628812216,
+            "width_units": 0.15628815400160156,
+            "height_units": 0.047976911067962646,
+            "volume_units3": 0.0020696296795610523,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 11,
+            "length_cm": 12.718525834847897,
+            "width_cm": 7.20159242592355,
+            "height_cm": 2.2107251926637184,
+            "volume_ml": 202.4883659350285
+          }
+        ],
+        "5": [
+          {
+            "length_units": 0.4017402039503003,
+            "width_units": 0.19632780232788388,
+            "height_units": 0.1273698985576629,
+            "volume_units3": 0.010046016885597045,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 13,
+            "length_cm": 18.511762637671293,
+            "width_cm": 9.046576967235891,
+            "height_cm": 5.869069876749049,
+            "volume_ml": 982.8818959301373
+          },
+          {
+            "length_units": 0.36666640917446147,
+            "width_units": 0.24568800061891483,
+            "height_units": 0.16699354171752934,
+            "volume_units3": 0.015043702875175554,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 14,
+            "length_cm": 16.89559936272795,
+            "width_cm": 11.321042568455612,
+            "height_cm": 7.694885341078274,
+            "volume_ml": 1471.8453464836525
+          },
+          {
+            "length_units": 0.31502932102591563,
+            "width_units": 0.2468445831606436,
+            "height_units": 0.18714698672294616,
+            "volume_units3": 0.01455316379769148,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 15,
+            "length_cm": 14.516217091033171,
+            "width_cm": 11.374336665667764,
+            "height_cm": 8.623534718469918,
+            "volume_ml": 1423.8519990708471
+          },
+          {
+            "length_units": 0.24058936566015965,
+            "width_units": 0.21825889073965293,
+            "height_units": 0.19664831280708317,
+            "volume_units3": 0.010326153945709,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 16,
+            "length_cm": 11.08610287557816,
+            "width_cm": 10.057138267978091,
+            "height_cm": 9.061345750283946,
+            "volume_ml": 1010.2899371367861
+          },
+          {
+            "length_units": 0.28292713814842074,
+            "width_units": 0.18735782611355337,
+            "height_units": 0.14902730107307438,
+            "volume_units3": 0.007899730611282704,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 17,
+            "length_cm": 13.036982541600775,
+            "width_cm": 8.6332499740386,
+            "height_cm": 6.867020021572992,
+            "volume_ml": 772.8936043982604
+          },
+          {
+            "length_units": 0.24137264642630218,
+            "width_units": 0.2244310162004853,
+            "height_units": 0.15365353822708128,
+            "volume_units3": 0.008323643924535752,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 18,
+            "length_cm": 11.12219562277873,
+            "width_cm": 10.341543264982054,
+            "height_cm": 7.080192124485415,
+            "volume_ml": 814.3684223071913
+          },
+          {
+            "length_units": 0.33551273227134293,
+            "width_units": 0.3177627733476395,
+            "height_units": 0.14157262325286868,
+            "volume_units3": 0.015093546682444097,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 19,
+            "length_cm": 15.460070962905217,
+            "width_cm": 14.642171675771232,
+            "height_cm": 6.523516371724114,
+            "volume_ml": 1476.7219633902714
+          }
+        ]
+      },
+      "summaries": {
+        "3": {
+          "label": "立放红盒",
+          "n_frames": 11,
+          "dimensions": {
+            "length_cm": {
+              "median": 6.356101873698009,
+              "q25": 5.35121631355895,
+              "q75": 6.664553937919644,
+              "rmad_percent": 9.79819748172618
+            },
+            "width_cm": {
+              "median": 5.051211339294347,
+              "q25": 4.7562588380969615,
+              "q75": 5.870704103386129,
+              "rmad_percent": 9.695628001341335
+            },
+            "height_cm": {
+              "median": 6.585477397157061,
+              "q25": 3.2427105833807426,
+              "q75": 8.30464369502728,
+              "rmad_percent": 26.577365107197455
+            },
+            "volume_ml": {
+              "median": 173.74235216843812,
+              "q25": 77.20591175743593,
+              "q75": 258.225131849169,
+              "rmad_percent": 58.287154641949634
+            }
+          },
+          "dimension_rmad_percent": 15.357063530088325,
+          "volume_rmad_percent": 58.287154641949634
+        },
+        "4": {
+          "label": "红色扁盒",
+          "n_frames": 12,
+          "dimensions": {
+            "length_cm": {
+              "median": 11.245771188834773,
+              "q25": 9.777218036560042,
+              "q75": 12.170913840853228,
+              "rmad_percent": 10.681453962319978
+            },
+            "width_cm": {
+              "median": 7.564462040913158,
+              "q25": 7.334904634284567,
+              "q75": 8.193889081440144,
+              "rmad_percent": 4.384632780994506
+            },
+            "height_cm": {
+              "median": 3.9376364264567405,
+              "q25": 2.2235467665325337,
+              "q75": 4.827417426369035,
+              "rmad_percent": 31.800438320151052
+            },
+            "volume_ml": {
+              "median": 293.06196373832904,
+              "q25": 206.12564439215012,
+              "q75": 374.7948914093995,
+              "rmad_percent": 30.0785350559036
+            }
+          },
+          "dimension_rmad_percent": 15.62217502115518,
+          "volume_rmad_percent": 30.0785350559036
+        },
+        "5": {
+          "label": "纸巾盒",
+          "n_frames": 7,
+          "dimensions": {
+            "length_cm": {
+              "median": 14.516217091033171,
+              "q25": 12.079589082189752,
+              "q75": 16.177835162816585,
+              "rmad_percent": 16.391200660429288
+            },
+            "width_cm": {
+              "median": 10.341543264982054,
+              "q25": 9.551857617606991,
+              "q75": 11.347689617061688,
+              "rmad_percent": 9.986840205783372
+            },
+            "height_cm": {
+              "median": 7.080192124485415,
+              "q25": 6.695268196648553,
+              "q75": 8.159210029774096,
+              "rmad_percent": 8.681871985748336
+            },
+            "volume_ml": {
+              "median": 1010.2899371367861,
+              "q25": 898.6251591186642,
+              "q75": 1447.8486727772497,
+              "rmad_percent": 23.497841957262203
+            }
+          },
+          "dimension_rmad_percent": 11.686637617320331,
+          "volume_rmad_percent": 23.497841957262203
+        }
+      },
+      "aggregate": {
+        "mean_dimension_rmad_percent": 14.22195872285461,
+        "mean_volume_rmad_percent": 37.287843885038484,
+        "total_valid_object_frames": 30
+      }
+    },
+    {
+      "name": "M1 + 点置信度",
+      "objects": {
+        "3": [
+          {
+            "length_units": 0.10415302146757788,
+            "width_units": 0.10204099675401854,
+            "height_units": 0.12265526652336123,
+            "volume_units3": 0.0013035652240603087,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 0,
+            "length_cm": 4.799260797016487,
+            "width_cm": 4.701940937570349,
+            "height_cm": 5.651824631476682,
+            "volume_ml": 127.53817492880357
+          },
+          {
+            "length_units": 0.1078391603238541,
+            "width_units": 0.10439859876770322,
+            "height_units": 0.1577346467971802,
+            "volume_units3": 0.001775817227741003,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 1,
+            "length_cm": 4.969114167144522,
+            "width_cm": 4.810576738623573,
+            "height_cm": 7.268245280244711,
+            "volume_ml": 173.74235216843812
+          },
+          {
+            "length_units": 0.13929063628012073,
+            "width_units": 0.10962082397894526,
+            "height_units": 0.18408947229385375,
+            "volume_units3": 0.0028108905614327843,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 2,
+            "length_cm": 6.418364831583526,
+            "width_cm": 5.051211339294347,
+            "height_cm": 8.482647695423513,
+            "volume_ml": 275.0118256554164
+          },
+          {
+            "length_units": 0.12753176182625947,
+            "width_units": 0.09899239667394155,
+            "height_units": 0.18090094566345216,
+            "volume_units3": 0.0022838156019149287,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 3,
+            "length_cm": 5.876528364544281,
+            "width_cm": 4.561464678274795,
+            "height_cm": 8.335723769051457,
+            "volume_ml": 223.4438817222401
+          },
+          {
+            "length_units": 0.10647820183944601,
+            "width_units": 0.08540337328674191,
+            "height_units": 0.1065019464492798,
+            "volume_units3": 0.0009684858466069303,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 4,
+            "length_cm": 4.906402643191086,
+            "width_cm": 3.9352968888724584,
+            "height_cm": 4.907496769636099,
+            "volume_ml": 94.75468894137252
+          },
+          {
+            "length_units": 0.1244238364819199,
+            "width_units": 0.1104600560209843,
+            "height_units": 0.1795519530773162,
+            "volume_units3": 0.0024677376147172105,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 5,
+            "length_cm": 5.73331845997338,
+            "width_cm": 5.089882261963756,
+            "height_cm": 8.273563621003102,
+            "volume_ml": 241.43843804292163
+          },
+          {
+            "length_units": 0.1633431300940017,
+            "width_units": 0.13425672466870042,
+            "height_units": 0.25457560062408446,
+            "volume_units3": 0.00558282093744209,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 6,
+            "length_cm": 7.526678243954134,
+            "width_cm": 6.186407521925869,
+            "height_cm": 11.730573753277284,
+            "volume_ml": 546.2118658688114
+          },
+          {
+            "length_units": 0.14997617322499762,
+            "width_units": 0.10605063349008725,
+            "height_units": 0.024093663692474343,
+            "volume_units3": 0.0003832113637090162,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 16,
+            "length_cm": 6.910743044255761,
+            "width_cm": 4.886700746998268,
+            "height_cm": 1.1102104767242589,
+            "volume_ml": 37.49262180161133
+          },
+          {
+            "length_units": 0.13923496164900648,
+            "width_units": 0.12055400405430983,
+            "height_units": 0.03424393892288213,
+            "volume_units3": 0.0005747958882989122,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 17,
+            "length_cm": 6.41579940361293,
+            "width_cm": 5.555000684846389,
+            "height_cm": 1.577924397125386,
+            "volume_ml": 56.23686271860236
+          },
+          {
+            "length_units": 0.1379394125263884,
+            "width_units": 0.13500003291005758,
+            "height_units": 0.03274407386779776,
+            "volume_units3": 0.0006097544209058346,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 18,
+            "length_cm": 6.356101873698009,
+            "width_cm": 6.220658377566721,
+            "height_cm": 1.5088122056761715,
+            "volume_ml": 59.65713457349935
+          },
+          {
+            "length_units": 0.21227087760202437,
+            "width_units": 0.1683665805895035,
+            "height_units": 0.14291729450225832,
+            "volume_units3": 0.005107767181943657,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 19,
+            "length_cm": 9.781216971615255,
+            "width_cm": 7.7581535164820625,
+            "height_cm": 6.585477397157061,
+            "volume_ml": 499.73357091965045
+          }
+        ],
+        "4": [
+          {
+            "length_units": 0.2633817664001439,
+            "width_units": 0.16405738968492622,
+            "height_units": 0.04407984018325806,
+            "volume_units3": 0.0019046777761627684,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 0,
+            "length_cm": 12.1363525351653,
+            "width_cm": 7.55959056858299,
+            "height_cm": 2.031152298314425,
+            "volume_ml": 186.34980660393347
+          },
+          {
+            "length_units": 0.2663819487744795,
+            "width_units": 0.1596943186624521,
+            "height_units": 0.042595063447952275,
+            "volume_units3": 0.001811980531092573,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 1,
+            "length_cm": 12.27459775791701,
+            "width_cm": 7.358544881979677,
+            "height_cm": 1.9627353606426416,
+            "volume_ml": 177.2804963469779
+          },
+          {
+            "length_units": 0.2696064561930893,
+            "width_units": 0.16257867883480992,
+            "height_units": 0.04834791421890261,
+            "volume_units3": 0.0021191984167601885,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 2,
+            "length_cm": 12.423179640859697,
+            "width_cm": 7.491453140469153,
+            "height_cm": 2.2278206244888055,
+            "volume_ml": 207.338070544524
+          },
+          {
+            "length_units": 0.26077929570662395,
+            "width_units": 0.17291525387889328,
+            "height_units": 0.059593621492385784,
+            "volume_units3": 0.002687238375912908,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 3,
+            "length_cm": 12.016433444976615,
+            "width_cm": 7.9677515587529735,
+            "height_cm": 2.7460108919612836,
+            "volume_ml": 262.9139468718433
+          },
+          {
+            "length_units": 0.24075745422291814,
+            "width_units": 0.19254569885883988,
+            "height_units": 0.0965114057064056,
+            "volume_units3": 0.00447396111709755,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 4,
+            "length_cm": 11.093848218327766,
+            "width_cm": 8.872301649501653,
+            "height_cm": 4.447143245055943,
+            "volume_ml": 437.7232723344377
+          },
+          {
+            "length_units": 0.2174693245770561,
+            "width_units": 0.2043581848088485,
+            "height_units": 0.10528455972671502,
+            "volume_units3": 0.004679018124243278,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 5,
+            "length_cm": 10.020755896373236,
+            "width_cm": 9.416608477439736,
+            "height_cm": 4.8514008802409725,
+            "volume_ml": 457.785633591874
+          },
+          {
+            "length_units": 0.2062084982348178,
+            "width_units": 0.169416854785833,
+            "height_units": 0.10459057807922367,
+            "volume_units3": 0.0036538922613886353,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 6,
+            "length_cm": 9.501868958243092,
+            "width_cm": 7.8065490378556905,
+            "height_cm": 4.819422941745056,
+            "volume_ml": 357.48940045552007
+          },
+          {
+            "length_units": 0.20681746748975338,
+            "width_units": 0.11498175232114341,
+            "height_units": 0.11394320726394658,
+            "volume_units3": 0.0027095962251760287,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 7,
+            "length_cm": 9.529929615827667,
+            "width_cm": 5.298237233174297,
+            "height_cm": 5.250382178095635,
+            "volume_ml": 265.10139345120973
+          },
+          {
+            "length_units": 0.21251104477758176,
+            "width_units": 0.15764216660835384,
+            "height_units": 0.1184125375747681,
+            "volume_units3": 0.003966903078340216,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 8,
+            "length_cm": 9.792283620418539,
+            "width_cm": 7.263983891199237,
+            "height_cm": 5.456324180040537,
+            "volume_ml": 388.1137432886575
+          },
+          {
+            "length_units": 0.21120323830870963,
+            "width_units": 0.1998255252465473,
+            "height_units": 0.0777457308769226,
+            "volume_units3": 0.003281165123531828,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 9,
+            "length_cm": 9.732021284984551,
+            "width_cm": 9.207748330733905,
+            "height_cm": 3.5824408459351247,
+            "volume_ml": 321.0225340254484
+          },
+          {
+            "length_units": 0.24735148487800207,
+            "width_units": 0.16426882998110603,
+            "height_units": 0.09316256046295168,
+            "volume_units3": 0.0037853941077238694,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 10,
+            "length_cm": 11.397694159341782,
+            "width_cm": 7.5693335132433255,
+            "height_cm": 4.292832006978356,
+            "volume_ml": 370.35527411631347
+          },
+          {
+            "length_units": 0.27601602628812216,
+            "width_units": 0.15628815400160156,
+            "height_units": 0.047976911067962646,
+            "volume_units3": 0.0020696296795610523,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 11,
+            "length_cm": 12.718525834847897,
+            "width_cm": 7.20159242592355,
+            "height_cm": 2.2107251926637184,
+            "volume_ml": 202.4883659350285
+          }
+        ],
+        "5": [
+          {
+            "length_units": 0.4017402039503003,
+            "width_units": 0.19632780232788388,
+            "height_units": 0.1273698985576629,
+            "volume_units3": 0.010046016885597045,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 13,
+            "length_cm": 18.511762637671293,
+            "width_cm": 9.046576967235891,
+            "height_cm": 5.869069876749049,
+            "volume_ml": 982.8818959301373
+          },
+          {
+            "length_units": 0.36666640917446147,
+            "width_units": 0.24568800061891483,
+            "height_units": 0.16699354171752934,
+            "volume_units3": 0.015043702875175554,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 14,
+            "length_cm": 16.89559936272795,
+            "width_cm": 11.321042568455612,
+            "height_cm": 7.694885341078274,
+            "volume_ml": 1471.8453464836525
+          },
+          {
+            "length_units": 0.31502932102591563,
+            "width_units": 0.2468445831606436,
+            "height_units": 0.18714698672294616,
+            "volume_units3": 0.01455316379769148,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 15,
+            "length_cm": 14.516217091033171,
+            "width_cm": 11.374336665667764,
+            "height_cm": 8.623534718469918,
+            "volume_ml": 1423.8519990708471
+          },
+          {
+            "length_units": 0.24058936566015965,
+            "width_units": 0.21825889073965293,
+            "height_units": 0.19664831280708317,
+            "volume_units3": 0.010326153945709,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 16,
+            "length_cm": 11.08610287557816,
+            "width_cm": 10.057138267978091,
+            "height_cm": 9.061345750283946,
+            "volume_ml": 1010.2899371367861
+          },
+          {
+            "length_units": 0.28292713814842074,
+            "width_units": 0.18735782611355337,
+            "height_units": 0.14902730107307438,
+            "volume_units3": 0.007899730611282704,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 17,
+            "length_cm": 13.036982541600775,
+            "width_cm": 8.6332499740386,
+            "height_cm": 6.867020021572992,
+            "volume_ml": 772.8936043982604
+          },
+          {
+            "length_units": 0.24137264642630218,
+            "width_units": 0.2244310162004853,
+            "height_units": 0.15365353822708128,
+            "volume_units3": 0.008323643924535752,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 18,
+            "length_cm": 11.12219562277873,
+            "width_cm": 10.341543264982054,
+            "height_cm": 7.080192124485415,
+            "volume_ml": 814.3684223071913
+          },
+          {
+            "length_units": 0.33551273227134293,
+            "width_units": 0.3177627733476395,
+            "height_units": 0.14157262325286868,
+            "volume_units3": 0.015093546682444097,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 19,
+            "length_cm": 15.460070962905217,
+            "width_cm": 14.642171675771232,
+            "height_cm": 6.523516371724114,
+            "volume_ml": 1476.7219633902714
+          }
+        ]
+      },
+      "summaries": {
+        "3": {
+          "label": "立放红盒",
+          "n_frames": 11,
+          "dimensions": {
+            "length_cm": {
+              "median": 6.356101873698009,
+              "q25": 5.35121631355895,
+              "q75": 6.664553937919644,
+              "rmad_percent": 9.79819748172618
+            },
+            "width_cm": {
+              "median": 5.051211339294347,
+              "q25": 4.7562588380969615,
+              "q75": 5.870704103386129,
+              "rmad_percent": 9.695628001341335
+            },
+            "height_cm": {
+              "median": 6.585477397157061,
+              "q25": 3.2427105833807426,
+              "q75": 8.30464369502728,
+              "rmad_percent": 26.577365107197455
+            },
+            "volume_ml": {
+              "median": 173.74235216843812,
+              "q25": 77.20591175743593,
+              "q75": 258.225131849169,
+              "rmad_percent": 58.287154641949634
+            }
+          },
+          "dimension_rmad_percent": 15.357063530088325,
+          "volume_rmad_percent": 58.287154641949634
+        },
+        "4": {
+          "label": "红色扁盒",
+          "n_frames": 12,
+          "dimensions": {
+            "length_cm": {
+              "median": 11.245771188834773,
+              "q25": 9.777218036560042,
+              "q75": 12.170913840853228,
+              "rmad_percent": 10.681453962319978
+            },
+            "width_cm": {
+              "median": 7.564462040913158,
+              "q25": 7.334904634284567,
+              "q75": 8.193889081440144,
+              "rmad_percent": 4.384632780994506
+            },
+            "height_cm": {
+              "median": 3.9376364264567405,
+              "q25": 2.2235467665325337,
+              "q75": 4.827417426369035,
+              "rmad_percent": 31.800438320151052
+            },
+            "volume_ml": {
+              "median": 293.06196373832904,
+              "q25": 206.12564439215012,
+              "q75": 374.7948914093995,
+              "rmad_percent": 30.0785350559036
+            }
+          },
+          "dimension_rmad_percent": 15.62217502115518,
+          "volume_rmad_percent": 30.0785350559036
+        },
+        "5": {
+          "label": "纸巾盒",
+          "n_frames": 7,
+          "dimensions": {
+            "length_cm": {
+              "median": 14.516217091033171,
+              "q25": 12.079589082189752,
+              "q75": 16.177835162816585,
+              "rmad_percent": 16.391200660429288
+            },
+            "width_cm": {
+              "median": 10.341543264982054,
+              "q25": 9.551857617606991,
+              "q75": 11.347689617061688,
+              "rmad_percent": 9.986840205783372
+            },
+            "height_cm": {
+              "median": 7.080192124485415,
+              "q25": 6.695268196648553,
+              "q75": 8.159210029774096,
+              "rmad_percent": 8.681871985748336
+            },
+            "volume_ml": {
+              "median": 1010.2899371367861,
+              "q25": 898.6251591186642,
+              "q75": 1447.8486727772497,
+              "rmad_percent": 23.497841957262203
+            }
+          },
+          "dimension_rmad_percent": 11.686637617320331,
+          "volume_rmad_percent": 23.497841957262203
+        }
+      },
+      "aggregate": {
+        "mean_dimension_rmad_percent": 14.22195872285461,
+        "mean_volume_rmad_percent": 37.287843885038484,
+        "total_valid_object_frames": 30
+      }
+    },
+    {
+      "name": "M2 + 语义地面",
+      "objects": {
+        "3": [
+          {
+            "length_units": 0.1389424150843193,
+            "width_units": 0.0687803253343946,
+            "height_units": 0.1103184759616852,
+            "volume_units3": 0.0010542590133119439,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 0,
+            "length_cm": 6.4023191680957865,
+            "width_cm": 3.169324464448265,
+            "height_cm": 5.083358402946906,
+            "volume_ml": 103.14656142884795
+          },
+          {
+            "length_units": 0.1491502032548178,
+            "width_units": 0.05668322993456376,
+            "height_units": 0.14077312469482428,
+            "volume_units3": 0.0011901403771330474,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 1,
+            "length_cm": 6.872683223796007,
+            "width_cm": 2.611903134830387,
+            "height_cm": 6.486676325868237,
+            "volume_ml": 116.44091818884274
+          },
+          {
+            "length_units": 0.15908068286587443,
+            "width_units": 0.09143941384804,
+            "height_units": 0.16835056543350224,
+            "volume_units3": 0.002448868468967095,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 2,
+            "length_cm": 7.330269195104114,
+            "width_cm": 4.21343123799508,
+            "height_cm": 7.757415555074204,
+            "volume_ml": 239.59231913224716
+          },
+          {
+            "length_units": 0.14937096557341792,
+            "width_units": 0.11047804657024285,
+            "height_units": 0.18633101224899296,
+            "volume_units3": 0.0030748739577703306,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 3,
+            "length_cm": 6.882855717365441,
+            "width_cm": 5.090711247398424,
+            "height_cm": 8.58593547987818,
+            "volume_ml": 300.83942519472413
+          },
+          {
+            "length_units": 0.1333911592972223,
+            "width_units": 0.08098467623940486,
+            "height_units": 0.09638705015182492,
+            "volume_units3": 0.0010412345888865257,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 4,
+            "length_cm": 6.146523187356823,
+            "width_cm": 3.731688014023075,
+            "height_cm": 4.441413072953581,
+            "volume_ml": 101.87227818620208
+          },
+          {
+            "length_units": 0.17623945499232826,
+            "width_units": 0.10847083516644629,
+            "height_units": 0.14013014793395995,
+            "volume_units3": 0.002678845739464974,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 5,
+            "length_cm": 8.120927221449167,
+            "width_cm": 4.998221074133849,
+            "height_cm": 6.457048638468218,
+            "volume_ml": 262.0928283611205
+          },
+          {
+            "length_units": 0.26020915726141897,
+            "width_units": 0.16029114501748742,
+            "height_units": 0.19886517286300665,
+            "volume_units3": 0.008294511993306218,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 6,
+            "length_cm": 11.990162069932579,
+            "width_cm": 7.386046007611823,
+            "height_cm": 9.163496311150558,
+            "volume_ml": 811.5182133014665
+          },
+          {
+            "length_units": 0.1647755420703302,
+            "width_units": 0.11453000227164634,
+            "height_units": 0.04719856381416321,
+            "volume_units3": 0.0008907191760696687,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 16,
+            "length_cm": 7.5926822690539755,
+            "width_cm": 5.277421069878676,
+            "height_cm": 2.1748597764809734,
+            "volume_ml": 87.14615578357707
+          },
+          {
+            "length_units": 0.15208561670447374,
+            "width_units": 0.11180932818636646,
+            "height_units": 0.0355518198013306,
+            "volume_units3": 0.0006045441418922262,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 17,
+            "length_cm": 7.007943963172196,
+            "width_cm": 5.152055292727342,
+            "height_cm": 1.6381901612737564,
+            "volume_ml": 59.14737145309662
+          },
+          {
+            "length_units": 0.14824860987152128,
+            "width_units": 0.11809218435455038,
+            "height_units": 0.03533849716186521,
+            "volume_units3": 0.0006186711464002562,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 18,
+            "length_cm": 6.83113875664244,
+            "width_cm": 5.441562643319612,
+            "height_cm": 1.628360480230648,
+            "volume_ml": 60.529528892486674
+          },
+          {
+            "length_units": 0.19098242397872434,
+            "width_units": 0.1253629271094081,
+            "height_units": 0.18514074325561514,
+            "volume_units3": 0.004432661095147664,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 19,
+            "length_cm": 8.800267600547686,
+            "width_cm": 5.776590760381416,
+            "height_cm": 8.531089146691382,
+            "volume_ml": 433.68256203717965
+          }
+        ],
+        "4": [
+          {
+            "length_units": 0.24457800047995631,
+            "width_units": 0.18647454455180013,
+            "height_units": 0.10802993178367615,
+            "volume_units3": 0.0049269828106206556,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 0,
+            "length_cm": 11.269894938972344,
+            "width_cm": 8.592549296205942,
+            "height_cm": 4.977904713740412,
+            "volume_ml": 482.0459950710329
+          },
+          {
+            "length_units": 0.26091928191780184,
+            "width_units": 0.1785732747008585,
+            "height_units": 0.09862018465995792,
+            "volume_units3": 0.004595031033731718,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 1,
+            "length_cm": 12.022883861161977,
+            "width_cm": 8.228467159096969,
+            "height_cm": 4.544313543322399,
+            "volume_ml": 449.56850717294384
+          },
+          {
+            "length_units": 0.2730188104691912,
+            "width_units": 0.17626930807178487,
+            "height_units": 0.08913217186927802,
+            "volume_units3": 0.004289471225906904,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 2,
+            "length_cm": 12.58041730782383,
+            "width_cm": 8.122302819697662,
+            "height_cm": 4.107115973954948,
+            "volume_ml": 419.67315594518675
+          },
+          {
+            "length_units": 0.27376419194784085,
+            "width_units": 0.1486706831710144,
+            "height_units": 0.08618471860885624,
+            "volume_units3": 0.0035077791906676517,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 3,
+            "length_cm": 12.614763696040892,
+            "width_cm": 6.850587446763787,
+            "height_cm": 3.971300452864337,
+            "volume_ml": 343.19399426559914
+          },
+          {
+            "length_units": 0.26831752151929616,
+            "width_units": 0.12011666871573012,
+            "height_units": 0.12853760123252866,
+            "volume_units3": 0.004142690644741206,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 4,
+            "length_cm": 12.363786897733407,
+            "width_cm": 5.534848736146093,
+            "height_cm": 5.92287637790561,
+            "volume_ml": 405.31244188858335
+          },
+          {
+            "length_units": 0.2535249339486994,
+            "width_units": 0.13854253785099435,
+            "height_units": 0.1363664627075195,
+            "volume_units3": 0.00478973396670775,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 5,
+            "length_cm": 11.682160146884915,
+            "width_cm": 6.383893249169247,
+            "height_cm": 6.28362201382451,
+            "volume_ml": 468.61784683521415
+          },
+          {
+            "length_units": 0.22700930490830223,
+            "width_units": 0.15392865613186435,
+            "height_units": 0.13700976252555852,
+            "volume_units3": 0.004787564635299607,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 6,
+            "length_cm": 10.460348074909415,
+            "width_cm": 7.0928692658335795,
+            "height_cm": 6.3132645873566045,
+            "volume_ml": 468.4056038545764
+          },
+          {
+            "length_units": 0.18786425368034498,
+            "width_units": 0.12254819138031131,
+            "height_units": 0.13858349561691286,
+            "volume_units3": 0.003190528066662638,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 7,
+            "length_cm": 8.656585619357235,
+            "width_cm": 5.646890722415441,
+            "height_cm": 6.385780539595738,
+            "volume_ml": 312.15478839933473
+          },
+          {
+            "length_units": 0.2517850545881807,
+            "width_units": 0.12770864878248459,
+            "height_units": 0.13188508033752444,
+            "volume_units3": 0.004240781785287036,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 8,
+            "length_cm": 11.601988350725598,
+            "width_cm": 5.884679127935999,
+            "height_cm": 6.077124665771547,
+            "volume_ml": 414.90947992779473
+          },
+          {
+            "length_units": 0.26306564594932536,
+            "width_units": 0.16492987079057933,
+            "height_units": 0.07494138002395634,
+            "volume_units3": 0.0032515103573378746,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 9,
+            "length_cm": 12.121786039970335,
+            "width_cm": 7.59979357285015,
+            "height_cm": 3.4532193320502835,
+            "volume_ml": 318.12117190830264
+          },
+          {
+            "length_units": 0.2502422051115142,
+            "width_units": 0.19317965862991093,
+            "height_units": 0.08081183433532713,
+            "volume_units3": 0.003906581755598227,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 10,
+            "length_cm": 11.53089548270575,
+            "width_cm": 8.901513843572605,
+            "height_cm": 3.7237236423453868,
+            "volume_ml": 382.21202754033317
+          },
+          {
+            "length_units": 0.2331326087723925,
+            "width_units": 0.22912471861669464,
+            "height_units": 0.08916136026382437,
+            "volume_units3": 0.004762682752693405,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 11,
+            "length_cm": 10.74250342450046,
+            "width_cm": 10.55782409564415,
+            "height_cm": 4.108460944227536,
+            "volume_ml": 465.9712109773996
+          }
+        ],
+        "5": [
+          {
+            "length_units": 0.3889565455381783,
+            "width_units": 0.2209531388748125,
+            "height_units": 0.190499106645584,
+            "volume_units3": 0.01637171603717513,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 13,
+            "length_cm": 17.92270521240163,
+            "width_cm": 10.181286365367,
+            "height_cm": 8.777996850292197,
+            "volume_ml": 1601.775458024446
+          },
+          {
+            "length_units": 0.3915924341033973,
+            "width_units": 0.17288816523410677,
+            "height_units": 0.2179597902297974,
+            "volume_units3": 0.014756247774772479,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 14,
+            "length_cm": 18.04416416268564,
+            "width_cm": 7.966503342722979,
+            "height_cm": 10.04335603361666,
+            "volume_ml": 1443.7213230725401
+          },
+          {
+            "length_units": 0.3594345335903443,
+            "width_units": 0.18642341876418578,
+            "height_units": 0.23237032175064087,
+            "volume_units3": 0.015570441536069029,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 15,
+            "length_cm": 16.56236220368347,
+            "width_cm": 8.590193474120737,
+            "height_cm": 10.707378046782006,
+            "volume_ml": 1523.3803876421973
+          },
+          {
+            "length_units": 0.2836146870031775,
+            "width_units": 0.2457033754880127,
+            "height_units": 0.23591874241828914,
+            "volume_units3": 0.016440017839014668,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 16,
+            "length_cm": 13.068664063828095,
+            "width_cm": 11.32175102612185,
+            "height_cm": 10.87088550879902,
+            "volume_ml": 1608.4579676451235
+          },
+          {
+            "length_units": 0.3188581565324386,
+            "width_units": 0.2255556354208446,
+            "height_units": 0.13486455082893378,
+            "volume_units3": 0.009699492765480596,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 17,
+            "length_cm": 14.692645771505013,
+            "width_cm": 10.39336452623583,
+            "height_cm": 6.214415506918575,
+            "volume_ml": 948.9786795565033
+          },
+          {
+            "length_units": 0.28008796726909885,
+            "width_units": 0.22397931071281663,
+            "height_units": 0.1461879944801331,
+            "volume_units3": 0.009170944466560029,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 18,
+            "length_cm": 12.906156557820726,
+            "width_cm": 10.320729155048234,
+            "height_cm": 6.736187784253257,
+            "volume_ml": 897.2665870874469
+          },
+          {
+            "length_units": 0.4045901310476216,
+            "width_units": 0.22196580091851298,
+            "height_units": 0.2603780174255371,
+            "volume_units3": 0.023383292765346432,
+            "observed_cell_fraction": 1.0,
+            "table_rmse_units": null,
+            "frame": 19,
+            "length_cm": 18.643084256572067,
+            "width_cm": 10.227948758627202,
+            "height_cm": 11.99794296725472,
+            "volume_ml": 2287.7738896939213
+          }
+        ]
+      },
+      "summaries": {
+        "3": {
+          "label": "立放红盒",
+          "n_frames": 11,
+          "dimensions": {
+            "length_cm": {
+              "median": 7.007943963172196,
+              "q25": 6.851910990219224,
+              "q75": 7.856804745251571,
+              "rmad_percent": 8.343935239132437
+            },
+            "width_cm": {
+              "median": 5.090711247398424,
+              "q25": 3.972559626009077,
+              "q75": 5.359491856599144,
+              "rmad_percent": 13.47315688615233
+            },
+            "height_cm": {
+              "median": 6.457048638468218,
+              "q25": 3.308136424717277,
+              "q75": 8.144252350882793,
+              "rmad_percent": 32.12056504990461
+            },
+            "volume_ml": {
+              "median": 116.44091818884274,
+              "q25": 94.50921698488958,
+              "q75": 281.46612677792234,
+              "rmad_percent": 49.20396337207511
+            }
+          },
+          "dimension_rmad_percent": 17.97921905839646,
+          "volume_rmad_percent": 49.20396337207511
+        },
+        "4": {
+          "label": "红色扁盒",
+          "n_frames": 12,
+          "dimensions": {
+            "length_cm": {
+              "median": 11.642074248805256,
+              "q25": 11.138047060354374,
+              "q75": 12.182286254411103,
+              "rmad_percent": 5.159838420617024
+            },
+            "width_cm": {
+              "median": 7.3463314193418645,
+              "q25": 6.259089718860935,
+              "q75": 8.319487693374212,
+              "rmad_percent": 15.03237412636743
+            },
+            "height_cm": {
+              "median": 4.761109128531405,
+              "q25": 4.073162093682296,
+              "q75": 6.1287490027847875,
+              "rmad_percent": 23.094962499195713
+            },
+            "volume_ml": {
+              "median": 417.2913179364907,
+              "q25": 372.45751922164965,
+              "q75": 466.5798091966938,
+              "rmad_percent": 11.957375419704114
+            }
+          },
+          "dimension_rmad_percent": 14.429058348726722,
+          "volume_rmad_percent": 11.957375419704114
+        },
+        "5": {
+          "label": "纸巾盒",
+          "n_frames": 7,
+          "dimensions": {
+            "length_cm": {
+              "median": 16.56236220368347,
+              "q25": 13.880654917666554,
+              "q75": 17.983434687543635,
+              "rmad_percent": 11.288947851669564
+            },
+            "width_cm": {
+              "median": 10.227948758627202,
+              "q25": 9.38573991974387,
+              "q75": 10.357046840642031,
+              "rmad_percent": 1.6172917122712558
+            },
+            "height_cm": {
+              "median": 10.04335603361666,
+              "q25": 7.757092317272727,
+              "q75": 10.789131777790512,
+              "rmad_percent": 12.598967706502798
+            },
+            "volume_ml": {
+              "median": 1523.3803876421973,
+              "q25": 1196.3500013145217,
+              "q75": 1605.1167128347847,
+              "rmad_percent": 5.584788979370051
+            }
+          },
+          "dimension_rmad_percent": 8.501735756814538,
+          "volume_rmad_percent": 5.584788979370051
+        }
+      },
+      "aggregate": {
+        "mean_dimension_rmad_percent": 13.636671054645907,
+        "mean_volume_rmad_percent": 22.248709257049757,
+        "total_valid_object_frames": 30
+      }
+    },
+    {
+      "name": "M3 + 局部表面",
+      "objects": {
+        "3": [
+          {
+            "volume_units3": 0.0012082299137537507,
+            "length_units": 0.1326723643509112,
+            "width_units": 0.06601511382429204,
+            "height_units": 0.1847320795059204,
+            "footprint_area_units2": 0.007469000402889153,
+            "observed_cell_fraction": 0.9347265960492414,
+            "grid_res": 64,
+            "table_rmse_units": 0.029459653422236443,
+            "frame": 4,
+            "length_cm": 6.113401878360536,
+            "width_cm": 3.041906449983604,
+            "height_cm": 8.512258354406763,
+            "volume_ml": 118.21076172511486
+          },
+          {
+            "volume_units3": 0.001505163880609615,
+            "length_units": 0.12359387431643334,
+            "width_units": 0.07242915229652219,
+            "height_units": 0.20170807838439941,
+            "footprint_area_units2": 0.008051374396157598,
+            "observed_cell_fraction": 0.9291530944625407,
+            "grid_res": 64,
+            "table_rmse_units": 0.01874258555471897,
+            "frame": 5,
+            "length_cm": 5.6950746833867685,
+            "width_cm": 3.3374585420552885,
+            "height_cm": 9.294494383277435,
+            "volume_ml": 147.26217818528178
+          },
+          {
+            "volume_units3": 0.002588931135236869,
+            "length_units": 0.20066563985737113,
+            "width_units": 0.11742630878063041,
+            "height_units": 0.22805602848529816,
+            "footprint_area_units2": 0.02029584100763966,
+            "observed_cell_fraction": 0.49036281179138325,
+            "grid_res": 64,
+            "table_rmse_units": 0.00846224557608366,
+            "frame": 6,
+            "length_cm": 9.24645992123714,
+            "width_cm": 5.410879802893328,
+            "height_cm": 10.508579987508833,
+            "volume_ml": 253.29576603463448
+          },
+          {
+            "volume_units3": 0.00012749106357932822,
+            "length_units": 0.16533468838043303,
+            "width_units": 0.10457445579141261,
+            "height_units": 0.01898442953824997,
+            "footprint_area_units2": 0.015145446483946716,
+            "observed_cell_fraction": 0.9110925306577481,
+            "grid_res": 64,
+            "table_rmse_units": 0.0033873291686177254,
+            "frame": 16,
+            "length_cm": 7.618447138167333,
+            "width_cm": 4.818680043816991,
+            "height_cm": 0.8747823841577864,
+            "volume_ml": 12.473466818939412
+          }
+        ],
+        "4": [
+          {
+            "volume_units3": 0.001667771387677896,
+            "length_units": 0.25023850463302183,
+            "width_units": 0.12827736549480082,
+            "height_units": 0.09154544770717621,
+            "footprint_area_units2": 0.024451123216164442,
+            "observed_cell_fraction": 0.8852564102564102,
+            "grid_res": 64,
+            "table_rmse_units": 0.00846224557608366,
+            "frame": 6,
+            "length_cm": 11.530724968580396,
+            "width_cm": 5.910884991035967,
+            "height_cm": 4.218317165797638,
+            "volume_ml": 163.1713665392138
+          },
+          {
+            "volume_units3": 0.0007740615198801724,
+            "length_units": 0.19913525019162576,
+            "width_units": 0.05541786272977282,
+            "height_units": 0.0923803374171257,
+            "footprint_area_units2": 0.01003608303226925,
+            "observed_cell_fraction": 0.9081879194630873,
+            "grid_res": 64,
+            "table_rmse_units": 0.0049652340821921825,
+            "frame": 7,
+            "length_cm": 9.175941188093548,
+            "width_cm": 2.553596355687413,
+            "height_cm": 4.256787998408484,
+            "volume_ml": 75.73260754888446
+          },
+          {
+            "volume_units3": 0.0017145481219838158,
+            "length_units": 0.23245340464253747,
+            "width_units": 0.14011322454129171,
+            "height_units": 0.08161522448062897,
+            "footprint_area_units2": 0.02355266991922857,
+            "observed_cell_fraction": 0.9071573261309925,
+            "grid_res": 64,
+            "table_rmse_units": 0.006856030784547329,
+            "frame": 8,
+            "length_cm": 10.711206418348798,
+            "width_cm": 6.4562688264777375,
+            "height_cm": 3.760743008415883,
+            "volume_ml": 167.74790725416506
+          },
+          {
+            "volume_units3": 0.0035908102247195752,
+            "length_units": 0.27446947527469046,
+            "width_units": 0.16298746557206545,
+            "height_units": 0.10647213459014893,
+            "footprint_area_units2": 0.035495367063898574,
+            "observed_cell_fraction": 0.9818461538461538,
+            "grid_res": 64,
+            "table_rmse_units": 0.005060277879238129,
+            "frame": 9,
+            "length_cm": 12.647262403938603,
+            "width_cm": 7.510289599890172,
+            "height_cm": 4.906123070776509,
+            "volume_ml": 351.3175820615741
+          },
+          {
+            "volume_units3": 0.003584593751136472,
+            "length_units": 0.2832797213789414,
+            "width_units": 0.1478483268487285,
+            "height_units": 0.11054522544145584,
+            "footprint_area_units2": 0.0346123132690505,
+            "observed_cell_fraction": 0.9760709010339734,
+            "grid_res": 64,
+            "table_rmse_units": 0.004454348236322403,
+            "frame": 10,
+            "length_cm": 13.053229203023362,
+            "width_cm": 6.812694139367477,
+            "height_cm": 5.093806778554962,
+            "volume_ml": 350.70937490734167
+          },
+          {
+            "volume_units3": 0.0016210197324487007,
+            "length_units": 0.2787963472637728,
+            "width_units": 0.14285081379714293,
+            "height_units": 0.06915251165628433,
+            "footprint_area_units2": 0.03839697261269479,
+            "observed_cell_fraction": 0.981261078754115,
+            "grid_res": 64,
+            "table_rmse_units": 0.020854804664850235,
+            "frame": 11,
+            "length_cm": 12.846640077464624,
+            "width_cm": 6.582414036754044,
+            "height_cm": 3.186474415536215,
+            "volume_ml": 158.5972795102119
+          }
+        ],
+        "5": [
+          {
+            "volume_units3": 0.0012316743489265301,
+            "length_units": 0.41324723662096363,
+            "width_units": 0.1753391076475999,
+            "height_units": 0.09182688593864441,
+            "footprint_area_units2": 0.06679758907360037,
+            "observed_cell_fraction": 0.8177966101694916,
+            "grid_res": 64,
+            "table_rmse_units": 0.00449307169765234,
+            "frame": 13,
+            "length_cm": 19.041994502365622,
+            "width_cm": 8.079440170431662,
+            "height_cm": 4.231285541098083,
+            "volume_ml": 120.50451766381626
+          },
+          {
+            "volume_units3": 0.004474980951508882,
+            "length_units": 0.37964731212499164,
+            "width_units": 0.1713316279850551,
+            "height_units": 0.15782715380191803,
+            "footprint_area_units2": 0.049085919193312816,
+            "observed_cell_fraction": 0.8168877385959237,
+            "grid_res": 64,
+            "table_rmse_units": 0.0037058729212731123,
+            "frame": 15,
+            "length_cm": 17.49374560719142,
+            "width_cm": 7.8947797566646045,
+            "height_cm": 7.272507904938955,
+            "volume_ml": 437.8230508627002
+          },
+          {
+            "volume_units3": 0.00680574807246724,
+            "length_units": 0.2994760093599822,
+            "width_units": 0.21118799067775434,
+            "height_units": 0.19685600697994232,
+            "footprint_area_units2": 0.04547331408734619,
+            "observed_cell_fraction": 0.933446519524618,
+            "grid_res": 64,
+            "table_rmse_units": 0.0033873291686177254,
+            "frame": 16,
+            "length_cm": 13.79953698045827,
+            "width_cm": 9.731318690317012,
+            "height_cm": 9.070916077553635,
+            "volume_ml": 665.8605738837488
+          },
+          {
+            "volume_units3": 0.003031054723414366,
+            "length_units": 0.31848460074040996,
+            "width_units": 0.22250672070895325,
+            "height_units": 0.10492925345897675,
+            "footprint_area_units2": 0.05276810071447732,
+            "observed_cell_fraction": 0.9691803278688524,
+            "grid_res": 64,
+            "table_rmse_units": 0.021943116560578346,
+            "frame": 17,
+            "length_cm": 14.675432716685096,
+            "width_cm": 10.252873769039873,
+            "height_cm": 4.835028744150602,
+            "volume_ml": 296.55224027034427
+          },
+          {
+            "volume_units3": 0.00332079959528269,
+            "length_units": 0.2843804607091353,
+            "width_units": 0.2031799422503755,
+            "height_units": 0.11432597786188126,
+            "footprint_area_units2": 0.04598733452243564,
+            "observed_cell_fraction": 0.6987730061349693,
+            "grid_res": 64,
+            "table_rmse_units": 0.01690457947552204,
+            "frame": 18,
+            "length_cm": 13.10395010425788,
+            "width_cm": 9.362316309621868,
+            "height_cm": 5.268019841401355,
+            "volume_ml": 324.9002902727555
+          },
+          {
+            "volume_units3": 0.004441788218823558,
+            "length_units": 0.3622567061786336,
+            "width_units": 0.19150312116198662,
+            "height_units": 0.14761188626289368,
+            "footprint_area_units2": 0.055603640313845626,
+            "observed_cell_fraction": 0.8202863234846177,
+            "grid_res": 64,
+            "table_rmse_units": 0.020300958305597305,
+            "frame": 19,
+            "length_cm": 16.692404924235824,
+            "width_cm": 8.824260774663383,
+            "height_cm": 6.801799207867348,
+            "volume_ml": 434.5755412870765
+          }
+        ]
+      },
+      "summaries": {
+        "3": {
+          "label": "立放红盒",
+          "n_frames": 4,
+          "dimensions": {
+            "length_cm": {
+              "median": 6.865924508263935,
+              "q25": 6.008820079617094,
+              "q75": 8.025450333934785,
+              "rmad_percent": 14.006653091404978
+            },
+            "width_cm": {
+              "median": 4.07806929293614,
+              "q25": 3.2635705190373674,
+              "q75": 4.966729983586076,
+              "rmad_percent": 21.784494894569846
+            },
+            "height_cm": {
+              "median": 8.9033763688421,
+              "q25": 6.602889361844518,
+              "q75": 9.598015784335285,
+              "rmad_percent": 11.211036972941624
+            },
+            "volume_ml": {
+              "median": 132.73646995519832,
+              "q25": 91.776437998571,
+              "q75": 173.77057514761995,
+              "rmad_percent": 50.773051073241874
+            }
+          },
+          "dimension_rmad_percent": 15.667394986305482,
+          "volume_rmad_percent": 50.773051073241874
+        },
+        "4": {
+          "label": "红色扁盒",
+          "n_frames": 6,
+          "dimensions": {
+            "length_cm": {
+              "median": 12.0889936862595,
+              "q25": 10.916086055906698,
+              "q75": 12.796795659083118,
+              "rmad_percent": 7.121692477704324
+            },
+            "width_cm": {
+              "median": 6.51934143161589,
+              "q25": 6.047230949896409,
+              "q75": 6.755124113714119,
+              "rmad_percent": 6.9164129367280776
+            },
+            "height_cm": {
+              "median": 4.237552582103061,
+              "q25": 3.8751365477613215,
+              "q75": 4.743789302684503,
+              "rmad_percent": 13.514641295520915
+            },
+            "volume_ml": {
+              "median": 165.45963689668943,
+              "q25": 159.7408012674624,
+              "q75": 304.9690079940475,
+              "rmad_percent": 29.1882021941676
+            }
+          },
+          "dimension_rmad_percent": 9.184248903317773,
+          "volume_rmad_percent": 29.1882021941676
+        },
+        "5": {
+          "label": "纸巾盒",
+          "n_frames": 6,
+          "dimensions": {
+            "length_cm": {
+              "median": 15.683918820460459,
+              "q25": 14.018510914514977,
+              "q75": 17.293410436452522,
+              "rmad_percent": 11.777058619794275
+            },
+            "width_cm": {
+              "median": 9.093288542142625,
+              "q25": 8.265645321489592,
+              "q75": 9.639068095143227,
+              "rmad_percent": 9.082954490170195
+            },
+            "height_cm": {
+              "median": 6.034909524634351,
+              "q25": 4.94327651846329,
+              "q75": 7.154830730671053,
+              "rmad_percent": 20.19482770071882
+            },
+            "volume_ml": {
+              "median": 379.73791577991597,
+              "q25": 303.6392527709471,
+              "q75": 437.01117346879425,
+              "rmad_percent": 18.601093638781123
+            }
+          },
+          "dimension_rmad_percent": 13.684946936894429,
+          "volume_rmad_percent": 18.601093638781123
+        }
+      },
+      "aggregate": {
+        "mean_dimension_rmad_percent": 12.845530275505894,
+        "mean_volume_rmad_percent": 32.854115635396866,
+        "total_valid_object_frames": 16
+      }
+    }
+  ],
+  "fusion": {
+    "3": {
+      "label": "立放红盒",
+      "n_selected": 2,
+      "n_total": 4,
+      "length_cm": 6.6567609107770505,
+      "width_cm": 4.07806929293614,
+      "height_cm": 5.084638383717611,
+      "volume_ml": 79.8678225021106
+    },
+    "4": {
+      "label": "红色扁盒",
+      "n_selected": 6,
+      "n_total": 6,
+      "length_cm": 12.0889936862595,
+      "width_cm": 6.51934143161589,
+      "height_cm": 4.237552582103061,
+      "volume_ml": 165.45963689668943
+    },
+    "5": {
+      "label": "纸巾盒",
+      "n_selected": 5,
+      "n_total": 6,
+      "length_cm": 16.692404924235824,
+      "width_cm": 8.824260774663383,
+      "height_cm": 6.801799207867348,
+      "volume_ml": 434.5755412870765
+    }
+  },
+  "figures": [
+    "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/ablation/ablation_repeatability.png",
+    "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/ablation/ablation_metric_and_fusion.png"
+  ]
+}

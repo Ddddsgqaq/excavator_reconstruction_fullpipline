@@ -1,0 +1,13 @@
+{
+  "semantic_masks_path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/semantic_masks_combined.npz",
+  "semantic_id_map": {
+    "white tabletop": 1,
+    "transparent ruler": 2,
+    "upright red box": 3,
+    "red plastic storage box": 4,
+    "blue tissue box": 5
+  },
+  "text_run": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/yoloe_runs/run_1785842948419_text",
+  "upright_visual_run": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/yoloe_runs/run_1785843179472_visual",
+  "upright_visual_detections": 13
+}

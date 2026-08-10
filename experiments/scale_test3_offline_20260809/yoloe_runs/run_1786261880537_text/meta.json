@@ -1,0 +1,48 @@
+{
+  "mode": "text",
+  "prompts": [
+    "wooden tabletop",
+    "transparent ruler",
+    "red rectangular plastic box",
+    "red plastic bottle"
+  ],
+  "model_id": "yoloe-v8l",
+  "image_size": 640,
+  "conf_threshold": 0.2,
+  "iou_threshold": 0.7,
+  "semantic_id_map": {
+    "wooden tabletop": 1,
+    "transparent ruler": 2,
+    "red rectangular plastic box": 3,
+    "red plastic bottle": 4
+  },
+  "total_detections": 95,
+  "num_frames": 21,
+  "keyframe_mode": "all",
+  "num_keyframes": 21,
+  "keyframe_indices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "timestamp": 1786261882.9413197,
+  "resource_profile_path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/resource_profiles/yoloe_segment_text_20260809T075113_682952Z_pid13239.json"
+}

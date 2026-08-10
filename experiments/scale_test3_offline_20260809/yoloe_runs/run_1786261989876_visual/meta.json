@@ -1,0 +1,48 @@
+{
+  "mode": "visual",
+  "reference_image_path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/images/000017.png",
+  "bboxes": [
+    [
+      810.0,
+      10.0,
+      1710.0,
+      830.0
+    ]
+  ],
+  "model_id": "yoloe-v8l",
+  "image_size": 640,
+  "conf_threshold": 0.15,
+  "iou_threshold": 0.7,
+  "semantic_id_map": {
+    "object": 1
+  },
+  "total_detections": 24,
+  "num_frames": 21,
+  "keyframe_mode": "all",
+  "num_keyframes": 21,
+  "keyframe_indices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "timestamp": 1786261990.754237,
+  "resource_profile_path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/resource_profiles/yoloe_segment_visual_20260809T075307_526113Z_pid13239.json"
+}

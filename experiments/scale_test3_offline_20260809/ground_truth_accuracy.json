@@ -1,0 +1,165 @@
+{
+  "truth_source": "user-provided dimensions on 2026-08-09",
+  "error_definitions": {
+    "signed_error_cm": "estimate - truth",
+    "relative_error_percent": "(estimate - truth) / truth * 100",
+    "axis_accuracy_percent": "100 - absolute(relative_error_percent)",
+    "mape_percent": "mean absolute relative error across three axes"
+  },
+  "objects": {
+    "3": {
+      "name": "red rectangular box",
+      "truth_dimensions_cm": [
+        11.0,
+        7.9,
+        4.5
+      ],
+      "estimate_dimensions_cm": [
+        10.804786384227285,
+        7.997736328337907,
+        4.683813615905287
+      ],
+      "axes": {
+        "length": {
+          "truth_cm": 11.0,
+          "estimate_cm": 10.804786384227285,
+          "signed_error_cm": -0.19521361577271534,
+          "absolute_error_cm": 0.19521361577271534,
+          "relative_error_percent": -1.7746692342974122,
+          "absolute_relative_error_percent": 1.7746692342974122,
+          "axis_accuracy_percent": 98.2253307657026,
+          "estimate_iqr_cm": [
+            10.72746541479345,
+            10.852663646155118
+          ],
+          "truth_inside_estimate_iqr": false
+        },
+        "width": {
+          "truth_cm": 7.9,
+          "estimate_cm": 7.997736328337907,
+          "signed_error_cm": 0.09773632833790646,
+          "absolute_error_cm": 0.09773632833790646,
+          "relative_error_percent": 1.2371687131380564,
+          "absolute_relative_error_percent": 1.2371687131380564,
+          "axis_accuracy_percent": 98.76283128686194,
+          "estimate_iqr_cm": [
+            7.819834897495445,
+            8.220308245927868
+          ],
+          "truth_inside_estimate_iqr": true
+        },
+        "height": {
+          "truth_cm": 4.5,
+          "estimate_cm": 4.683813615905287,
+          "signed_error_cm": 0.18381361590528744,
+          "absolute_error_cm": 0.18381361590528744,
+          "relative_error_percent": 4.084747020117499,
+          "absolute_relative_error_percent": 4.084747020117499,
+          "axis_accuracy_percent": 95.9152529798825,
+          "estimate_iqr_cm": [
+            4.65183128469083,
+            4.695462847756555
+          ],
+          "truth_inside_estimate_iqr": false
+        }
+      },
+      "summary": {
+        "mae_cm": 0.15892118667196975,
+        "rmse_cm": 0.1647707407806464,
+        "mean_signed_error_cm": 0.028778776156826186,
+        "mape_percent": 2.365528322517656,
+        "mean_axis_accuracy_percent": 97.63447167748234,
+        "max_absolute_error_cm": 0.19521361577271534,
+        "max_absolute_relative_error_percent": 4.084747020117499
+      },
+      "bounding_box_product": {
+        "truth_cm3": 391.05,
+        "estimate_cm3": 404.74628566448905,
+        "signed_error_cm3": 13.69628566448904,
+        "relative_error_percent": 3.502438477046168,
+        "note": "outer bounding-box product only; not physical bottle volume"
+      }
+    },
+    "4": {
+      "name": "red bottle",
+      "truth_dimensions_cm": [
+        8.5,
+        7.0,
+        21.0
+      ],
+      "estimate_dimensions_cm": [
+        8.102834945398698,
+        7.616105202944827,
+        20.242982805760082
+      ],
+      "axes": {
+        "length": {
+          "truth_cm": 8.5,
+          "estimate_cm": 8.102834945398698,
+          "signed_error_cm": -0.39716505460130236,
+          "absolute_error_cm": 0.39716505460130236,
+          "relative_error_percent": -4.672530054132968,
+          "absolute_relative_error_percent": 4.672530054132968,
+          "axis_accuracy_percent": 95.32746994586704,
+          "estimate_iqr_cm": [
+            7.999327526066646,
+            8.220529372510537
+          ],
+          "truth_inside_estimate_iqr": false
+        },
+        "width": {
+          "truth_cm": 7.0,
+          "estimate_cm": 7.616105202944827,
+          "signed_error_cm": 0.6161052029448273,
+          "absolute_error_cm": 0.6161052029448273,
+          "relative_error_percent": 8.801502899211819,
+          "absolute_relative_error_percent": 8.801502899211819,
+          "axis_accuracy_percent": 91.19849710078819,
+          "estimate_iqr_cm": [
+            6.9794904395834685,
+            7.748130808390402
+          ],
+          "truth_inside_estimate_iqr": true
+        },
+        "height": {
+          "truth_cm": 21.0,
+          "estimate_cm": 20.242982805760082,
+          "signed_error_cm": -0.7570171942399178,
+          "absolute_error_cm": 0.7570171942399178,
+          "relative_error_percent": -3.6048437820948465,
+          "absolute_relative_error_percent": 3.6048437820948465,
+          "axis_accuracy_percent": 96.39515621790515,
+          "estimate_iqr_cm": [
+            20.220332657008345,
+            20.443009925437128
+          ],
+          "truth_inside_estimate_iqr": false
+        }
+      },
+      "summary": {
+        "mae_cm": 0.5900958172620158,
+        "rmse_cm": 0.6083860435795185,
+        "mean_signed_error_cm": -0.1793590152987976,
+        "mape_percent": 5.692958911813212,
+        "mean_axis_accuracy_percent": 94.30704108818679,
+        "max_absolute_error_cm": 0.7570171942399178,
+        "max_absolute_relative_error_percent": 8.801502899211819
+      },
+      "bounding_box_product": {
+        "truth_cm3": 1249.5,
+        "estimate_cm3": 1249.2358331762637,
+        "signed_error_cm3": -0.26416682373633193,
+        "relative_error_percent": -0.021141802619954537,
+        "note": "outer bounding-box product only; not physical bottle volume"
+      }
+    }
+  },
+  "overall_six_axes": {
+    "mae_cm": 0.37450850196699276,
+    "rmse_cm": 0.44569214433269005,
+    "mape_percent": 4.0292436171654336,
+    "mean_axis_accuracy_percent": 95.97075638283457,
+    "max_absolute_error_cm": 0.7570171942399178,
+    "axis_count": 6
+  }
+}

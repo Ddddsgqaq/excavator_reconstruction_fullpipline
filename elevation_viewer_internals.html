@@ -237,12 +237,12 @@ volume   = Σ (e - minElev) × cellArea × scaleFactor</pre>
 <!-- ─────────────────────────────────────────── -->
 <h2 id="scale">11. Scale Calibration</h2>
 
-<p>全局变量 <code>scaleFactor</code>，默认从 <code>data.scale_factor</code> 读取（后端默认 1.0）。</p>
+<p>查看器提供两种可切换模式：保留原有的手填统一 <code>scaleFactor</code>，或通过已知长宽高的语义标定物拟合局部地面平面，得到水平 <code>s_h</code> 与竖直 <code>s_v</code> 两个尺度。</p>
 <ul>
-  <li>影响 tooltip 显示的 X/Y/Z 数值</li>
-  <li>影响相机表格中的坐标数值</li>
-  <li>影响体积计算（cellArea × scaleFactor²，高度 × scaleFactor，共 ×scaleFactor³）</li>
-  <li><strong>不影响</strong>三维场景的几何渲染（点云、DEM、参考平面的位置不变）</li>
+  <li>手动模式：X/Y/Z 都使用 <code>scaleFactor</code>，与旧流程兼容。</li>
+  <li>局部平面模式：X、Z 和面积使用 <code>s_h</code>；Y、高程、分类阈值和深度使用 <code>s_v</code>；体积使用 <code>s_h² × s_v</code>。</li>
+  <li>后端会拒绝不完整标定物、缺少地面 mask 或可用点不足的帧，并在前端显示保留帧和尺度 rMAD。</li>
+  <li><strong>不影响</strong>三维场景的几何渲染；只影响量纲、测量与高程导出。</li>
 </ul>
 
 </body>

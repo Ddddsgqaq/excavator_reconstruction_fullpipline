@@ -1,0 +1,7 @@
+{
+  "json": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/confidence_error_sweep.json",
+  "csv": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/confidence_error_sweep.csv",
+  "error_curves": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/visualizations/confidence_error_sweep.png",
+  "spatial_coverage": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/visualizations/confidence_spatial_coverage.png",
+  "resource_profile": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/resource_profiles/confidence_error_sweep_20260807T093430_890182Z_pid4491.json"
+}

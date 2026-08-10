@@ -1,39 +1,25 @@
 """
-elevation_plane.py — Elevation plane fitting and GLB generation.
+elevation_plane.py — DEM helpers for the elevation viewer and streaming path.
 
-Pipeline:
-  1. Estimate gravity direction (gravity_alignment.estimate_gravity)
-       — primary: trajectory plane on camera centers
-       — fallback: YOLOe ground-mask RANSAC
-       — last resort: whole-cloud RANSAC
-  2. Rotate the entire scene so gravity is +Y.
-  3. Extract ground-candidate points in the aligned frame.
-  4. Interpolate a regular elevation grid (DEM) over (X, Z).
-  5. Build a colored trimesh and export as GLB.
+These helpers operate in the gravity-aligned frame (Y = elevation):
+  * _extract_points_with_conf   — pull points + ground mask from predictions
+  * _select_ground_aligned(_mask) — pick ground candidates after alignment
+  * build_elevation_view_grid   — interpolate the DEM used by /elevation_viewer_data
 
-Public API:
-    fit_elevation_to_glb(predictions, working_dir, ...) -> dict
+Consumers: vggt_service.py (/elevation_viewer_data) and streaming/pipeline.py.
 """
 
-import os
-import json
 import numpy as np
-import trimesh
 
 from scipy.interpolate import griddata
-from matplotlib import colormaps
-
-from gravity_alignment import (
-    estimate_gravity,
-    apply_alignment_to_points,
-)
 
 
 # ── Point extraction ─────────────────────────────────────────────────────────
 
 def _extract_points_with_conf(predictions: dict,
                                conf_thres: float,
-                               prediction_mode: str):
+                               prediction_mode: str,
+                               return_keep_mask: bool = False):
     """
     Returns (points (N,3), confidence (N,), per-pixel ground mask (N,) or None)
     in the original (un-aligned) VGGT world frame.
@@ -66,9 +52,16 @@ def _extract_points_with_conf(predictions: dict,
         if sem.shape == (S, H, W):
             ground_flat = (sem == 1).reshape(-1)
 
+    # Match vggt_service.elevation_viewer_data exactly: conf_thres is a percentile,
+    # not a fraction of the maximum confidence.
     finite = np.isfinite(pts_flat).all(axis=1)
-    keep = finite & (conf_flat >= (conf_thres / 100.0) * conf_flat.max())
-    return pts_flat[keep], conf_flat[keep], (ground_flat[keep] if ground_flat is not None else None)
+    conf_thres_val = np.percentile(conf_flat, conf_thres) if conf_thres > 0 else 0.0
+    keep = finite & np.isfinite(conf_flat) & (conf_flat >= conf_thres_val)
+    result = (
+        pts_flat[keep], conf_flat[keep],
+        ground_flat[keep] if ground_flat is not None else None,
+    )
+    return (*result, keep) if return_keep_mask else result
 
 
 # ── Ground selection in the aligned frame ────────────────────────────────────
@@ -125,14 +118,20 @@ def _select_ground_aligned(points_aligned: np.ndarray,
 
 # ── DEM grid interpolation ───────────────────────────────────────────────────
 
-def _build_elevation_grid(ground_pts: np.ndarray,
-                           all_pts: np.ndarray,
-                           grid_resolution: int):
-    """Interpolate Y over the (X, Z) plane in the aligned frame."""
+def build_elevation_view_grid(ground_pts: np.ndarray,
+                              all_pts: np.ndarray,
+                              grid_resolution: int):
+    """Build the DEM used by ``/elevation_viewer_data``.
+
+    The elevation viewer deliberately uses a 2% horizontal padding, rather than
+    the 5% padding used by the legacy GLB-export DEM above. Keep this as a named
+    helper so consumers that promise the elevation-view DEM (including M4) share
+    the same bounds, interpolation, and ``has_data`` rules.
+    """
     x_min, x_max = all_pts[:, 0].min(), all_pts[:, 0].max()
     z_min, z_max = all_pts[:, 2].min(), all_pts[:, 2].max()
-    x_pad = (x_max - x_min) * 0.05
-    z_pad = (z_max - z_min) * 0.05
+    x_pad = (x_max - x_min) * 0.02
+    z_pad = (z_max - z_min) * 0.02
     x_min -= x_pad; x_max += x_pad
     z_min -= z_pad; z_max += z_pad
 
@@ -145,171 +144,59 @@ def _build_elevation_grid(ground_pts: np.ndarray,
     elev_linear = griddata(src_xz, src_y, (xx, zz), method="linear")
     elev_nearest = griddata(src_xz, src_y, (xx, zz), method="nearest")
     elev = np.where(np.isnan(elev_linear), elev_nearest, elev_linear)
-    valid = ~np.isnan(elev_linear)
-    return xx, zz, elev, valid, (x_min, x_max), (z_min, z_max)
+    has_data = ~np.isnan(elev_linear)  # nearest-filled cells are viewer NODATA
+    return xx, zz, elev, has_data, (x_min, x_max), (z_min, z_max)
 
 
-# ── Mesh construction ────────────────────────────────────────────────────────
+def fill_elevation_view_holes(elev: np.ndarray,
+                              has_data: np.ndarray,
+                              max_passes: int = 20):
+    """Fill a DEM exactly like elevation_viewer buildDEMMesh.
 
-def _elevation_to_mesh(xx, zz, elev,
-                        colormap_name: str = "terrain",
-                        elev_min=None, elev_max=None) -> trimesh.Trimesh:
-    R, C = xx.shape
-    verts = np.column_stack([xx.ravel(), elev.ravel(), zz.ravel()]).astype(np.float32)
-
-    rs, cs = np.meshgrid(np.arange(R - 1), np.arange(C - 1), indexing="ij")
-    i00 = (rs * C + cs).ravel()
-    i10 = ((rs + 1) * C + cs).ravel()
-    i01 = (rs * C + (cs + 1)).ravel()
-    i11 = ((rs + 1) * C + (cs + 1)).ravel()
-    faces = np.empty((i00.size * 2, 3), dtype=np.int32)
-    faces[0::2] = np.stack([i00, i10, i01], axis=1)
-    faces[1::2] = np.stack([i10, i11, i01], axis=1)
-
-    y_vals = elev.ravel()
-    lo = elev_min if elev_min is not None else float(np.nanpercentile(y_vals, 2))
-    hi = elev_max if elev_max is not None else float(np.nanpercentile(y_vals, 98))
-    norm = np.clip((y_vals - lo) / (hi - lo + 1e-8), 0.0, 1.0)
-    cmap = colormaps.get_cmap(colormap_name)
-    rgba = (cmap(norm) * 255).astype(np.uint8)
-
-    return trimesh.Trimesh(vertices=verts, faces=faces, vertex_colors=rgba, process=False)
-
-
-# ── GLB helpers ──────────────────────────────────────────────────────────────
-
-def _scene_with(mesh: trimesh.Trimesh) -> trimesh.Scene:
-    s = trimesh.Scene()
-    s.add_geometry(mesh, node_name="elevation_plane")
-    return s
-
-
-def _merge_with_existing(source_glb_path: str, mesh: trimesh.Trimesh,
-                          R_align: np.ndarray, scale: float) -> trimesh.Scene:
+    The browser implementation scans row-major and updates cells in place using the
+    mean of currently valid 8-neighbours.  Keeping the same scan order matters: newly
+    filled cells may feed later cells in the same pass.  The returned validity mask
+    marks every finite vertex because the filled viewer meshes every finite cell.
     """
-    Load an existing GLB (raw VGGT cloud, viewer-display frame) and overlay the
-    aligned elevation mesh. The source GLB has already had VGGT's display
-    alignment baked in; we apply our gravity rotation on top so the mesh sits
-    on the cloud correctly.
-    """
-    base = trimesh.load(source_glb_path, force="scene")
-    merged = base.copy()
-    overlay = mesh.copy()
-    T = np.eye(4)
-    T[:3, :3] = R_align * scale
-    overlay.apply_transform(T)
-    merged.add_geometry(overlay, node_name="elevation_plane")
-    return merged
-
-
-# ── Public API ───────────────────────────────────────────────────────────────
-
-def fit_elevation_to_glb(
-    predictions: dict,
-    working_dir: str,
-    source_glb_path: str = "",
-    grid_resolution: int = 128,
-    colormap: str = "terrain",
-    ground_percentile: float = 20.0,
-    use_ransac: bool = True,                  # kept for API compatibility, unused
-    conf_thres: float = 50.0,
-    prediction_mode: str = "Depthmap and Camera Branch",
-    scale_factor: float = 1.0,                # multiplier for absolute scale calibration
-    use_ground_filter: bool = True,           # choose DEM source: filtered ground candidates or all aligned points
-) -> dict:
-    """
-    Fit a gravity-aligned elevation plane and export GLBs.
-
-    Returns a dict with:
-        elev_only_path, merged_path, gravity_source, n_grav, R_align,
-        scale_factor, warnings, log
-    """
-    del use_ransac  # superseded by gravity-aware estimator
-
-    # 1. Pull points + per-point ground membership (un-aligned VGGT world).
-    pts_world, conf_world, ground_world = _extract_points_with_conf(
-        predictions, conf_thres, prediction_mode
-    )
-    if pts_world.shape[0] < 100:
-        raise ValueError(f"Too few valid points ({pts_world.shape[0]}).")
-
-    # 2. Estimate gravity & rotation. Pass full 4-D arrays so the estimator
-    #    can do its own confidence filtering and shape-aware logic.
-    extrinsic = predictions["extrinsic"]
-    raw_pts = predictions.get("world_points_from_depth")
-    raw_conf = predictions.get("depth_conf")
-    sem = predictions.get("semantic_masks")
-    gmask_3d = (np.asarray(sem) == 1) if sem is not None else None
-
-    grav = estimate_gravity(
-        extrinsic=extrinsic,
-        world_points=raw_pts,
-        ground_mask=gmask_3d,
-        conf=raw_conf,
-        conf_thres=conf_thres / 100.0,
-    )
-
-    # 3. Rotate points into the aligned frame and apply scale.
-    pts_aligned = apply_alignment_to_points(pts_world, grav.R_align) * scale_factor
-
-    # 4. Pick DEM source points in the aligned frame.
-    if use_ground_filter:
-        ground_pts = _select_ground_aligned(pts_aligned, ground_world, ground_percentile)
-        dem_source = "ground-filtered"
-    else:
-        ground_pts = pts_aligned
-        dem_source = "unfiltered"
-    if ground_pts.shape[0] < 50:
-        raise ValueError(f"Too few ground candidates after alignment ({ground_pts.shape[0]}).")
-
-    # 5. DEM grid + mesh.
-    xx, zz, elev, _valid, _, _ = _build_elevation_grid(ground_pts, pts_aligned, grid_resolution)
-    elev_mesh = _elevation_to_mesh(xx, zz, elev, colormap)
-
-    # 6. Export.
-    tag = f"elev_r{grid_resolution}_{colormap}_aligned"
-    if not use_ground_filter:
-        tag += "_allpoints"
-    elev_only_path = os.path.join(working_dir, f"{tag}_only.glb")
-    _scene_with(elev_mesh).export(file_obj=elev_only_path)
-
-    merged_path = os.path.join(working_dir, f"{tag}_merged.glb")
-    if source_glb_path and os.path.exists(source_glb_path):
-        _merge_with_existing(source_glb_path, elev_mesh, grav.R_align, scale_factor).export(file_obj=merged_path)
-    else:
-        _scene_with(elev_mesh).export(file_obj=merged_path)
-
-    # 7. Persist alignment metadata so callers can reuse the same frame.
-    meta = {
-        "gravity_source": grav.source,
-        "gravity_inliers": grav.inlier_count,
-        "n_grav": grav.n_grav.tolist(),
-        "R_align": grav.R_align.tolist(),
-        "scale_factor": float(scale_factor),
-        "use_ground_filter": bool(use_ground_filter),
-        "dem_source": dem_source,
-        "warnings": grav.warnings,
-        "debug": grav.debug,
-    }
-    with open(os.path.join(working_dir, f"{tag}_meta.json"), "w") as f:
-        json.dump(meta, f, indent=2)
-
-    log_lines = [
-        f"Gravity: {grav.source} (inliers={grav.inlier_count})",
-        f"DEM: {grid_resolution}x{grid_resolution}, colormap={colormap}, scale={scale_factor}",
-        f"DEM source: {dem_source} points ({ground_pts.shape[0]}/{pts_aligned.shape[0]})",
-    ]
-    log_lines.extend(grav.warnings)
-
-    return {
-        "elev_only_path": elev_only_path,
-        "merged_path": merged_path,
-        "gravity_source": grav.source,
-        "n_grav": grav.n_grav.tolist(),
-        "R_align": grav.R_align.tolist(),
-        "scale_factor": float(scale_factor),
-        "use_ground_filter": bool(use_ground_filter),
-        "dem_source": dem_source,
-        "warnings": grav.warnings,
-        "log": " | ".join(log_lines),
-    }
+    filled = np.asarray(elev, dtype=np.float64).copy()
+    filled_mask = np.asarray(has_data, dtype=bool).copy() & np.isfinite(filled)
+    if filled.ndim != 2 or filled_mask.shape != filled.shape:
+        raise ValueError(
+            f"elev and has_data must be matching 2D arrays, got "
+            f"{filled.shape} and {filled_mask.shape}"
+        )
+    rows, cols = filled.shape
+    for _pass in range(max(0, int(max_passes))):
+        changed = False
+        for i in range(rows):
+            for j in range(cols):
+                if filled_mask[i, j]:
+                    continue
+                total = 0.0
+                count = 0
+                for di in (-1, 0, 1):
+                    for dj in (-1, 0, 1):
+                        if di == 0 and dj == 0:
+                            continue
+                        ni, nj = i + di, j + dj
+                        if (0 <= ni < rows and 0 <= nj < cols
+                                and filled_mask[ni, nj]
+                                and np.isfinite(filled[ni, nj])):
+                            total += float(filled[ni, nj])
+                            count += 1
+                if count:
+                    filled[i, j] = total / count
+                    filled_mask[i, j] = True
+                    changed = True
+        if not changed:
+            break
+    # elevation_viewer receives nearest-filled values even where has_data is false.
+    # Fusion tiles can contain actual NaNs, so supply the same nearest fallback for any
+    # cells not reached within 20 passes; they become real mesh vertices in both outputs.
+    remaining = ~np.isfinite(filled)
+    finite = np.isfinite(filled)
+    if remaining.any() and finite.any():
+        from scipy.ndimage import distance_transform_edt
+        nearest = distance_transform_edt(~finite, return_distances=False, return_indices=True)
+        filled[remaining] = filled[tuple(nearest[:, remaining])]
+    return filled, np.isfinite(filled)

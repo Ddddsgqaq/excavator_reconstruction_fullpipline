@@ -1,0 +1,41 @@
+{
+  "mode": "text",
+  "prompts": [
+    "white quilted bed cover",
+    "black rectangular box",
+    "red bottle"
+  ],
+  "model_id": "yoloe-v8l",
+  "image_size": 640,
+  "conf_threshold": 0.2,
+  "iou_threshold": 0.7,
+  "semantic_id_map": {
+    "white quilted bed cover": 1,
+    "black rectangular box": 2,
+    "red bottle": 3
+  },
+  "total_detections": 38,
+  "num_frames": 16,
+  "keyframe_mode": "all",
+  "num_keyframes": 16,
+  "keyframe_indices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "timestamp": 1786247963.8519106,
+  "resource_profile_path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test2_offline_20260809/resource_profiles/yoloe_segment_text_20260809T035915_382953Z_pid2295.json"
+}

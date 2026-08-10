@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "operation": "scale_test3_dimension_analysis",
+  "status": "error",
+  "started_at_utc": "2026-08-09T08:03:04.738257+00:00",
+  "completed_at_utc": null,
+  "working_dir": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809",
+  "profile_path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test3_offline_20260809/resource_profiles/scale_test3_dimension_analysis_20260809T080304_738257Z_pid14377.json",
+  "pid": 14377,
+  "metadata": {
+    "known_ruler_m": 0.15,
+    "primary_confidence_percentile": 50
+  },
+  "measurement_notes": {
+    "wall_time": "CUDA is synchronized at stage boundaries when available.",
+    "rss_mb": "Current Linux process resident memory at the boundary.",
+    "rss_peak_mb": "Lifetime process RSS high-water mark, not a per-stage-only peak.",
+    "cuda_allocated_mb": "Live tensors owned by the current PyTorch process.",
+    "cuda_reserved_mb": "Memory held by the current PyTorch caching allocator.",
+    "cuda_peak_extra_allocated_mb": "Stage peak allocated minus stage-start allocated.",
+    "cuda_device_used_mb": "Whole-device usage (all processes), derived from mem_get_info."
+  },
+  "baseline": {
+    "rss_mb": 110.844,
+    "rss_peak_mb": 110.844,
+    "cuda_available": false
+  },
+  "stages": [
+    {
+      "name": "load_offline_vggt_predictions",
+      "status": "ok",
+      "wall_time_s": 0.185932,
+      "cpu_time_s": 0.884771,
+      "metadata": {},
+      "start": {
+        "rss_mb": 110.855,
+        "rss_peak_mb": 110.855,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 306.16,
+        "rss_peak_mb": 379.184,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 195.305,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "robust_15cm_ruler_scale_calibration",
+      "status": "ok",
+      "wall_time_s": 0.032846,
+      "cpu_time_s": 0.146805,
+      "metadata": {},
+      "start": {
+        "rss_mb": 306.164,
+        "rss_peak_mb": 379.184,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 309.918,
+        "rss_peak_mb": 379.184,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 3.754,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "semantic_ground_and_local_plane_fits",
+      "status": "ok",
+      "wall_time_s": 1.74155,
+      "cpu_time_s": 30.721952,
+      "metadata": {},
+      "start": {
+        "rss_mb": 309.926,
+        "rss_peak_mb": 379.184,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 337.355,
+        "rss_peak_mb": 492.527,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 27.429,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": null
+    },
+    {
+      "name": "multiframe_object_outer_dimensions",
+      "status": "error",
+      "wall_time_s": 0.791171,
+      "cpu_time_s": 1.306134,
+      "metadata": {},
+      "start": {
+        "rss_mb": 337.363,
+        "rss_peak_mb": 492.527,
+        "cuda_available": false
+      },
+      "end": {
+        "rss_mb": 337.574,
+        "rss_peak_mb": 492.527,
+        "cuda_available": false
+      },
+      "rss_delta_mb": 0.211,
+      "cuda_allocated_delta_mb": null,
+      "cuda_peak_extra_allocated_mb": null,
+      "error": "RuntimeError: No valid measurements for red bottle at P70"
+    }
+  ],
+  "total": null
+}

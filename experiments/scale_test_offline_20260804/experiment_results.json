@@ -1,0 +1,892 @@
+{
+  "experiment": {
+    "video": "/home/maomaoyu/WS/vggt_yoloe/scale_test.mp4",
+    "workspace": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804",
+    "frames": 20,
+    "frame_interval_s": 0.5,
+    "prediction_mode": "Depthmap and Camera Branch",
+    "confidence_percentile": 50.0,
+    "volume_method": "semantic instance footprint + per-cell 90th percentile top elevation; nearest fill inside convex support; integrate height above per-frame tabletop",
+    "resource_profile_path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/resource_profiles/scale_volume_analysis_20260805T081040_232936Z_pid7388.json"
+  },
+  "semantics": {
+    "semantic_masks_path": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/semantic_masks_combined.npz",
+    "semantic_id_map": {
+      "white tabletop": 1,
+      "transparent ruler": 2,
+      "upright red box": 3,
+      "red plastic storage box": 4,
+      "blue tissue box": 5
+    },
+    "text_run": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/yoloe_runs/run_1785842948419_text",
+    "upright_visual_run": "/home/maomaoyu/WS/vggt_yoloe/experiments/scale_test_offline_20260804/yoloe_runs/run_1785843179472_visual",
+    "upright_visual_detections": 13
+  },
+  "scale_calibration": {
+    "known_length_m": 0.15,
+    "method": "unclipped elongated semantic component; median 3D endpoints from 2% mask tails",
+    "n_anchors": 3,
+    "scale_m_per_vggt_unit": 0.4561616547648549,
+    "scale_mean": 0.47162195704264126,
+    "scale_std": 0.07229609235387999,
+    "scale_cv": 0.1532924650226652,
+    "scale_min": 0.4083066349988584,
+    "scale_max": 0.5503975813642106,
+    "scale_relative_range": 0.3114925265662633,
+    "implied_volume_relative_range_first_order": 0.9344775796987899,
+    "ruler_closure_mae_cm": 1.4420895589051088,
+    "ruler_closure_rmse_cm": 1.7968935939560475,
+    "anchors": [
+      {
+        "frame": 13,
+        "time_s": 7.0,
+        "mask_area_px_model": 8502,
+        "mask_aspect": 3.7628826990589332,
+        "mask_long_px_model": 197.48214721679688,
+        "length_vggt_units": 0.272530267353667,
+        "scale_m_per_unit": 0.5503975813642106,
+        "endpoint_world": [
+          [
+            0.5660408361872746,
+            -0.09623855531091507,
+            1.0539349482301448
+          ],
+          [
+            0.44306066280374834,
+            -0.306078497638134,
+            1.1768813681964392
+          ]
+        ],
+        "length_after_global_scale_cm": 12.431785772955703,
+        "closure_error_cm": -2.5682142270442974
+      },
+      {
+        "frame": 14,
+        "time_s": 7.5,
+        "mask_area_px_model": 8530,
+        "mask_aspect": 5.5833693735238334,
+        "mask_long_px_model": 241.20547485351562,
+        "length_vggt_units": 0.3288307959101099,
+        "scale_m_per_unit": 0.4561616547648549,
+        "endpoint_world": [
+          [
+            0.5476542838710946,
+            -0.03778778616868461,
+            1.0188423478909487
+          ],
+          [
+            0.409890292177141,
+            -0.29964138922592287,
+            1.162311736602851
+          ]
+        ],
+        "length_after_global_scale_cm": 15.0,
+        "closure_error_cm": 0.0
+      },
+      {
+        "frame": 15,
+        "time_s": 8.0,
+        "mask_area_px_model": 8893,
+        "mask_aspect": 7.861421341880625,
+        "mask_long_px_model": 274.45379638671875,
+        "length_vggt_units": 0.36737095883935217,
+        "scale_m_per_unit": 0.4083066349988584,
+        "endpoint_world": [
+          [
+            0.4953445592227289,
+            -0.003236533030887223,
+            1.0043264637780545
+          ],
+          [
+            0.3923235204574129,
+            -0.31485965207306066,
+            1.1693692420165696
+          ]
+        ],
+        "length_after_global_scale_cm": 16.75805444967103,
+        "closure_error_cm": 1.7580544496710289
+      }
+    ]
+  },
+  "alignment": {
+    "legacy_source": "trajectory",
+    "robust_source": "ground_mask",
+    "trajectory_vs_ground_deg": 19.915915435276553,
+    "gravity_warning": [
+      "Trajectory normal disagrees with ground-mask normal by 19.9° (>10.0°). Using ground-mask plane because its RANSAC support is strong (19152 inliers, 98.9%)."
+    ],
+    "ground_debug": {
+      "ground_pts_total": 19366,
+      "ground_inliers": 19152,
+      "ground_inlier_ratio": 0.9889497056697305
+    },
+    "selection_reason": "ground_override_on_disagreement",
+    "legacy_table_span_median_mm": 115.55651120703126,
+    "robust_table_span_median_mm": 110.79618530991206,
+    "robust_table_rmse_median_mm": 32.716098576787346,
+    "span_reduction_percent": 4.119478727244196,
+    "high_confidence_ground_support_points": 19366,
+    "legacy_high_confidence_ground_span_mm": 47.00954296826147,
+    "robust_high_confidence_ground_span_mm": 21.51892766291023,
+    "robust_high_confidence_ground_rmse_mm": 5.543285305735943,
+    "high_confidence_span_reduction_percent": 54.224341901305536,
+    "local_plane_span_median_mm": 23.79575441776131,
+    "local_plane_rmse_median_mm": 6.5148309061403324,
+    "per_frame": [
+      {
+        "frame": 0,
+        "legacy_table_p2_p98_span_m": 0.09634190338432992,
+        "robust_table_p2_p98_span_m": 0.1217806184377186,
+        "robust_table_rmse_m": 0.03626765617661946,
+        "local_plane_p2_p98_span_m": 0.022232302381729158,
+        "local_plane_rmse_m": 0.005636583825773527
+      },
+      {
+        "frame": 1,
+        "legacy_table_p2_p98_span_m": 0.11916679872663155,
+        "robust_table_p2_p98_span_m": 0.11540050361830884,
+        "robust_table_rmse_m": 0.035189554638907515,
+        "local_plane_p2_p98_span_m": 0.03634176678034221,
+        "local_plane_rmse_m": 0.010025099843578607
+      },
+      {
+        "frame": 3,
+        "legacy_table_p2_p98_span_m": 0.11853606283466653,
+        "robust_table_p2_p98_span_m": 0.11079618530991206,
+        "robust_table_rmse_m": 0.0349134451552909,
+        "local_plane_p2_p98_span_m": 0.02612910542515258,
+        "local_plane_rmse_m": 0.00742311242764169
+      },
+      {
+        "frame": 4,
+        "legacy_table_p2_p98_span_m": 0.09486363916855622,
+        "robust_table_p2_p98_span_m": 0.10224683112410353,
+        "robust_table_rmse_m": 0.03097180312805629,
+        "local_plane_p2_p98_span_m": 0.02178557186014681,
+        "local_plane_rmse_m": 0.005777272366738681
+      },
+      {
+        "frame": 5,
+        "legacy_table_p2_p98_span_m": 0.08057422715531035,
+        "robust_table_p2_p98_span_m": 0.10521161134739263,
+        "robust_table_rmse_m": 0.029505404343176184,
+        "local_plane_p2_p98_span_m": 0.021559145593947674,
+        "local_plane_rmse_m": 0.005858305285274942
+      },
+      {
+        "frame": 6,
+        "legacy_table_p2_p98_span_m": 0.11785521037050166,
+        "robust_table_p2_p98_span_m": 0.09739611195818439,
+        "robust_table_rmse_m": 0.028059746203671142,
+        "local_plane_p2_p98_span_m": 0.02230423501158128,
+        "local_plane_rmse_m": 0.006360156224571252
+      },
+      {
+        "frame": 7,
+        "legacy_table_p2_p98_span_m": 0.10596791477609936,
+        "robust_table_p2_p98_span_m": 0.09853312120280995,
+        "robust_table_rmse_m": 0.027979669826575272,
+        "local_plane_p2_p98_span_m": 0.018045266277260396,
+        "local_plane_rmse_m": 0.0046684914289371335
+      },
+      {
+        "frame": 8,
+        "legacy_table_p2_p98_span_m": 0.11555651120703127,
+        "robust_table_p2_p98_span_m": 0.09747433278516854,
+        "robust_table_rmse_m": 0.030528103241545555,
+        "local_plane_p2_p98_span_m": 0.02676268348146577,
+        "local_plane_rmse_m": 0.007220346632687775
+      },
+      {
+        "frame": 9,
+        "legacy_table_p2_p98_span_m": 0.12007678881650043,
+        "robust_table_p2_p98_span_m": 0.09984302043486774,
+        "robust_table_rmse_m": 0.02761954839634423,
+        "local_plane_p2_p98_span_m": 0.02661629031454032,
+        "local_plane_rmse_m": 0.006947670027643385
+      },
+      {
+        "frame": 10,
+        "legacy_table_p2_p98_span_m": 0.13579694352899807,
+        "robust_table_p2_p98_span_m": 0.12118098247613263,
+        "robust_table_rmse_m": 0.03366955759013304,
+        "local_plane_p2_p98_span_m": 0.03264914152422447,
+        "local_plane_rmse_m": 0.008173069914978468
+      },
+      {
+        "frame": 11,
+        "legacy_table_p2_p98_span_m": 0.14522099941646402,
+        "robust_table_p2_p98_span_m": 0.17500121024523385,
+        "robust_table_rmse_m": 0.047574194452320986,
+        "local_plane_p2_p98_span_m": 0.03175105517268887,
+        "local_plane_rmse_m": 0.008028944026405983
+      },
+      {
+        "frame": 12,
+        "legacy_table_p2_p98_span_m": 0.07097293082825615,
+        "robust_table_p2_p98_span_m": 0.08171128124665009,
+        "robust_table_rmse_m": 0.02111102732013746,
+        "local_plane_p2_p98_span_m": 0.014331962898176249,
+        "local_plane_rmse_m": 0.003938618923177817
+      },
+      {
+        "frame": 13,
+        "legacy_table_p2_p98_span_m": 0.16201805947874157,
+        "robust_table_p2_p98_span_m": 0.20717745908969248,
+        "robust_table_rmse_m": 0.04694843097195922,
+        "local_plane_p2_p98_span_m": 0.027316474995495114,
+        "local_plane_rmse_m": 0.00740425370463274
+      },
+      {
+        "frame": 14,
+        "legacy_table_p2_p98_span_m": 0.10868100713771771,
+        "robust_table_p2_p98_span_m": 0.12207457789282654,
+        "robust_table_rmse_m": 0.0335012259266944,
+        "local_plane_p2_p98_span_m": 0.02493488589419344,
+        "local_plane_rmse_m": 0.006514830906140332
+      },
+      {
+        "frame": 15,
+        "legacy_table_p2_p98_span_m": 0.14438850525174268,
+        "robust_table_p2_p98_span_m": 0.13441751492346676,
+        "robust_table_rmse_m": 0.03776359569757155,
+        "local_plane_p2_p98_span_m": 0.021063921785203128,
+        "local_plane_rmse_m": 0.005597004863574992
+      },
+      {
+        "frame": 16,
+        "legacy_table_p2_p98_span_m": 0.1264562019536632,
+        "robust_table_p2_p98_span_m": 0.12354406872123878,
+        "robust_table_rmse_m": 0.03673561730500936,
+        "local_plane_p2_p98_span_m": 0.018700445013780632,
+        "local_plane_rmse_m": 0.004809390256959143
+      },
+      {
+        "frame": 17,
+        "legacy_table_p2_p98_span_m": 0.10713743930332799,
+        "robust_table_p2_p98_span_m": 0.11802485224368062,
+        "robust_table_rmse_m": 0.032716098576787346,
+        "local_plane_p2_p98_span_m": 0.021606542398628484,
+        "local_plane_rmse_m": 0.005593811177516807
+      },
+      {
+        "frame": 18,
+        "legacy_table_p2_p98_span_m": 0.1081241497388762,
+        "robust_table_p2_p98_span_m": 0.10922790422722221,
+        "robust_table_rmse_m": 0.02890274044030156,
+        "local_plane_p2_p98_span_m": 0.02700618010257016,
+        "local_plane_rmse_m": 0.007235609648677393
+      },
+      {
+        "frame": 19,
+        "legacy_table_p2_p98_span_m": 0.10801652011177594,
+        "robust_table_p2_p98_span_m": 0.09249378012279903,
+        "robust_table_rmse_m": 0.02591488109951265,
+        "local_plane_p2_p98_span_m": 0.023795754417761307,
+        "local_plane_rmse_m": 0.006827238404531465
+      }
+    ]
+  },
+  "registration_precision": {
+    "n_ruler_frames": 12,
+    "frames": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      13,
+      14,
+      15,
+      17,
+      18,
+      19
+    ],
+    "ruler_center_drift_median_cm": 4.322444155490849,
+    "ruler_center_drift_p95_cm": 9.120074723185612,
+    "ruler_length_all_visible_median_cm": 11.494099030300342,
+    "ruler_length_all_visible_iqr_cm": 2.1127423980277964
+  },
+  "objects": {
+    "3": {
+      "name": "upright red box",
+      "n_valid_frames": 7,
+      "length_m": {
+        "median": 0.07235993621850735,
+        "q25": 0.0647637284852318,
+        "q75": 0.07902685493388778,
+        "min": 0.05252540692508017,
+        "max": 0.10192759626078353,
+        "cv": 0.2232773423094562
+      },
+      "width_m": {
+        "median": 0.05120776130262416,
+        "q25": 0.03945822782662972,
+        "q75": 0.0522027530743838,
+        "min": 0.027802196598931385,
+        "max": 0.054545196031161904,
+        "cv": 0.24335060323142974
+      },
+      "height_m": {
+        "median": 0.08254842929769461,
+        "q25": 0.023476049853899762,
+        "q75": 0.09490479880174633,
+        "min": 0.0039818405538694585,
+        "max": 0.09611383763574768,
+        "cv": 0.6906901384250445
+      },
+      "volume_m3": {
+        "median": 7.091837354298501e-05,
+        "q25": 3.0135237492969886e-05,
+        "q75": 0.00015232245246630797,
+        "min": 4.540501565539586e-06,
+        "max": 0.00020199543833698667,
+        "cv": 0.8673453623007923
+      },
+      "volume_ml": {
+        "median": 70.91837354298501,
+        "q25": 30.13523749296989,
+        "q75": 152.32245246630796,
+        "min": 4.540501565539586,
+        "max": 201.99543833698667,
+        "cv": 0.8673453623007922
+      },
+      "observed_cell_fraction": {
+        "median": 0.8773382398037411,
+        "q25": 0.7205617719118738,
+        "q75": 0.9071229864282885,
+        "min": 0.5004325259515571,
+        "max": 0.9425695677915926,
+        "cv": 0.2005647877147007
+      },
+      "per_frame": [
+        {
+          "volume_units3": 0.0007471407785450215,
+          "length_units": 0.15862783612491038,
+          "width_units": 0.06094812290450639,
+          "height_units": 0.18096310471393567,
+          "footprint_area_units2": 0.005457171676349013,
+          "observed_cell_fraction": 0.5004325259515571,
+          "grid_res": 64,
+          "frame": 3,
+          "time_s": 2.0,
+          "semantic_pixels_model": 7353,
+          "point_count": 7316,
+          "positive_height_fraction": 0.9904800761593907,
+          "table_residual_rmse_units": 0.016272986451410967,
+          "length_m": 0.07235993621850735,
+          "width_m": 0.027802196598931385,
+          "height_m": 0.08254842929769461,
+          "volume_m3": 7.091837354298501e-05,
+          "volume_ml": 70.91837354298501
+        },
+        {
+          "volume_units3": 0.0012230356698650525,
+          "length_units": 0.11514647576451006,
+          "width_units": 0.06829179863597208,
+          "height_units": 0.21070126485158658,
+          "footprint_area_units2": 0.006485133170330041,
+          "observed_cell_fraction": 0.9425695677915926,
+          "grid_res": 64,
+          "frame": 4,
+          "time_s": 2.5,
+          "semantic_pixels_model": 7917,
+          "point_count": 7877,
+          "positive_height_fraction": 1.0,
+          "table_residual_rmse_units": 0.012664967136961098,
+          "length_m": 0.05252540692508017,
+          "width_m": 0.031152099872653282,
+          "height_m": 0.09611383763574768,
+          "volume_m3": 0.00011609017066474859,
+          "volume_ml": 116.09017066474858
+        },
+        {
+          "volume_units3": 0.0021280666986837216,
+          "length_units": 0.12816913877319352,
+          "width_units": 0.11225792603944552,
+          "height_units": 0.21032445256714136,
+          "footprint_area_units2": 0.012189054175357383,
+          "observed_cell_fraction": 0.7481268011527378,
+          "grid_res": 64,
+          "frame": 5,
+          "time_s": 3.0,
+          "semantic_pixels_model": 8158,
+          "point_count": 8117,
+          "positive_height_fraction": 1.0,
+          "table_residual_rmse_units": 0.012842607930942418,
+          "length_m": 0.058465846432566276,
+          "width_m": 0.05120776130262416,
+          "height_m": 0.09594195032053943,
+          "volume_m3": 0.00020199543833698667,
+          "volume_ml": 201.99543833698667
+        },
+        {
+          "volume_units3": 0.0019864659032804216,
+          "length_units": 0.18647046761436792,
+          "width_units": 0.11411190056751461,
+          "height_units": 0.20577715444175318,
+          "footprint_area_units2": 0.019138181642492966,
+          "observed_cell_fraction": 0.6929967426710097,
+          "grid_res": 64,
+          "frame": 6,
+          "time_s": 3.5,
+          "semantic_pixels_model": 9537,
+          "point_count": 9447,
+          "positive_height_fraction": 0.8505819440075495,
+          "table_residual_rmse_units": 0.013942768222922695,
+          "length_m": 0.08506067707174635,
+          "width_m": 0.05205347339124004,
+          "height_m": 0.09386764728295324,
+          "volume_m3": 0.00018855473426786736,
+          "volume_ml": 188.55473426786736
+        },
+        {
+          "volume_units3": 0.00019709813645481123,
+          "length_units": 0.15578163967887357,
+          "width_units": 0.10470927418313589,
+          "height_units": 0.028590544927055365,
+          "footprint_area_units2": 0.014591399119530883,
+          "observed_cell_fraction": 0.9009279475982532,
+          "grid_res": 64,
+          "frame": 16,
+          "time_s": 8.5,
+          "semantic_pixels_model": 5416,
+          "point_count": 5388,
+          "positive_height_fraction": 0.9028803545051699,
+          "table_residual_rmse_units": 0.010543170840254686,
+          "length_m": 0.07106161053789734,
+          "width_m": 0.047764355780606164,
+          "height_m": 0.013041910284554502,
+          "volume_m3": 1.8708494660067933e-05,
+          "volume_ml": 18.708494660067934
+        },
+        {
+          "volume_units3": 4.7835190024570134e-05,
+          "length_units": 0.16001571380140694,
+          "width_units": 0.11957426815999958,
+          "height_units": 0.008729011990106979,
+          "footprint_area_units2": 0.016274908779714523,
+          "observed_cell_fraction": 0.9133180252583237,
+          "grid_res": 64,
+          "frame": 18,
+          "time_s": 9.5,
+          "semantic_pixels_model": 5956,
+          "point_count": 5926,
+          "positive_height_fraction": 0.6499328408327737,
+          "table_residual_rmse_units": 0.01586194186446305,
+          "length_m": 0.07299303279602921,
+          "width_m": 0.054545196031161904,
+          "height_m": 0.0039818405538694585,
+          "volume_m3": 4.540501565539586e-06,
+          "volume_ml": 4.540501565539586
+        },
+        {
+          "volume_units3": 0.0004378646715540245,
+          "length_units": 0.22344621735758527,
+          "width_units": 0.11476640399446622,
+          "height_units": 0.07433809718338834,
+          "footprint_area_units2": 0.020416374896810807,
+          "observed_cell_fraction": 0.8773382398037411,
+          "grid_res": 64,
+          "frame": 19,
+          "time_s": 10.0,
+          "semantic_pixels_model": 5569,
+          "point_count": 5541,
+          "positive_height_fraction": 0.8141497575866403,
+          "table_residual_rmse_units": 0.014966708256201004,
+          "length_m": 0.10192759626078353,
+          "width_m": 0.05235203275752756,
+          "height_m": 0.03391018942324502,
+          "volume_m3": 4.156198032587184e-05,
+          "volume_ml": 41.56198032587184
+        }
+      ],
+      "scale_anchor_only_volume_range_ml": [
+        50.858289835203685,
+        124.57531413880588
+      ]
+    },
+    "4": {
+      "name": "red flat box",
+      "n_valid_frames": 7,
+      "length_m": {
+        "median": 0.11196916603118419,
+        "q25": 0.11021013921985962,
+        "q75": 0.1271554445200359,
+        "min": 0.09050156288352437,
+        "max": 0.1287073484792908,
+        "cv": 0.11976121131295178
+      },
+      "width_m": {
+        "median": 0.06423096910433616,
+        "q25": 0.05938970031530376,
+        "q75": 0.06700064861786592,
+        "min": 0.04763023835131024,
+        "max": 0.07532042096387928,
+        "cv": 0.1380978141536872
+      },
+      "height_m": {
+        "median": 0.03641441953937079,
+        "q25": 0.03565225982559636,
+        "q75": 0.03731738845444527,
+        "min": 0.034442341762617984,
+        "max": 0.04242647672516012,
+        "cv": 0.07074104632496032
+      },
+      "volume_m3": {
+        "median": 0.00015484190171452078,
+        "q25": 0.0001220860041273042,
+        "q75": 0.00022892110836000596,
+        "min": 8.053943587194238e-05,
+        "max": 0.0002672034360316033,
+        "cv": 0.41282747493102107
+      },
+      "volume_ml": {
+        "median": 154.8419017145208,
+        "q25": 122.0860041273042,
+        "q75": 228.92110836000597,
+        "min": 80.53943587194237,
+        "max": 267.2034360316033,
+        "cv": 0.412827474931021
+      },
+      "observed_cell_fraction": {
+        "median": 0.9074255806346091,
+        "q25": 0.8285513113888401,
+        "q75": 0.9799914382730861,
+        "min": 0.6222335283642839,
+        "max": 0.9847560975609756,
+        "cv": 0.15486632464618497
+      },
+      "per_frame": [
+        {
+          "volume_units3": 0.001039849264167415,
+          "length_units": 0.24307954202650506,
+          "width_units": 0.12690398636935546,
+          "height_units": 0.07982788373157303,
+          "footprint_area_units2": 0.02663029530565691,
+          "observed_cell_fraction": 0.7692307692307693,
+          "grid_res": 64,
+          "frame": 5,
+          "time_s": 3.0,
+          "semantic_pixels_model": 21356,
+          "point_count": 17492,
+          "positive_height_fraction": 0.574030717362802,
+          "table_residual_rmse_units": 0.012842607930942418,
+          "length_m": 0.11088356613029363,
+          "width_m": 0.05788873241850177,
+          "height_m": 0.03641441953937079,
+          "volume_m3": 9.870217322126678e-05,
+          "volume_ml": 98.70217322126678
+        },
+        {
+          "volume_units3": 0.0015325569435930412,
+          "length_units": 0.24012696193390098,
+          "width_units": 0.13348484594456772,
+          "height_units": 0.0790886247412359,
+          "footprint_area_units2": 0.02393825119223235,
+          "observed_cell_fraction": 0.8878718535469108,
+          "grid_res": 64,
+          "frame": 6,
+          "time_s": 3.5,
+          "semantic_pixels_model": 26458,
+          "point_count": 23234,
+          "positive_height_fraction": 0.778327915942248,
+          "table_residual_rmse_units": 0.013942768222922695,
+          "length_m": 0.10953671230942559,
+          "width_m": 0.06089066821210574,
+          "height_m": 0.03607719793503881,
+          "volume_m3": 0.0001454698350333416,
+          "volume_ml": 145.4698350333416
+        },
+        {
+          "volume_units3": 0.0008485008019038542,
+          "length_units": 0.19839800636065452,
+          "width_units": 0.10441526124299726,
+          "height_units": 0.09300754739464102,
+          "footprint_area_units2": 0.01988128170413035,
+          "observed_cell_fraction": 0.6222335283642839,
+          "grid_res": 64,
+          "frame": 7,
+          "time_s": 4.0,
+          "semantic_pixels_model": 26149,
+          "point_count": 19137,
+          "positive_height_fraction": 0.5889326551684577,
+          "table_residual_rmse_units": 0.010234291681846159,
+          "length_m": 0.09050156288352437,
+          "width_m": 0.04763023835131024,
+          "height_m": 0.04242647672516012,
+          "volume_m3": 8.053943587194238e-05,
+          "volume_ml": 80.53943587194237
+        },
+        {
+          "volume_units3": 0.0016312937426329664,
+          "length_units": 0.24545939988950358,
+          "width_units": 0.14080747128437693,
+          "height_units": 0.07550468436539792,
+          "footprint_area_units2": 0.025795316332066904,
+          "observed_cell_fraction": 0.9074255806346091,
+          "grid_res": 64,
+          "frame": 8,
+          "time_s": 4.5,
+          "semantic_pixels_model": 20468,
+          "point_count": 19504,
+          "positive_height_fraction": 0.8233828415086965,
+          "table_residual_rmse_units": 0.01582848219982402,
+          "length_m": 0.11196916603118419,
+          "width_m": 0.06423096910433616,
+          "height_m": 0.034442341762617984,
+          "volume_m3": 0.00015484190171452078,
+          "volume_ml": 154.8419017145208
+        },
+        {
+          "volume_units3": 0.00240126951532861,
+          "length_units": 0.2770284857889091,
+          "width_units": 0.16511782649224635,
+          "height_units": 0.07722552158469591,
+          "footprint_area_units2": 0.03550168541729519,
+          "observed_cell_fraction": 0.9836426549229318,
+          "grid_res": 64,
+          "frame": 9,
+          "time_s": 5.0,
+          "semantic_pixels_model": 25993,
+          "point_count": 25852,
+          "positive_height_fraction": 0.991882429884969,
+          "table_residual_rmse_units": 0.015230719099405264,
+          "length_m": 0.12636977249447084,
+          "width_m": 0.07532042096387928,
+          "height_m": 0.035227321716153906,
+          "volume_m3": 0.00022792776589853242,
+          "volume_ml": 227.9277658985324
+        },
+        {
+          "volume_units3": 0.0024221996811784326,
+          "length_units": 0.2821529322661671,
+          "width_units": 0.14723829538966354,
+          "height_units": 0.08306329492423725,
+          "footprint_area_units2": 0.03386583748746904,
+          "observed_cell_fraction": 0.9763402216232405,
+          "grid_res": 64,
+          "frame": 10,
+          "time_s": 5.5,
+          "semantic_pixels_model": 24466,
+          "point_count": 24343,
+          "positive_height_fraction": 0.9923158669173547,
+          "table_residual_rmse_units": 0.017917047234475625,
+          "length_m": 0.1287073484792908,
+          "width_m": 0.06716446446970542,
+          "height_m": 0.03789029006286124,
+          "volume_m3": 0.00022991445082147952,
+          "volume_ml": 229.91445082147953
+        },
+        {
+          "volume_units3": 0.0028150474024274128,
+          "length_units": 0.28047319455545394,
+          "width_units": 0.1465200594304225,
+          "height_units": 0.08055145903258921,
+          "footprint_area_units2": 0.039489677684323314,
+          "observed_cell_fraction": 0.9847560975609756,
+          "grid_res": 64,
+          "frame": 11,
+          "time_s": 6.0,
+          "semantic_pixels_model": 26583,
+          "point_count": 26450,
+          "positive_height_fraction": 1.0,
+          "table_residual_rmse_units": 0.017601093696805344,
+          "length_m": 0.12794111654560095,
+          "width_m": 0.06683683276602641,
+          "height_m": 0.03674448684602931,
+          "volume_m3": 0.0002672034360316033,
+          "volume_ml": 267.2034360316033
+        }
+      ],
+      "scale_anchor_only_volume_range_ml": [
+        111.0430756178867,
+        271.9955010847055
+      ]
+    },
+    "5": {
+      "name": "tissue box",
+      "n_valid_frames": 6,
+      "length_m": {
+        "median": 0.1531521956502911,
+        "q25": 0.1392685177833144,
+        "q75": 0.17950969434659936,
+        "min": 0.11486982174668778,
+        "max": 0.18578456352352987,
+        "cv": 0.18125540660571218
+      },
+      "width_m": {
+        "median": 0.09349618069062524,
+        "q25": 0.0829197722667241,
+        "q75": 0.09972707472330226,
+        "min": 0.07588476044243653,
+        "max": 0.10061057104842885,
+        "cv": 0.11767702800990594
+      },
+      "height_m": {
+        "median": 0.07769988077234583,
+        "q25": 0.06916174901562663,
+        "q75": 0.08251821645784722,
+        "min": 0.04818929071673701,
+        "max": 0.08407798702651638,
+        "cv": 0.1872859007131242
+      },
+      "volume_m3": {
+        "median": 0.0005656281248213185,
+        "q25": 0.00042037714697376247,
+        "q75": 0.0005993369929577735,
+        "min": 0.00010658953876164309,
+        "max": 0.0007158908238536091,
+        "cv": 0.4431537740254633
+      },
+      "volume_ml": {
+        "median": 565.6281248213186,
+        "q25": 420.3771469737625,
+        "q75": 599.3369929577734,
+        "min": 106.5895387616431,
+        "max": 715.890823853609,
+        "cv": 0.4431537740254631
+      },
+      "observed_cell_fraction": {
+        "median": 0.7961466053071957,
+        "q25": 0.7386682839632278,
+        "q75": 0.901299655691453,
+        "min": 0.6077639751552795,
+        "max": 0.9646767926527728,
+        "cv": 0.16491432885033996
+      },
+      "per_frame": [
+        {
+          "volume_units3": 0.0011229444077261444,
+          "length_units": 0.4062937359762704,
+          "width_units": 0.17815260341246958,
+          "height_units": 0.10564081880485535,
+          "footprint_area_units2": 0.06644467734911137,
+          "observed_cell_fraction": 0.8071808510638298,
+          "grid_res": 64,
+          "frame": 13,
+          "time_s": 7.0,
+          "semantic_pixels_model": 31630,
+          "point_count": 31471,
+          "positive_height_fraction": 0.6975972178311729,
+          "table_residual_rmse_units": 0.01623164425876509,
+          "length_m": 0.18533562292353054,
+          "width_m": 0.08126638637329905,
+          "height_m": 0.04818929071673701,
+          "volume_m3": 0.00010658953876164309,
+          "volume_ml": 106.5895387616431
+        },
+        {
+          "volume_units3": 0.004024522853609069,
+          "length_units": 0.3552072098197975,
+          "width_units": 0.16635497449156283,
+          "height_units": 0.14739004508167272,
+          "footprint_area_units2": 0.042370302330971915,
+          "observed_cell_fraction": 0.7231869254341164,
+          "grid_res": 64,
+          "frame": 15,
+          "time_s": 8.0,
+          "semantic_pixels_model": 30820,
+          "point_count": 25841,
+          "positive_height_fraction": 0.7085983127839065,
+          "table_residual_rmse_units": 0.012269783760014138,
+          "length_m": 0.16203190861580583,
+          "width_m": 0.07588476044243653,
+          "height_m": 0.06723368686032238,
+          "volume_m3": 0.000382006474897996,
+          "volume_ml": 382.006474897996
+        },
+        {
+          "volume_units3": 0.006326684600316807,
+          "length_units": 0.30164861084993716,
+          "width_units": 0.21727479808740682,
+          "height_units": 0.18431620928299516,
+          "footprint_area_units2": 0.04681931533499361,
+          "observed_cell_fraction": 0.9326725905673274,
+          "grid_res": 64,
+          "frame": 16,
+          "time_s": 8.5,
+          "semantic_pixels_model": 30120,
+          "point_count": 29969,
+          "positive_height_fraction": 0.9861553784860557,
+          "table_residual_rmse_units": 0.010543170840254686,
+          "length_m": 0.13760052948282708,
+          "width_m": 0.09911243143425122,
+          "height_m": 0.08407798702651638,
+          "volume_m3": 0.0006005269617965063,
+          "volume_ml": 600.5269617965063
+        },
+        {
+          "volume_units3": 0.0062765382588147,
+          "length_units": 0.3162749020610838,
+          "width_units": 0.21907136379353537,
+          "height_units": 0.17637130438906595,
+          "footprint_area_units2": 0.04788839295822791,
+          "observed_cell_fraction": 0.9646767926527728,
+          "grid_res": 64,
+          "frame": 17,
+          "time_s": 9.0,
+          "semantic_pixels_model": 30774,
+          "point_count": 30620,
+          "positive_height_fraction": 1.0,
+          "table_residual_rmse_units": 0.012262782544491473,
+          "length_m": 0.14427248268477638,
+          "width_m": 0.09993195581965261,
+          "height_m": 0.08045382606315224,
+          "volume_m3": 0.0005957670864415751,
+          "volume_ml": 595.7670864415751
+        },
+        {
+          "volume_units3": 0.005641496981793634,
+          "length_units": 0.2518182327401053,
+          "width_units": 0.22055902769883678,
+          "height_units": 0.16429687743081567,
+          "footprint_area_units2": 0.04366243318246835,
+          "observed_cell_fraction": 0.6077639751552795,
+          "grid_res": 64,
+          "frame": 18,
+          "time_s": 9.5,
+          "semantic_pixels_model": 19847,
+          "point_count": 19747,
+          "positive_height_fraction": 1.0,
+          "table_residual_rmse_units": 0.01586194186446305,
+          "length_m": 0.11486982174668778,
+          "width_m": 0.10061057104842885,
+          "height_m": 0.07494593548153941,
+          "volume_m3": 0.0005354891632010619,
+          "volume_ml": 535.489163201062
+        },
+        {
+          "volume_units3": 0.007542068448073283,
+          "length_units": 0.407277905941698,
+          "width_units": 0.19265084872664312,
+          "height_units": 0.1824053944917925,
+          "footprint_area_units2": 0.05455591131256051,
+          "observed_cell_fraction": 0.7851123595505618,
+          "grid_res": 64,
+          "frame": 19,
+          "time_s": 10.0,
+          "semantic_pixels_model": 26913,
+          "point_count": 26778,
+          "positive_height_fraction": 0.9859175862965853,
+          "table_residual_rmse_units": 0.014966708256201004,
+          "length_m": 0.18578456352352987,
+          "width_m": 0.08787992994699927,
+          "height_m": 0.08320634658941221,
+          "volume_m3": 0.0007158908238536091,
+          "volume_ml": 715.890823853609
+        }
+      ],
+      "scale_anchor_only_volume_range_ml": [
+        405.6336556233797,
+        993.5831550430339
+      ]
+    }
+  },
+  "limitations": [
+    "The base run originally knew only the ruler size; user-supplied box dimensions are evaluated separately in box_ground_truth_evaluation.json.",
+    "Volumes are surface/footprint approximations, not watertight mesh volumes.",
+    "Reported frame spread includes VGGT depth/pose inconsistency and segmentation variation."
+  ]
+}

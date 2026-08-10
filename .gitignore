@@ -39,3 +39,32 @@ images/
 *.log
 *.tmp
 *.bak
+*.orig
+
+# Node / web tooling
+node_modules/
+package-lock.json
+
+# Documents and large research binaries
+*.docx
+*.pdf
+
+# Generated figures / images (code is tracked, rendered artifacts are not)
+*.png
+*.jpg
+*.jpeg
+
+# Generated visualization / report / experiment output directories
+output/
+fusion_viz/
+teacher_figures/
+vlm_report/
+vlm_tests/
+two_stage_test_visualizations/
+orb_viewpoint_test/
+coarse_dem_tests/
+underwater_images/
+verify_m4_viz/
+verify_m5_viz/
+verify_m4_elevation_view_viz/
+verify_stream_viewer/

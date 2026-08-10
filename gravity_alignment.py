@@ -16,8 +16,10 @@ Strategy (in order, with fallbacks):
        the trajectory normal as a prior.
 
 Sanity check: when both trajectory and ground-mask are available, compare
-their normals; warn if the angle exceeds GRAVITY_DISAGREE_DEG, but still
-use the trajectory normal.
+their normals.  A strongly supported semantic ground plane overrides the
+trajectory when the two disagree; otherwise the trajectory remains the
+conservative default.  This matters for orbit captures whose camera centres
+form a clean, but tilted, plane around an actually level work surface.
 """
 
 from __future__ import annotations
@@ -31,6 +33,8 @@ GRAVITY_DISAGREE_DEG = 10.0
 TRAJ_DEGENERATE_RATIO = 0.1   # second/first PCA eigenvalue below this → degenerate
 RANSAC_ITERS = 400
 RANSAC_DIST = 0.03            # in VGGT world units (relative scale)
+GROUND_OVERRIDE_MIN_INLIERS = 100
+GROUND_OVERRIDE_MIN_INLIER_RATIO = 0.70
 
 
 @dataclass
@@ -206,7 +210,12 @@ def estimate_from_ground_mask(
     # so that the larger remaining cloud sits on the +normal side.
     if prior_normal is not None and float(np.dot(normal, prior_normal)) < 0:
         normal = -normal
-    debug = {"ground_pts_total": int(keep.sum()), "ground_inliers": cnt}
+    total = int(keep.sum())
+    debug = {
+        "ground_pts_total": total,
+        "ground_inliers": cnt,
+        "ground_inlier_ratio": float(cnt / max(total, 1)),
+    }
     return normal, anchor, cnt, debug
 
 
@@ -287,10 +296,28 @@ def estimate_gravity(
                 ang_deg = float(np.degrees(np.arccos(abs(cosang))))
                 debug["traj_vs_ground_deg"] = ang_deg
                 if ang_deg > GRAVITY_DISAGREE_DEG:
-                    warnings.append(
-                        f"Trajectory normal disagrees with ground-mask normal by "
-                        f"{ang_deg:.1f}° (>{GRAVITY_DISAGREE_DEG}°). Using trajectory."
+                    inlier_ratio = float(dbg_g.get("ground_inlier_ratio", 0.0))
+                    ground_is_strong = (
+                        cnt_g >= GROUND_OVERRIDE_MIN_INLIERS
+                        and inlier_ratio >= GROUND_OVERRIDE_MIN_INLIER_RATIO
                     )
+                    if ground_is_strong:
+                        chosen = ("ground_mask", n_ground, anchor_g, cnt_g)
+                        debug["selection_reason"] = "ground_override_on_disagreement"
+                        warnings.append(
+                            f"Trajectory normal disagrees with ground-mask normal by "
+                            f"{ang_deg:.1f}° (>{GRAVITY_DISAGREE_DEG}°). "
+                            f"Using ground-mask plane because its RANSAC support is "
+                            f"strong ({cnt_g} inliers, {inlier_ratio:.1%})."
+                        )
+                    else:
+                        debug["selection_reason"] = "trajectory_ground_support_weak"
+                        warnings.append(
+                            f"Trajectory normal disagrees with ground-mask normal by "
+                            f"{ang_deg:.1f}° (>{GRAVITY_DISAGREE_DEG}°), but "
+                            f"ground support is weak ({cnt_g} inliers, "
+                            f"{inlier_ratio:.1%}). Using trajectory."
+                        )
 
     # 3. Whole-cloud fallback.
     if chosen is None:
