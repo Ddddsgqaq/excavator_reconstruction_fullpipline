@@ -25,7 +25,16 @@ import uvicorn
 import cv2
 from scipy.spatial.transform import Rotation
 
-VGGT_DIR = "/home/maomaoyu/WS/vggt"
+# This repo's own directory — derived from the file location so the project is
+# portable (works regardless of where it is cloned).
+VGGT_YOLOE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# External VGGT repo. Defaults to a sibling ``vggt`` checkout next to this repo's
+# parent; override with the VGGT_DIR environment variable if it lives elsewhere.
+VGGT_DIR = os.environ.get(
+    "VGGT_DIR",
+    os.path.join(os.path.dirname(VGGT_YOLOE_DIR), "vggt"),
+)
 sys.path.insert(0, VGGT_DIR)
 sys.path.append(os.path.join(VGGT_DIR, "vggt"))
 
@@ -41,7 +50,7 @@ from vggt.utils.load_fn import load_and_preprocess_images
 from vggt.utils.pose_enc import pose_encoding_to_extri_intri
 from vggt.utils.geometry import unproject_depth_map_to_point_map
 
-sys.path.insert(0, "/home/maomaoyu/WS/vggt_yoloe")
+sys.path.insert(0, VGGT_YOLOE_DIR)
 from elevation_plane import _select_ground_aligned_mask
 import terrain_analysis
 import elevation_export
@@ -49,8 +58,6 @@ from plane_calibration import PlaneCalibrationRequest, calibrate_local_plane
 from gravity_alignment import estimate_gravity, apply_alignment_to_points, apply_alignment_to_extrinsics
 from semantic_fusion import refine_masks_3d
 from resource_profiler import ResourceProfiler, stage as profile_stage
-
-VGGT_YOLOE_DIR = "/home/maomaoyu/WS/vggt_yoloe"
 
 app = FastAPI(title="VGGT Reconstruction Service")
 app.mount("/static", StaticFiles(directory=VGGT_YOLOE_DIR), name="static")

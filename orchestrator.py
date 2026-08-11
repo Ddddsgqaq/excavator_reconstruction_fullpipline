@@ -38,7 +38,8 @@ _args, _ = _parser.parse_known_args()
 YOLOE_URL = _args.yoloe_url
 VGGT_URL  = _args.vggt_url
 
-WORKSPACE_ROOT = "/home/maomaoyu/WS/vggt_yoloe/workspaces"
+ORCH_DIR = os.path.dirname(os.path.abspath(__file__))
+WORKSPACE_ROOT = os.path.join(ORCH_DIR, "workspaces")
 os.makedirs(WORKSPACE_ROOT, exist_ok=True)
 
 SAM_MASK_CHOICES = ["Best Mask", "Mask 1", "Mask 2", "Mask 3"]
@@ -1094,7 +1095,9 @@ with gr.Blocks(theme=theme, css=CSS) as demo:
                                 "🌐 Open 3D Elevation Viewer", variant="primary", size="lg")
 
     # ── Examples ──────────────────────────────────────────────────────────────
-    EXAMPLES_DIR = "/home/maomaoyu/WS/vggt/examples/videos"
+    _vggt_dir = os.environ.get("VGGT_DIR", os.path.join(os.path.dirname(ORCH_DIR), "vggt"))
+    EXAMPLES_DIR = os.path.join(_vggt_dir, "examples", "videos")
+    # (ORCH_DIR is this repo's dir; sibling ``vggt`` checkout is the default.)
     _ex_videos = {
         "colosseum": f"{EXAMPLES_DIR}/Colosseum.mp4",
         "pyramid":   f"{EXAMPLES_DIR}/pyramid.mp4",
@@ -1300,12 +1303,12 @@ with gr.Blocks(theme=theme, css=CSS) as demo:
         fn=None,
         inputs=[target_dir_output, elev_use_ground_filter],
         outputs=[],
-        js="""(td, useGroundFilter) => {
-            if (!td || td === 'None') { alert('Upload and Reconstruct first.'); return; }
-            const url = 'http://localhost:8002/viewer?session=' + encodeURIComponent(td)
+        js=f"""(td, useGroundFilter) => {{
+            if (!td || td === 'None') {{ alert('Upload and Reconstruct first.'); return; }}
+            const url = '{VGGT_URL}/viewer?session=' + encodeURIComponent(td)
               + '&use_ground_filter=' + encodeURIComponent(Boolean(useGroundFilter));
             window.open(url, '_blank');
-        }"""
+        }}"""
     )
 
     # Standalone GLB overlay page, served by the VGGT static-file endpoint.
@@ -1313,7 +1316,7 @@ with gr.Blocks(theme=theme, css=CSS) as demo:
         fn=None,
         inputs=[],
         outputs=[],
-        js="""() => window.open('http://localhost:8002/static/fusion_viewer.html', '_blank')"""
+        js=f"""() => window.open('{VGGT_URL}/static/fusion_viewer.html', '_blank')"""
     )
 
 

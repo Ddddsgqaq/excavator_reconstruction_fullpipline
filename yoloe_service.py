@@ -22,7 +22,14 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import uvicorn
 
-sys.path.insert(0, "/home/maomaoyu/WS/yoloe")
+# External YOLOe repo. Defaults to a sibling ``yoloe`` checkout next to this
+# repo's parent; override with the YOLOE_DIR environment variable.
+_YOLOE_SELF_DIR = os.path.dirname(os.path.abspath(__file__))
+YOLOE_DIR = os.environ.get(
+    "YOLOE_DIR",
+    os.path.join(os.path.dirname(_YOLOE_SELF_DIR), "yoloe"),
+)
+sys.path.insert(0, YOLOE_DIR)
 from ultralytics import YOLOE
 from ultralytics.utils.torch_utils import smart_inference_mode
 from ultralytics.models.yolo.yoloe.predict_vp import YOLOEVPSegPredictor
@@ -538,7 +545,7 @@ def segment_promptfree(req: PromptFreeRequest):
         raise HTTPException(400, "No images found")
 
     with profiler.stage("load_models_and_build_promptfree_vocabulary"):
-        ram_tag_path = "/home/maomaoyu/WS/yoloe/tools/ram_tag_list.txt"
+        ram_tag_path = os.path.join(YOLOE_DIR, "tools", "ram_tag_list.txt")
         with open(ram_tag_path) as f:
             texts = [x.strip() for x in f.readlines()]
         model = get_model(req.model_id)

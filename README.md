@@ -48,11 +48,21 @@ This project builds a reconstruction pipeline that combines VGGT 3D reconstructi
 
 ## Run
 
-This repository is the **pipeline glue only**. It orchestrates two external repositories that must be checked out alongside it (paths are used directly in `start_all.sh` and the service files):
+This repository is the **pipeline glue only**. It orchestrates two external repositories that must be checked out **as siblings next to this repo**:
 
-- `/home/maomaoyu/WS/vggt` — the VGGT reconstruction repo, including its model weights (`model.pt`).
-- `/home/maomaoyu/WS/yoloe` — the YOLOe / ultralytics repo. YOLOe weights are pulled from HuggingFace (`jameslahm/yoloe`) on first run.
-- `/home/maomaoyu/WS/vggt_yoloe` — this repo.
+```
+<parent>/
+├── vggt_yoloe/   ← this repo
+├── vggt/         ← VGGT reconstruction repo, including model weights (model.pt)
+└── yoloe/        ← YOLOe / ultralytics repo (YOLOe weights auto-download from HuggingFace jameslahm/yoloe on first run)
+```
+
+The service files locate themselves via `__file__` and default to these sibling paths, so the project is portable — clone it anywhere and the sibling layout just works. If your external repos live elsewhere, override with environment variables before starting:
+
+```bash
+export VGGT_DIR=/path/to/vggt
+export YOLOE_DIR=/path/to/yoloe
+```
 
 ### Install dependencies
 
