@@ -64,6 +64,12 @@ export VGGT_DIR=/path/to/vggt
 export YOLOE_DIR=/path/to/yoloe
 ```
 
+> **Required VGGT patch:** `vggt_service.py` imports helper functions that are **not** in the official VGGT release. After checking out VGGT, copy the shipped patch over it:
+> ```bash
+> cp vggt_patches/visual_util.py  ../vggt/visual_util.py   # or $VGGT_DIR/visual_util.py
+> ```
+> Without this, the VGGT service fails at import time. See `vggt_patches/README.md`. YOLOe needs no patch.
+
 ### Install dependencies
 
 The two services need different dependency sets, so they run in two separate conda environments. `torch`/`torchvision` are pinned to CUDA 13.0 builds — install torch first from the matching index, then the rest.
